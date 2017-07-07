@@ -16,7 +16,10 @@
 	},
 	"homepage": "https://github.com/calebsander/rjjenda#readme",
 	"dependencies": {
+		"@types/csv-parse": "^1.1.8",
+		"@types/node": "^8.0.8",
 		"@types/sequelize": "^4.0.64",
+		"csv-parse": "^1.2.0",
 		"pg": "^6.4.0",
 		"sequelize": "^4.2.1"
 	}

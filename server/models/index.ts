@@ -64,4 +64,5 @@ class Database {
 
 const database = new Database
 export const sequelize = database.sequelize
-export default database.models
+export const {Student, Teacher, Course, Section, Group, Assignment, Limit, Info} =
+	database.models
