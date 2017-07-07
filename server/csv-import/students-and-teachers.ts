@@ -50,11 +50,3 @@ export default (csvStream: Readable): Promise<any> =>
 				}
 			}))
 		})
-		.then(() => {
-			console.log('Done')
-			process.exit()
-		})
-		.catch((err: Error) => {
-			console.error(err.message)
-			process.exit(1)
-		})

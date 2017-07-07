@@ -13,5 +13,5 @@ postgres=# \q
 ## Compiling the TypeScript
 ````
 $ npm i -g typescript #if not already installed
-$ tsc -p tsconfig.json
+$ npm run compile
 ````
