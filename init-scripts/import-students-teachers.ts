@@ -4,7 +4,7 @@ import importFromCSV from '../server/csv-import/students-and-teachers'
 import * as fs from 'fs'
 import {Student, Teacher, sequelize} from '../server/models'
 
-const [_, __, csvFile] = process.argv
+const csvFile = process.argv[2]
 if (!csvFile) throw new Error('Syntax: "init-scripts/import-students-teachers.js csvFile"')
 
 Promise.all([
