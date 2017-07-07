@@ -1,12 +1,12 @@
 import {Instance} from 'sequelize'
-import {CourseAttributes, CourseInstance} from './course'
-import {TeacherAttributes, TeacherInstance} from './teacher'
+import {CourseInstance} from './course'
+import {TeacherInstance} from './teacher'
 
 export interface SectionAttributes {
 	id: number //arbitrary
-	course: CourseAttributes
+	course: CourseInstance
 	number: number //e.g. 2
-	teacher: TeacherAttributes
+	teacher: TeacherInstance
 }
 
 export interface SectionInstance extends Instance<SectionAttributes> {}

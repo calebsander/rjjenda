@@ -1,9 +1,9 @@
 import * as Sequelize from 'sequelize'
 import {AssignmentAttributes, AssignmentInstance} from './assignment'
-import {addAssociations} from './index'
+import {AssociableModel, addAssociations} from './index'
 
-export default (sequelize: Sequelize.Sequelize): Sequelize.Model<AssignmentInstance, AssignmentAttributes> => {
-	return addAssociations(
+export default (sequelize: Sequelize.Sequelize): AssociableModel<AssignmentInstance, AssignmentAttributes> =>
+	addAssociations(
 		sequelize.define<AssignmentInstance, AssignmentAttributes>('assignment', {
 			weight: {
 				type: Sequelize.FLOAT,
@@ -26,4 +26,3 @@ export default (sequelize: Sequelize.Sequelize): Sequelize.Model<AssignmentInsta
 			Assignment.belongsTo(Group)
 		}
 	)
-}

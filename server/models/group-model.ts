@@ -1,9 +1,9 @@
 import * as Sequelize from 'sequelize'
 import {GroupAttributes, GroupInstance} from './group'
-import {addAssociations} from './index'
+import {AssociableModel, addAssociations} from './index'
 
-export default (sequelize: Sequelize.Sequelize): Sequelize.Model<GroupInstance, GroupAttributes> => {
-	return addAssociations(
+export default (sequelize: Sequelize.Sequelize): AssociableModel<GroupInstance, GroupAttributes> =>
+	addAssociations(
 		sequelize.define<GroupInstance, GroupAttributes>('group', {
 			name: Sequelize.STRING
 		}),
@@ -13,4 +13,3 @@ export default (sequelize: Sequelize.Sequelize): Sequelize.Model<GroupInstance, 
 			Group.hasMany(Assignment)
 		}
 	)
-}

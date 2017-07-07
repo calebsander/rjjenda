@@ -1,9 +1,9 @@
 import * as Sequelize from 'sequelize'
 import {StudentAttributes, StudentInstance} from './student'
-import {addAssociations} from './index'
+import {AssociableModel, addAssociations} from './index'
 
-export default (sequelize: Sequelize.Sequelize): Sequelize.Model<StudentInstance, StudentAttributes> => {
-	return addAssociations(
+export default (sequelize: Sequelize.Sequelize): AssociableModel<StudentInstance, StudentAttributes> =>
+	addAssociations(
 		sequelize.define<StudentInstance, StudentAttributes>('student', {
 			id: {
 				type: Sequelize.STRING,
@@ -32,4 +32,3 @@ export default (sequelize: Sequelize.Sequelize): Sequelize.Model<StudentInstance
 			Student.belongsToMany(Group, {through: 'memberships'})
 		}
 	)
-}

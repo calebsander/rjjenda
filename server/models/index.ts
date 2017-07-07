@@ -22,7 +22,7 @@ type AssociateFunction = (models: SequelizeModels) => void
 interface Associable {
 	associate?: AssociateFunction
 }
-type AssociableModel<I, A> = Sequelize.Model<I, A> & Associable
+export type AssociableModel<I, A> = Sequelize.Model<I, A> & Associable
 export interface SequelizeModels {
 	Student: AssociableModel<StudentInstance, StudentAttributes>
 	Teacher: AssociableModel<TeacherInstance, TeacherAttributes>
