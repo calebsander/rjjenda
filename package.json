@@ -1,0 +1,23 @@
+{
+	"name": "rjjenda",
+	"version": "0.1.0",
+	"description": "A student-teacher workload manager",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/calebsander/rjjenda.git"
+	},
+	"author": "Caleb Sander",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/calebsander/rjjenda/issues"
+	},
+	"homepage": "https://github.com/calebsander/rjjenda#readme",
+	"dependencies": {
+		"@types/sequelize": "^4.0.64",
+		"pg": "^6.4.0",
+		"sequelize": "^4.2.1"
+	}
+}
