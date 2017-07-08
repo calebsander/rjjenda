@@ -4,7 +4,7 @@
 	"description": "A student-teacher workload manager",
 	"scripts": {
 		"build": "webpack",
-		"compile": "tsc -p tsconfig.json",
+		"compile": "./compile.sh",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"repository": {
@@ -22,7 +22,7 @@
 		"@types/express": "^4.0.36",
 		"@types/node": "^8.0.8",
 		"@types/sequelize": "^4.0.64",
-		"croud-vue-semantic": "^1.0.4",
+		"@types/vue-material": "git+https://github.com/calebsander/vue-material-types.git",
 		"css-loader": "^0.28.4",
 		"csv-parse": "^1.2.0",
 		"express": "^4.15.3",
@@ -30,8 +30,9 @@
 		"sequelize": "^4.2.1",
 		"ts-loader": "^2.2.2",
 		"typescript": "^2.4.1",
-		"vue": "^2.3.4",
+		"vue-class-component": "^5.0.2",
 		"vue-loader": "^13.0.0",
+		"vue-material": "^0.7.4",
 		"vue-template-compiler": "^2.3.4",
 		"webpack": "^3.1.0"
 	}

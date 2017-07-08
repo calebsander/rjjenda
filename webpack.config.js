@@ -4,7 +4,7 @@ const webpack = require('webpack')
 module.exports = {
 	entry: './frontend/src/index.ts',
 	output: {
-		path: path.resolve(__dirname, 'public/dist'),
+		path: path.join(__dirname, 'public/dist'),
 		filename: 'build.js'
 	},
 	module: {
@@ -25,20 +25,25 @@ module.exports = {
 			{
 				test: /\.ts$/,
 				loader: 'ts-loader',
-				exclude: /node_modules/,
 				options: {
 					appendTsSuffixTo: [/\.vue$/],
 				}
+			},
+			{
+				test: /\.css$/,
+				loader: 'vue-style-loader!css-loader'
 			}
 		]
 	},
 	resolve: {
-		extensions: ['.ts', '.js', '.vue', '.json'],
 		alias: {
 			'vue$': 'vue/dist/vue.esm.js'
 		}
 	},
-	devtool: '#eval-source-map'
+  performance: {
+    hints: false
+  },
+  devtool: '#eval-source-map'
 }
 
 if (process.env.NODE_ENV === 'production') {

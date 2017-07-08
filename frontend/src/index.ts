@@ -1,15 +1,11 @@
-import Vue from 'vue'
+import Vue, {PluginObject} from 'vue'
+import VueMaterial from 'vue-material'
+import 'vue-material/dist/vue-material.css'
+import LoginComponent from './components/Login.vue'
 
-Vue.use(require('croud-vue-semantic'))
+Vue.use(VueMaterial)
 
-let v = new Vue({
-	el: "#app",
-	template: `
-	<div>
-		<div>Hello {{name}}!</div>
-		Name: <input v-model="name" type="text">
-	</div>`,
-	data: {
-		name: "World"
-	}
+new Vue({
+	el: '#app',
+	components: {LoginComponent}
 })

@@ -6,4 +6,4 @@ public/semantic/*
 public/semantic/dist/*
 !public/semantic/dist/semantic.min.css
 !public/semantic/dist/semantic.min.js
-public/dist/build.js
+public/dist
