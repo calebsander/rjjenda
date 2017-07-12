@@ -1,22 +1,9 @@
 <template>
-	<div>
-		<md-button class='md-raised md-accent' @click.native='increment'>
-			Increment
-		</md-button>
-		{{ count }}
-	</div>
+	<md-layout md-align='center'>
+		<md-layout md-flex md-column md-vertical-align='center'>
+			<md-layout md-flex>
+				<md-button href='/auth' class='md-raised md-primary'>Sign in with Google</md-button>
+			</md-layout>
+		</md-layout>
+	</md-layout>
 </template>
-
-<script lang='ts'>
-	import Vue from 'vue'
-	import Component from 'vue-class-component'
-
-	@Component
-	export default class LoginComponent extends Vue {
-		count: number = 0
-
-		increment(): void {
-			this.count++
-		}
-	}
-</script>
