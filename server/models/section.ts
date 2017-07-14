@@ -9,4 +9,4 @@ export interface SectionAttributes {
 	teacher: TeacherInstance
 }
 
-export interface SectionInstance extends Instance<SectionAttributes> {}
+export interface SectionInstance extends Instance<SectionAttributes>, SectionAttributes {}

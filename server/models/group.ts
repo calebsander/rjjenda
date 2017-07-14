@@ -7,4 +7,4 @@ export interface GroupAttributes {
 	name: string | null //null if associated with a section, because name is in the course + section number
 }
 
-export interface GroupInstance extends Instance<GroupAttributes> {}
+export interface GroupInstance extends Instance<GroupAttributes>, GroupAttributes {}

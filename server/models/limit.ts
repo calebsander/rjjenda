@@ -6,4 +6,4 @@ export interface LimitAttributes {
 	assignmentWeight: number //max sum of assignment weights
 }
 
-export interface LimitInstance extends Instance<LimitAttributes> {}
+export interface LimitInstance extends Instance<LimitAttributes>, LimitAttributes {}

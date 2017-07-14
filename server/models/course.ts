@@ -5,4 +5,4 @@ export interface CourseAttributes {
 	name: string //e.g. English 9
 }
 
-export interface CourseInstance extends Instance<CourseAttributes> {}
+export interface CourseInstance extends Instance<CourseAttributes>, CourseAttributes {}

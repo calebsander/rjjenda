@@ -6,4 +6,4 @@ export interface InfoAttributes {
 	color: string //HTML color to display on UI
 }
 
-export interface InfoInstance extends Instance<InfoAttributes> {}
+export interface InfoInstance extends Instance<InfoAttributes>, InfoAttributes {}

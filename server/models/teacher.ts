@@ -9,4 +9,4 @@ export interface TeacherAttributes {
 	admissions: boolean //whether teacher has admissions privileges
 }
 
-export interface TeacherInstance extends Instance<TeacherAttributes> {}
+export interface TeacherInstance extends Instance<TeacherAttributes>, TeacherAttributes {}

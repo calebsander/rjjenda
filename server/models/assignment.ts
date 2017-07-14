@@ -10,4 +10,4 @@ export interface AssignmentAttributes {
 	visitors: boolean //should visitors be allowed to class on that day
 }
 
-export interface AssignmentInstance extends Instance<AssignmentAttributes> {}
+export interface AssignmentInstance extends Instance<AssignmentAttributes>, AssignmentAttributes {}
