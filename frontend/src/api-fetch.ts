@@ -1,4 +1,5 @@
 import VueRouter from 'vue-router'
+import {APIResponse} from '../../api'
 
 interface FetchOptions {
 	url: string
@@ -7,10 +8,6 @@ interface FetchOptions {
 	handler?: (response: any) => void
 	router: VueRouter
 }
-
-type APIResponse =
-	{success: false, message: string} |
-	{success: true, data: any}
 
 export default ({url, method, data, handler, router}: FetchOptions): void => {
 	const headers = new Headers

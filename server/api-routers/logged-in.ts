@@ -1,5 +1,6 @@
 import * as express from 'express'
 import {LoggedIn} from '../../api'
+import {success} from '../api-respond'
 import {UserType, SavedUserType} from '../authentication'
 
 const router = express.Router()
@@ -11,7 +12,7 @@ router.get('/', (req, res) => {
 		response = {loggedIn: true, type: savedUser.type}
 	}
 	else response = {loggedIn: false}
-	res.json({success: true, data: response})
+	success(res, response)
 })
 
 export default router

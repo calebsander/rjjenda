@@ -5,6 +5,7 @@
 	"scripts": {
 		"build": "webpack",
 		"compile": "tsc -p tsconfig.json",
+		"start": "npm run compile && server/start.js",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"repository": {

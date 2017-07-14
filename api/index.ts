@@ -5,3 +5,7 @@ export type LoggedIn =
 export interface UserInfo {
 	name: string
 }
+
+export type APIResponse =
+	{success: false, message: string} |
+	{success: true, data: any}
