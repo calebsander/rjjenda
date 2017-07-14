@@ -13,7 +13,8 @@ export default ({url, method, data, handler, router}: FetchOptions): void => {
 	const headers = new Headers
 	if (data) headers.append('content-type', 'application/json')
 	const options: RequestInit = {
-		body: data ? JSON.stringify(data) : undefined,
+		body: (data instanceof ArrayBuffer) ? data :
+			data ? JSON.stringify(data) : undefined,
 		cache: 'no-cache',
 		credentials: 'include',
 		headers,

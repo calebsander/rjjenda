@@ -27,23 +27,29 @@ export default (csvStream: Readable): Promise<any> =>
 				const username = email.substring(0, email.indexOf('@')).toLowerCase()
 				switch (role) {
 					case 'Student':
-						return Student.create({
-							id,
-							firstName,
-							lastName,
-							username,
-							advisor: null,
-							year: Number(year)
+						return Student.findOrCreate({
+							where: {id},
+							defaults: {
+								id,
+								firstName,
+								lastName,
+								username,
+								advisor: null,
+								year: Number(year)
+							}
 						})
 					case 'Staff':
 					case 'Teacher':
-						return Teacher.create({
-							id,
-							firstName,
-							lastName,
-							username,
-							admin: false,
-							admissions: false
+						return Teacher.findOrCreate({
+							where: {id},
+							defaults: {
+								id,
+								firstName,
+								lastName,
+								username,
+								admin: false,
+								admissions: false
+							}
 						})
 					default:
 						throw new Error('Unknown role: ' + role)

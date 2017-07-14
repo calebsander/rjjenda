@@ -7,6 +7,6 @@ function sendJSON(res: Response, json: APIResponse) {
 export function error(res: Response, message: string) {
 	sendJSON(res, {success: false, message})
 }
-export function success(res: Response, data: any) {
+export function success(res: Response, data?: any) {
 	sendJSON(res, {success: true, data})
 }

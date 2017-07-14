@@ -1,4 +1,3 @@
-import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import * as session from 'express-session'
 import connectSessionSequelize = require('connect-session-sequelize')
@@ -10,7 +9,6 @@ import {sequelize} from './models'
 const SequelizeStore = connectSessionSequelize(session.Store)
 const app = express()
 
-app.use(bodyParser.json())
 app.use(session({
 	secret: require('../config/oauth.json').clientSecret,
 	resave: false,
