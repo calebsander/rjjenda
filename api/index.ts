@@ -3,6 +3,8 @@ export type LoggedIn =
 	{loggedIn: true, type: 'student' | 'teacher'}
 
 export interface UserInfo {
+	admin?: boolean
+	admissions?: boolean
 	name: string
 }
 
