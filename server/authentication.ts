@@ -11,20 +11,53 @@ const {clientID, clientSecret}: OAuthConfig = require('../config/oauth.json')
 
 const COMMSCHOOL_DOMAIN = 'commschool.org'
 
-type UserType = StudentInstance | TeacherInstance
-passport.serializeUser<UserType, string>((user, done) => {
-	done(null, user.username)
+export type UserType = StudentInstance | TeacherInstance
+export class SavedUserType {
+	readonly id: string
+	readonly type: 'student' | 'teacher'
+
+	constructor(id: string) {
+		this.id = id
+		if (this.id.startsWith('S')) this.type = 'student'
+		else this.type = 'teacher'
+	}
+}
+passport.serializeUser<UserType, SavedUserType>((user, done) => {
+	done(null, new SavedUserType(user.id))
 })
+passport.deserializeUser<UserType, SavedUserType>(({id, type}, done) => {
+	if (type === 'student') {
+		Student.findOne({
+			attributes: ['id'],
+			where: {id}
+		})
+			.then(student => {
+				if (student) done(null, student)
+				else done(new Error('No such student: ' + id))
+			})
+	}
+	else {
+		Teacher.findOne({
+			attributes: ['id'],
+			where: {id}
+		})
+			.then(teacher => {
+				if (teacher) done(null, teacher)
+				else done(new Error('No such teacher: ' + id))
+			})
+	}
+})
+
 function lookupUsername(username: string, done: (err: Error | null, user?: UserType) => void): void {
 	Student.findOne({
-		attributes: ['username'],
+		attributes: ['id'],
 		where: {username}
 	})
-		.then((student) => { //need parens around student for syntax highlighting
+		.then(student => {
 			if (student) done(null, student)
 			else {
 				Teacher.findOne({
-					attributes: ['username'],
+					attributes: ['id'],
 					where: {username}
 				})
 					.then(teacher => {
@@ -34,8 +67,6 @@ function lookupUsername(username: string, done: (err: Error | null, user?: UserT
 			}
 		})
 }
-passport.deserializeUser<UserType, string>(lookupUsername)
-
 passport.use(new GoogleStrategy({
 	clientID,
 	clientSecret,

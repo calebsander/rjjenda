@@ -1,0 +1,9 @@
+{
+	"files.exclude": {
+		"server/**/*.js": true,
+		"init-scripts/**/*.js": true
+	},
+	"files.associations": {
+		"*.vue": "vue"
+	}
+}
