@@ -13,7 +13,7 @@
 		</md-card-content>
 		<md-card-actions>
 			<md-spinner md-indeterminate v-if='loading'></md-spinner>
-			<md-button @click='upload'>Upload</md-button>
+			<md-button @click='upload' :disabled='file === null'>Upload</md-button>
 		</md-card-actions>
 	</md-card>
 </template>
@@ -32,7 +32,7 @@
 	})
 	export default class UserCSVUpload extends Vue {
 		loading = false
-		file: File
+		file: File | null = null
 		filename: string | null = null
 
 		selected(files: FileList) {
@@ -50,11 +50,12 @@
 					handler: () => {
 						this.loading = false
 						this.filename = null
+						location.reload() //reloads so student + teacher tables refresh
 					},
 					router: this.$router
 				})
 			}
-			fileReader.readAsArrayBuffer(this.file)
+			fileReader.readAsArrayBuffer(this.file as File)
 			this.loading = true
 		}
 	}
