@@ -11,7 +11,7 @@
 		<md-sidenav class='md-left' ref='sidebar'>
 			<md-toolbar>
 				<div class='md-toolbar-container'>
-					<h3 class='md-title'>Teacher Options</h3>
+					<h3 class='md-title' @click='toggleSidebar'>Teacher Options</h3>
 				</div>
 			</md-toolbar>
 			<md-list>
