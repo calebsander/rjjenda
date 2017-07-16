@@ -11,15 +11,21 @@
 						<md-table-head>ID</md-table-head>
 						<md-table-head>First name</md-table-head>
 						<md-table-head>Last name</md-table-head>
-						<md-table-head>Username</md-table-head>
+						<md-table-head>
+							Username
+							<md-tooltip md-direction='top'>Should match e-mail address</md-tooltip>
+						</md-table-head>
 						<md-table-head>Year</md-table-head>
-						<md-table-head>Advisor</md-table-head>
+						<md-table-head>
+							Advisor
+							<md-tooltip md-direction='top'>Last name only</md-tooltip>
+						</md-table-head>
 						<md-table-head>Delete</md-table-head>
 					</md-table-row>
 				</md-table-header>
 				<md-table-body>
 					<md-table-row v-for='student in studentsSlice' :key='student.id'>
-						<md-table-cell> <!--Can't reference student by id when updating id-->
+						<md-table-cell> <!--Can't reference student by id when updating id, so editing is disabled-->
 							{{ student.id }}
 						</md-table-cell>
 						<md-table-cell @click.native='edit(student, "firstName")'>

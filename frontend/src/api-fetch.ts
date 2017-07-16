@@ -10,10 +10,16 @@ interface FetchOptions {
 }
 
 export default ({url, method, data, handler, router}: FetchOptions): void => {
+	const arrayBufferData = data instanceof ArrayBuffer
 	const headers = new Headers
-	if (data) headers.append('content-type', 'application/json')
+	if (data) {
+		headers.append(
+			'content-type',
+			arrayBufferData ? 'text/plain' : 'application/json'
+		)
+	}
 	const options: RequestInit = {
-		body: (data instanceof ArrayBuffer) ? data :
+		body: arrayBufferData ? data :
 			data ? JSON.stringify(data) : undefined,
 		cache: 'no-cache',
 		credentials: 'include',

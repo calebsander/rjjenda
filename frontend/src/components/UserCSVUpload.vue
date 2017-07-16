@@ -1,4 +1,4 @@
-<<template>
+<template>
 	<md-card>
 		<md-card-header>
 			<div class='md-title'>
@@ -8,7 +8,7 @@
 		<md-card-content>
 			This will not delete any users, only add to the list
 			<md-input-container>
-				<md-file v-model='filename' required placeholder='Click to select file' accept='.csv' @selected='selected'></md-file>
+				<md-file required placeholder='Click to select file' accept='.csv' @selected='selected'></md-file>
 			</md-input-container>
 		</md-card-content>
 		<md-card-actions>
@@ -33,23 +33,19 @@
 	export default class UserCSVUpload extends Vue {
 		loading = false
 		file: File | null = null
-		filename: string | null = null
 
 		selected(files: FileList) {
 			this.file = files[0]
 		}
 		upload() {
-			const fileReader = new FileReader()
+			const fileReader = new FileReader
 			fileReader.onload = event => {
 				const csvBuffer = (event.target as BufferResult).result
-				console.log(csvBuffer)
 				apiFetch({
 					url: '/admin/upload-users',
-					method: 'POST',
 					data: csvBuffer,
 					handler: () => {
 						this.loading = false
-						this.filename = null
 						location.reload() //reloads so student + teacher tables refresh
 					},
 					router: this.$router

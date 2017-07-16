@@ -2,7 +2,7 @@ import * as csvParse from 'csv-parse'
 import {Readable} from 'stream'
 
 export interface RowObject {
-	[column: string]: string
+	[column: string]: string | undefined
 }
 
 export const parse = (csvStream: Readable): Promise<RowObject[]> =>

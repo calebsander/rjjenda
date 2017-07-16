@@ -5,6 +5,7 @@ import {Students, StudentUpdate} from '../../api'
 import {error, success} from '../api-respond'
 import {restrictToAdmin} from '../api-restrict'
 import importUsersFromCSV from '../csv-import/students-and-teachers'
+import groupsMembersRouter from './groups-members'
 import {Student, Teacher} from '../models'
 
 const router = express.Router()
@@ -12,7 +13,7 @@ router.use(restrictToAdmin)
 router.post('/upload-users', (req, res) => {
 	importUsersFromCSV(req)
 		.then(() => success(res))
-		.catch(err => error(res, err.message))
+		.catch(err => error(res, err))
 })
 router.get('/students', (_, res) => {
 	Student.findAll({
@@ -40,7 +41,7 @@ router.get('/students', (_, res) => {
 			})
 			success(res, response)
 		})
-		.catch(err => error(res, err.message))
+		.catch(err => error(res, err))
 })
 interface IdParams {
 	id: string
@@ -51,7 +52,7 @@ router.delete('/student/:id', (req, res) => {
 		where: {id}
 	})
 		.then(() => success(res))
-		.catch(err => error(res, err.message))
+		.catch(err => error(res, err))
 })
 router.post('/student/:id/update',
 	bodyParser.json(),
@@ -68,7 +69,7 @@ router.post('/student/:id/update',
 						.save()
 				})
 				.then(() => success(res))
-				.catch(err => error(res, err.message))
+				.catch(err => error(res, err))
 		}
 		const {id} = req.params as IdParams
 		let {attribute, value} = req.body as StudentUpdate
@@ -83,10 +84,11 @@ router.post('/student/:id/update',
 					value = teacher.id
 					update()
 				})
-				.catch(err => error(res, err.message))
+				.catch(err => error(res, err))
 		}
 		else update()
 	}
 )
+router.use(groupsMembersRouter)
 
 export default router

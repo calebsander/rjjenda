@@ -5,14 +5,14 @@ import {TeacherInstance} from './models/teacher'
 
 export function restrictToLoggedIn(req: Request, res: Response, next: NextFunction) {
 	if (req.isAuthenticated()) next()
-	else error(res, 'Need to be logged in')
+	else error(res, new Error('Need to be logged in'))
 }
 export function restrictToTeacher(req: Request, res: Response, next: NextFunction) {
 	restrictToLoggedIn(req, res, () => {
 		const user: UserType = req.user
 		const savedUser = new SavedUserType(user.id)
 		if (savedUser.type === 'teacher') next()
-		else error(res, 'Need to be a teacher')
+		else error(res, new Error('Need to be a teacher'))
 	})
 }
 export function restrictToAdmin(req: Request, res: Response, next: NextFunction) {
@@ -21,8 +21,8 @@ export function restrictToAdmin(req: Request, res: Response, next: NextFunction)
 		user.reload({attributes: ['admin']})
 			.then(user => {
 				if (user.get('admin')) next()
-				else error(res, 'Need to be an administrator')
+				else error(res, new Error('Need to be an administrator'))
 			})
-			.catch(err => error(res, err.message))
+			.catch(err => error(res, err))
 	})
 }
