@@ -44,7 +44,6 @@
 		"sequelize": "^4.4.0",
 		"ts-loader": "^2.3.1",
 		"typescript": "^2.4.2",
-		"vue": "^2.4.1",
 		"vue-class-component": "^5.0.2",
 		"vue-loader": "^13.0.2",
 		"vue-material": "^0.7.4",
