@@ -1,12 +1,14 @@
 import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import * as Sequelize from 'sequelize'
-import {Students, StudentUpdate} from '../../api'
+import {Students, StudentUpdate, Groups} from '../../api'
 import {error, success} from '../api-respond'
 import {restrictToAdmin} from '../api-restrict'
 import importUsersFromCSV from '../csv-import/students-and-teachers'
 import groupsMembersRouter from './groups-members'
-import {Student, Teacher} from '../models'
+import {Course, Group, Section, Student, Teacher} from '../models'
+import {GroupAttributes} from '../models/group'
+import {SectionInstance} from '../models/section'
 
 const router = express.Router()
 router.use(restrictToAdmin)
@@ -19,7 +21,7 @@ router.get('/students', (_, res) => {
 	Student.findAll({
 		attributes: ['id', 'firstName', 'lastName', 'username', 'year'],
 		include: [{
-			model: Teacher as Sequelize.Model<any, any>,
+			model: Teacher,
 			attributes: ['lastName'],
 			as: 'advisor'
 		}],
@@ -90,5 +92,61 @@ router.post('/student/:id/update',
 	}
 )
 router.use(groupsMembersRouter)
+interface FindOptionsIgnoreAttributes<T> extends Sequelize.FindOptions<T> {
+	includeIgnoreAttributes?: boolean
+}
+router.get('/groups', (_, res) => {
+	Group.findAll({
+		includeIgnoreAttributes: false, //necessary to keep join table attributes out of the SELECT statement
+		attributes: [
+			'id',
+			'name',
+			'sectionId',
+			[Sequelize.fn('COUNT', Sequelize.col('students.id')), 'studentCount']
+		],
+		include: [Student],
+		group: [Sequelize.col('group.id')]
+	} as FindOptionsIgnoreAttributes<GroupAttributes>)
+		.then(groups => {
+			const responsePromise: Promise<Groups> = Promise.all(
+				groups.map(group => {
+					let sectionPromise: PromiseLike<SectionInstance | null>
+					if (group.sectionId === null) sectionPromise = Promise.resolve(null)
+					else {
+						sectionPromise = Section.find({ //I was having issues including student count and section in same group query
+							attributes: ['number'],
+							where: {
+								id: group.sectionId
+							},
+							include: [
+								{
+									model: Teacher,
+									attributes: ['lastName']
+								},
+								{
+									model: Course,
+									attributes: ['name']
+								}
+							]
+						})
+					}
+					return sectionPromise.then(section => {
+						return {
+							id: group.id,
+							section: section !== null,
+							name:
+								section ? (section.course.name + ' - section ' + String(section.number))
+								: (group.name || ''),
+							teacher: section && section.teacher.lastName,
+							studentCount: Number(group.get('studentCount'))
+						}
+					})
+				})
+			)
+			return responsePromise
+		})
+		.then((response: Groups) => success(res, response))
+		.catch(err => error(res, err))
+})
 
 export default router

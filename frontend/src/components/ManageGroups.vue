@@ -1,55 +1,42 @@
 <template>
 	<div>
-		<md-table-card id='students-table'>
+		<md-table-card id='groups-table'>
 			<md-toolbar>
-				<h1 class='md-title'>Students</h1>
+				<h1 class='md-title'>Groups</h1>
 				<md-spinner md-indeterminate v-if='loading'></md-spinner>
 			</md-toolbar>
 			<md-table>
 				<md-table-header>
 					<md-table-row>
-						<md-table-head>ID</md-table-head>
-						<md-table-head>First name</md-table-head>
-						<md-table-head>Last name</md-table-head>
-						<md-table-head>
-							Username
-							<md-tooltip md-direction='top'>Should match e-mail address</md-tooltip>
-						</md-table-head>
-						<md-table-head>Year</md-table-head>
-						<md-table-head>
-							Advisor
-							<md-tooltip md-direction='top'>Last name only</md-tooltip>
-						</md-table-head>
+						<md-table-head>Name</md-table-head>
+						<md-table-head>Teacher</md-table-head>
+						<md-table-head>Students</md-table-head>
 						<md-table-head>Delete</md-table-head>
 					</md-table-row>
 				</md-table-header>
 				<md-table-body>
-					<md-table-row v-for='student in studentsSlice' :key='student.id'>
-						<md-table-cell> <!--Can't reference student by id when updating id, so editing is disabled-->
-							{{ student.id }}
+					<md-table-row v-for='group in groupsSlice' :key='group.id'>
+						<md-table-cell v-if='group.section'>
+							{{ group.name }}
+							<md-tooltip md-direction='top'>
+								Group name automatically generated from course listing;
+								edit it there
+							</md-tooltip>
 						</md-table-cell>
-						<md-table-cell @click.native='edit(student, "firstName")'>
-							{{ student.firstName }}
+						<md-table-cell v-else @click.native='edit(group, "name")'>
+							{{ group.name }}
 							<md-icon>edit</md-icon>
 						</md-table-cell>
-						<md-table-cell @click.native='edit(student, "lastName")'>
-							{{ student.lastName }}
+						<md-table-cell @click.native='edit(group, "teacher")'>
+							{{ group.teacher }}
 							<md-icon>edit</md-icon>
 						</md-table-cell>
-						<md-table-cell @click.native='edit(student, "username")'>
-							{{ student.username }}
-							<md-icon>edit</md-icon>
-						</md-table-cell>
-						<md-table-cell @click.native='edit(student, "year")'>
-							{{ student.year }}
-							<md-icon>edit</md-icon>
-						</md-table-cell>
-						<md-table-cell @click.native='edit(student, "advisor")'>
-							{{ student.advisor }}
+						<md-table-cell @click.native='editStudents(group)'>
+							{{ group.studentCount }}
 							<md-icon>edit</md-icon>
 						</md-table-cell>
 						<md-table-cell>
-							<md-button class='md-icon-button md-raised' @click='deleteStudent(student.id)'>
+							<md-button class='md-icon-button md-raised' @click='deleteGroup(group.id)'>
 								<md-icon>delete</md-icon>
 							</md-button>
 						</md-table-cell>
@@ -58,17 +45,17 @@
 			</md-table>
 			<md-table-pagination
 				:md-size='DEFAULT_PAGINATION'
-				:md-total='students.length'
+				:md-total='groups.length'
 				:md-page-options='[DEFAULT_PAGINATION]'
 				@pagination='paginate'
 			>
 			</md-table-pagination>
 		</md-table-card>
 
-		<md-dialog ref='editor' md-open-from='#students-table' md-close-to='#students-table'>
-			<md-dialog-title v-if='editStudent'> <!--Avoid computations if editStudent == null-->
+		<md-dialog ref='editor' md-open-from='#groups-table' md-close-to='#groups-table'>
+			<md-dialog-title v-if='editGroup'> <!--Avoid computations if editGroup == null-->
 				Editing {{ editAttribute }} of
-				{{ editStudent.firstName }} {{editStudent.lastName }}
+				{{ editGroup.name }}
 			</md-dialog-title>
 			<md-dialog-content>
 				<md-input-container>
@@ -88,7 +75,7 @@
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
 	import apiFetch from '../api-fetch'
-	import {Student, Students, StudentUpdate} from '../../../api'
+	import {Group, Groups} from '../../../api'
 
 	interface PaginationOptions {
 		page: number
@@ -100,25 +87,25 @@
 	}
 
 	@Component({
-		name: 'manage-students'
+		name: 'manage-groups'
 	})
-	export default class ManageStudents extends Vue {
+	export default class ManageGroups extends Vue {
 		readonly DEFAULT_PAGINATION = 10
-		students: Students = []
-		studentsSlice: Students = []
+		groups: Groups = []
+		groupsSlice: Groups = []
 		loading = true
-		editStudent: Student | null = null
+		editGroup: Group | null = null
 		editAttribute = ''
 		editValue = ''
 
 		mounted() {
-			this.loadStudents()
+			this.loadGroups()
 		}
-		loadStudents() {
+		loadGroups() {
 			apiFetch({
-				url: '/admin/students',
-				handler: (students: Students) => {
-					this.students = students
+				url: '/admin/groups',
+				handler: (groups: Groups) => {
+					this.groups = groups
 					this.paginate({page: 1, size: this.DEFAULT_PAGINATION})
 					this.loading = false
 				},
@@ -126,28 +113,28 @@
 			})
 		}
 		paginate({page, size}: PaginationOptions) {
-			this.studentsSlice = this.students.slice((page - 1) * size, page * size)
+			this.groupsSlice = this.groups.slice((page - 1) * size, page * size)
 		}
-		deleteStudent(id: string) {
+		deleteGroup(id: string) {
 			this.loading = true
 			apiFetch({
-				url: '/admin/student/' + id,
+				url: '/admin/group/' + id,
 				method: 'DELETE',
-				handler: () => this.loadStudents(),
+				handler: () => this.loadGroups(),
 				router: this.$router
 			})
 		}
-		edit(student: Student, attribute: string) {
-			this.editStudent = student
+		edit(group: Group, attribute: string) {
+			this.editGroup = group
 			this.editAttribute = attribute
-			this.editValue = String(student[attribute])
+			this.editValue = String(group[attribute])
 			;(this.$refs.editor as Dialog).open()
 		}
 		cancel() {
 			(this.$refs.editor as Dialog).close()
 		}
 		save() {
-			const student = this.editStudent as Student //asserting it is not null
+			/*const student = this.editStudent as Student //asserting it is not null
 			const value = this.editAttribute === 'year' ? Number(this.editValue) : this.editValue
 			const updateData: StudentUpdate = {
 				attribute: this.editAttribute,
@@ -163,7 +150,10 @@
 					this.loading = false
 				},
 				router: this.$router
-			})
+			})*/
+		}
+		editStudents(group: Group) {
+			console.log(group)
 		}
 	}
 </script>

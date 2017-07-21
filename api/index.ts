@@ -24,6 +24,16 @@ export interface StudentUpdate {
 	value: any
 }
 
+export interface Group {
+	id: number
+	section: boolean
+	name: string
+	teacher: string | null
+	studentCount: number
+	[attribute: string]: string | number | boolean | null
+}
+export type Groups = Group[]
+
 export interface SectionsNotFound {
 	missingSections: string[]
 }
