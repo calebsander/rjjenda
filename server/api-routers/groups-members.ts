@@ -1,6 +1,7 @@
 import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import {Readable} from 'stream'
+import {SectionsNotFound} from '../../api'
 import {error, success} from '../api-respond'
 import {UserType} from '../authentication'
 import importGroupsMembersCSV from '../csv-import/groups-and-members'
@@ -40,9 +41,10 @@ router.post('/upload-members', (req, res) => {
 	groupStream.push(groupUpload)
 	groupStream.push(null)
 	importGroupsMembersCSV({groupStream, memberStream: req})
-		.then(() => {
+		.then(missingSections => {
 			groupUploads.delete(id)
-			success(res)
+			const response: SectionsNotFound = {missingSections}
+			success(res, response)
 		})
 		.catch(err => error(res, err))
 })

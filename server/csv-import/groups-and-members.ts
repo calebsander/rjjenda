@@ -23,7 +23,8 @@ interface Membership extends RowObject {
 	'Role(s)': 'Organizer' | 'Student'
 }
 
-export default ({groupStream, memberStream}: GroupMemberStreams): Promise<any> =>
+//Resolves to list of sections referenced by memberships with no group listing
+export default ({groupStream, memberStream}: GroupMemberStreams): Promise<string[]> =>
 	Promise.all([
 		parse(groupStream),
 		parse(memberStream),
@@ -123,9 +124,13 @@ export default ({groupStream, memberStream}: GroupMemberStreams): Promise<any> =
 					const membershipsAddPromise = Promise.all(sectionCreationPromises) //groups must be made first
 						.then(() => {
 							const groupMembersPromises: Promise<void>[] = []
+							const missingSections: string[] = [] //list of sections not specified in the section list
 							for (const [groupId, students] of groupStudents) {
 								const groupInstance = groupInstanceMap.get(groupId)
-								if (groupInstance === undefined) continue //sections like '721-01' have members but no group info
+								if (groupInstance === undefined) { //sections like '721-01' have members but no group info
+									missingSections.push(groupId)
+									continue
+								}
 
 								groupMembersPromises.push(
 									groupInstance.setStudents(students.map(studentId => {
@@ -136,10 +141,12 @@ export default ({groupStream, memberStream}: GroupMemberStreams): Promise<any> =
 								)
 							}
 							return Promise.all(groupMembersPromises)
+								.then(() => Promise.resolve(missingSections))
 						})
 					return Promise.all([
 						membershipsAddPromise,
 						Promise.all(advisorSetPromises)
 					])
+						.then(([missingSections]) => Promise.resolve(missingSections))
 				})
 		})

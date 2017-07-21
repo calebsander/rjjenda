@@ -1,46 +1,60 @@
 <template>
-	<md-card>
-		<md-card-header>
-			<div class='md-title'>
-				Upload groups and members CSV
-			</div>
-		</md-card-header>
-		<md-card-content>
-			This will delete all old groups and memberships,
-			except for extracurricular groups
-			<md-input-container>
-				<md-file
-					required
-					placeholder='Click to select groups file'
-					accept='.csv'
-					@selected='selectedGroup'
-				>
-				</md-file>
-			</md-input-container>
-			<md-input-container>
-				<md-file
-					required
-					placeholder='Click to select members file'
-					accept='.csv'
-					@selected='selectedMember'
-				>
-				</md-file>
-			</md-input-container>
-		</md-card-content>
-		<md-card-actions>
-			<md-spinner md-indeterminate v-if='loading'></md-spinner>
-			<md-button @click='upload' :disabled='groupFile === null || memberFile === null'>Upload</md-button>
-		</md-card-actions>
-	</md-card>
+	<div>
+		<md-card>
+			<md-card-header>
+				<div class='md-title'>
+					Upload groups and members CSV
+				</div>
+			</md-card-header>
+			<md-card-content>
+				This will delete all old groups and memberships,
+				except for extracurricular groups
+				<md-input-container>
+					<md-file
+						required
+						placeholder='Click to select groups file'
+						accept='.csv'
+						@selected='selectedGroup'
+					>
+					</md-file>
+				</md-input-container>
+				<md-input-container>
+					<md-file
+						required
+						placeholder='Click to select members file'
+						accept='.csv'
+						@selected='selectedMember'
+					>
+					</md-file>
+				</md-input-container>
+			</md-card-content>
+			<md-card-actions>
+				<md-spinner md-indeterminate v-if='loading'></md-spinner>
+				<md-button @click='upload' :disabled='groupFile === null || memberFile === null'>Upload</md-button>
+			</md-card-actions>
+		</md-card>
+		<md-dialog-alert
+			ref='importWarnings'
+			md-title='Import warnings'
+			:md-content-html='alertContent'
+			@close='refreshPage'
+		>
+		</md-dialog-alert>
+	</div>
 </template>
 
 <script lang='ts'>
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
 	import apiFetch from '../api-fetch'
+	import {SectionsNotFound} from '../../../api'
 
 	interface BufferResult extends EventTarget {
 		result: ArrayBuffer
+	}
+
+	interface Dialog extends Vue {
+		open(): void
 	}
 
 	@Component({
@@ -50,6 +64,7 @@
 		loading = false
 		groupFile: File | null = null
 		memberFile: File | null = null
+		alertContent: string = ' ' //errors are thrown if this is empty
 
 		selectedGroup(files: FileList) {
 			this.groupFile = files[0]
@@ -71,9 +86,14 @@
 							apiFetch({
 								url: '/admin/upload-members',
 								data: csvBuffer,
-								handler: () => {
+								handler: ({missingSections}: SectionsNotFound) => {
 									this.loading = false
-									location.reload() //reloads so groups and students table refresh
+									if (missingSections.length) {
+										this.alertContent = 'No group info provided for the following sections:'
+										for (const section of missingSections) this.alertContent += '<br>' + section
+										;(this.$refs.importWarnings as Dialog).open()
+									}
+									else this.refreshPage() //reloads so groups and students table refresh
 								},
 								router: this.$router
 							})
@@ -85,6 +105,9 @@
 			}
 			groupFileReader.readAsArrayBuffer(this.groupFile as File)
 			this.loading = true
+		}
+		refreshPage() {
+			location.reload()
 		}
 	}
 </script>

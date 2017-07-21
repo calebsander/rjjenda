@@ -24,6 +24,10 @@ export interface StudentUpdate {
 	value: any
 }
 
+export interface SectionsNotFound {
+	missingSections: string[]
+}
+
 export type APIResponse =
 	{success: false, message: string} |
 	{success: true, data: any}
