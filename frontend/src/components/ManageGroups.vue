@@ -23,13 +23,18 @@
 								edit it there
 							</md-tooltip>
 						</md-table-cell>
-						<md-table-cell v-else @click.native='edit(group, "name")'>
+						<md-table-cell v-else @click.native='editName(group)'>
 							{{ group.name }}
 							<md-icon>edit</md-icon>
 						</md-table-cell>
-						<md-table-cell @click.native='edit(group, "teacher")'>
+						<md-table-cell v-if='group.section' @click.native='editTeacher(group)'>
 							{{ group.teacher }}
 							<md-icon>edit</md-icon>
+						</md-table-cell>
+						<md-table-cell v-else>
+							<md-tooltip md-direction='top'>
+								Extracurricular groups don't have teachers assigned to them
+							</md-tooltip>
 						</md-table-cell>
 						<md-table-cell @click.native='editStudents(group)'>
 							{{ group.studentCount }}
@@ -54,13 +59,13 @@
 
 		<md-dialog ref='editor' md-open-from='#groups-table' md-close-to='#groups-table'>
 			<md-dialog-title v-if='editGroup'> <!--Avoid computations if editGroup == null-->
-				Editing {{ editAttribute }} of
+				Editing name of
 				{{ editGroup.name }}
 			</md-dialog-title>
 			<md-dialog-content>
 				<md-input-container>
-					<label>{{ editAttribute }}</label>
-					<md-input v-model='editValue'></md-input>
+					<label>Name</label>
+					<md-input v-model='newName'></md-input>
 				</md-input-container>
 			</md-dialog-content>
 			<md-dialog-actions>
@@ -68,14 +73,17 @@
 				<md-button class='md-primary' @click='cancel'>Cancel</md-button>
 			</md-dialog-actions>
 		</md-dialog>
+
+		<teacher-selector ref='teacherSelector' @save='saveTeacher'></teacher-selector>
 	</div>
 </template>
 
 <script lang='ts'>
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
+	import TeacherSelector from './TeacherSelector.vue'
 	import apiFetch from '../api-fetch'
-	import {Group, Groups} from '../../../api'
+	import {Group, Groups, NewGroupName} from '../../../api'
 
 	interface PaginationOptions {
 		page: number
@@ -87,7 +95,10 @@
 	}
 
 	@Component({
-		name: 'manage-groups'
+		name: 'manage-groups',
+		components: {
+			'teacher-selector': TeacherSelector
+		}
 	})
 	export default class ManageGroups extends Vue {
 		readonly DEFAULT_PAGINATION = 10
@@ -95,8 +106,7 @@
 		groupsSlice: Groups = []
 		loading = true
 		editGroup: Group | null = null
-		editAttribute = ''
-		editValue = ''
+		newName = ''
 
 		mounted() {
 			this.loadGroups()
@@ -115,42 +125,53 @@
 		paginate({page, size}: PaginationOptions) {
 			this.groupsSlice = this.groups.slice((page - 1) * size, page * size)
 		}
-		deleteGroup(id: string) {
+		deleteGroup(id: number) {
 			this.loading = true
 			apiFetch({
-				url: '/admin/group/' + id,
+				url: '/admin/group/' + String(id),
 				method: 'DELETE',
 				handler: () => this.loadGroups(),
 				router: this.$router
 			})
 		}
-		edit(group: Group, attribute: string) {
+		editName(group: Group) {
 			this.editGroup = group
-			this.editAttribute = attribute
-			this.editValue = String(group[attribute])
+			this.newName = group.name
 			;(this.$refs.editor as Dialog).open()
 		}
 		cancel() {
 			(this.$refs.editor as Dialog).close()
 		}
 		save() {
-			/*const student = this.editStudent as Student //asserting it is not null
-			const value = this.editAttribute === 'year' ? Number(this.editValue) : this.editValue
-			const updateData: StudentUpdate = {
-				attribute: this.editAttribute,
-				value
+			const group = this.editGroup as Group
+			const data: NewGroupName = {
+				id: group.id,
+				newName: this.newName
 			}
 			this.loading = true
 			apiFetch({
-				url: '/admin/student/' + student.id + '/update',
-				data: updateData,
+				url: '/admin/group/set-name',
+				data,
 				handler: () => {
 					(this.$refs.editor as Dialog).close()
-					student[this.editAttribute] = value
+					group.name = this.newName
 					this.loading = false
 				},
 				router: this.$router
-			})*/
+			})
+		}
+		editTeacher(group: Group) {
+			(this.$refs.teacherSelector as Dialog).open()
+			this.editGroup = group
+		}
+		saveTeacher(teacherId: string) {
+			const group = this.editGroup as Group
+			this.loading = true
+			apiFetch({
+				url: '/admin/group/set-teacher/' + String(group.id) + '/' + teacherId,
+				handler: () => this.loadGroups(),
+				router: this.$router
+			})
 		}
 		editStudents(group: Group) {
 			console.log(group)

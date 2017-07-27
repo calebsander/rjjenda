@@ -34,9 +34,20 @@ export interface Group {
 }
 export type Groups = Group[]
 
+export interface NewGroupName {
+	id: number
+	newName: string
+}
+
 export interface SectionsNotFound {
 	missingSections: string[]
 }
+
+interface TeacherEntry {
+	id: string
+	name: string
+}
+export type TeachersList = TeacherEntry[]
 
 export type APIResponse =
 	{success: false, message: string} |
