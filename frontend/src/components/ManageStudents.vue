@@ -44,7 +44,7 @@
 							{{ student.year }}
 							<md-icon>edit</md-icon>
 						</md-table-cell>
-						<md-table-cell @click.native='edit(student, "advisor")'>
+						<md-table-cell @click.native='editAdvisor(student)'>
 							{{ student.advisor }}
 							<md-icon>edit</md-icon>
 						</md-table-cell>
@@ -81,12 +81,15 @@
 				<md-button class='md-primary' @click='cancel'>Cancel</md-button>
 			</md-dialog-actions>
 		</md-dialog>
+
+		<teacher-selector ref='teacherSelector' @save='saveAdvisor'></teacher-selector>
 	</div>
 </template>
 
 <script lang='ts'>
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
+	import TeacherSelector from './TeacherSelector.vue'
 	import apiFetch from '../api-fetch'
 	import {Student, Students, StudentUpdate} from '../../../api'
 
@@ -100,7 +103,10 @@
 	}
 
 	@Component({
-		name: 'manage-students'
+		name: 'manage-students',
+		components: {
+			'teacher-selector': TeacherSelector
+		}
 	})
 	export default class ManageStudents extends Vue {
 		readonly DEFAULT_PAGINATION = 10
@@ -162,6 +168,19 @@
 					student[this.editAttribute] = value
 					this.loading = false
 				},
+				router: this.$router
+			})
+		}
+		editAdvisor(student: Student) {
+			(this.$refs.teacherSelector as Dialog).open()
+			this.editStudent = student
+		}
+		saveAdvisor(advisorId: string) {
+			const student = this.editStudent as Student
+			this.loading = true
+			apiFetch({
+				url: '/admin/student/set-advisor/' + student.id + '/' + advisorId,
+				handler: () => this.loadStudents(),
 				router: this.$router
 			})
 		}

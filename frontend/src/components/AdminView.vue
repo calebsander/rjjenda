@@ -1,15 +1,14 @@
 <template>
 	<div>
 		<md-layout>
-			<md-layout>
+			<md-layout md-flex=65>
 				<user-csv-upload class='card'></user-csv-upload>
 				<manage-students class='card'></manage-students>
 			</md-layout>
-			<md-layout md-flex=33>
+			<md-layout md-flex=35>
 				<group-member-csv-upload class='card'></group-member-csv-upload>
 				<manage-groups class='card'></manage-groups>
 			</md-layout>
-			<md-layout md-flex=33></md-layout>
 		</md-layout>
 	</div>
 </template>
