@@ -39,6 +39,10 @@ export interface NewGroupName {
 	newName: string
 }
 
+export interface NewGroup {
+	name: string
+}
+
 export interface SectionsNotFound {
 	missingSections: string[]
 }

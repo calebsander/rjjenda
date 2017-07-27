@@ -1,7 +1,7 @@
 import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import * as Sequelize from 'sequelize'
-import {Groups, NewGroupName} from '../../api'
+import {Groups, NewGroupName, NewGroup} from '../../api'
 import {error, success} from '../api-respond'
 import {Course, Group, Section, Student, Teacher} from '../models'
 import {GroupAttributes} from '../models/group'
@@ -60,7 +60,14 @@ router.get('/groups', (_, res) => {
 			)
 			return responsePromise
 		})
-		.then((response: Groups) => success(res, response))
+		.then((response: Groups) => {
+			response.sort((group1, group2) => {
+				if (group1.name < group2.name) return -1
+				else if (group1.name > group2.name) return 1
+				else return 0
+			})
+			success(res, response)
+		})
 		.catch(err => error(res, err))
 })
 router.post('/group/set-name',
@@ -115,5 +122,17 @@ router.delete('/group/:id', (req, res) => {
 		.then(() => success(res))
 		.catch(err => error(res, err))
 })
+router.post('/group',
+	bodyParser.json(),
+	(req, res) => {
+		const {name} = req.body as NewGroup
+		Group.create({
+			name,
+			sectionId: null
+		})
+			.then(() => success(res))
+			.catch(err => error(res, err))
+	}
+)
 
 export default router

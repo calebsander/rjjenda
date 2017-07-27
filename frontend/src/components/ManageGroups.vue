@@ -4,6 +4,10 @@
 			<md-toolbar>
 				<h1 class='md-title'>Groups</h1>
 				<md-spinner md-indeterminate v-if='loading'></md-spinner>
+				<md-button class='md-raised md-icon-button' @click='newGroup' id='new-group'>
+					<md-icon>add</md-icon>
+					<md-tooltip>Create a new extracurricular group</md-tooltip>
+				</md-button>
 			</md-toolbar>
 			<md-table>
 				<md-table-header>
@@ -75,6 +79,20 @@
 		</md-dialog>
 
 		<teacher-selector ref='teacherSelector' @save='saveTeacher'></teacher-selector>
+
+		<md-dialog ref='newGroup' md-open-from='#new-group' md-close-to='#new-group'>
+			<md-dialog-title>New extracurricular group</md-dialog-title>
+			<md-dialog-content>
+				<md-input-container>
+					<label>Name</label>
+					<md-input required v-model='newGroupName'></md-input>
+				</md-input-container>
+			</md-dialog-content>
+			<md-dialog-actions>
+				<md-button class='md-primary' @click='create'>Create</md-button>
+				<md-button class='md-primary' @click='cancelCreation'>Cancel</md-button>
+			</md-dialog-actions>
+		</md-dialog>
 	</div>
 </template>
 
@@ -83,7 +101,7 @@
 	import Component from 'vue-class-component'
 	import TeacherSelector from './TeacherSelector.vue'
 	import apiFetch from '../api-fetch'
-	import {Group, Groups, NewGroupName} from '../../../api'
+	import {Group, Groups, NewGroupName, NewGroup} from '../../../api'
 
 	interface PaginationOptions {
 		page: number
@@ -107,6 +125,7 @@
 		loading = true
 		editGroup: Group | null = null
 		newName = ''
+		newGroupName = ''
 
 		mounted() {
 			this.loadGroups()
@@ -175,6 +194,32 @@
 		}
 		editStudents(group: Group) {
 			console.log(group)
+		}
+		newGroup() {
+			this.newGroupName = ''
+			;(this.$refs.newGroup as Dialog).open()
+		}
+		create() {
+			if (!this.newGroupName) {
+				alert('Enter a name for the group')
+				return
+			}
+			this.loading = true
+			const data: NewGroup = {
+				name: this.newGroupName
+			}
+			apiFetch({
+				url: '/admin/group',
+				data,
+				handler: () => {
+					(this.$refs.newGroup as Dialog).close()
+					this.loadGroups()
+				},
+				router: this.$router
+			})
+		}
+		cancelCreation() {
+			(this.$refs.newGroup as Dialog).close()
 		}
 	}
 </script>
