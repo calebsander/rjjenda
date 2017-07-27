@@ -1,5 +1,5 @@
 import VueRouter from 'vue-router'
-import {APIResponse} from '../../api'
+import {APIResponse, NEED_TO_BE_LOGGED_IN} from '../../api'
 
 interface FetchOptions {
 	url: string
@@ -35,7 +35,8 @@ export default ({url, method, data, handler, router}: FetchOptions): void => {
 			else {
 				const {message} = response
 				console.error(message)
-				alert('Error occurred: ' + message)
+				if (message === NEED_TO_BE_LOGGED_IN) router.push('/login')
+				else alert('Error occurred: ' + message)
 			}
 		})
 }

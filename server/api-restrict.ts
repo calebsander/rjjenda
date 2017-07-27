@@ -1,11 +1,12 @@
 import {NextFunction, Request, Response} from 'express'
+import {NEED_TO_BE_LOGGED_IN} from '../api'
 import {error} from './api-respond'
 import {SavedUserType, UserType} from './authentication'
 import {TeacherInstance} from './models/teacher'
 
 export function restrictToLoggedIn(req: Request, res: Response, next: NextFunction) {
 	if (req.isAuthenticated()) next()
-	else error(res, new Error('Need to be logged in'))
+	else error(res, new Error(NEED_TO_BE_LOGGED_IN))
 }
 export function restrictToTeacher(req: Request, res: Response, next: NextFunction) {
 	restrictToLoggedIn(req, res, () => {

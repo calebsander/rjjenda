@@ -1,3 +1,5 @@
+export const NEED_TO_BE_LOGGED_IN = 'Need to be logged in'
+
 export type LoggedIn =
 	{loggedIn: false} |
 	{loggedIn: true, type: 'student' | 'teacher'}
