@@ -3,6 +3,7 @@ import {TeachersList} from '../../api'
 import {error, success} from '../api-respond'
 import {restrictToAdmin} from '../api-restrict'
 import importUsersFromCSV from '../csv-import/students-and-teachers'
+import coursesEditRouter from './courses-edit'
 import groupsMembersRouter from './groups-members'
 import groupsEditRouter from './groups-edit'
 import studentsEditRouter from './students-edit'
@@ -15,9 +16,10 @@ router.post('/upload-users', (req, res) => {
 		.then(() => success(res))
 		.catch(err => error(res, err))
 })
-router.use(studentsEditRouter)
 router.use(groupsMembersRouter)
+router.use(studentsEditRouter)
 router.use(groupsEditRouter)
+router.use(coursesEditRouter)
 router.get('/list-teachers', (_, res) => {
 	Teacher.findAll({
 		attributes: ['id', 'firstName', 'lastName']

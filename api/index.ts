@@ -63,6 +63,13 @@ export interface StudentQuery {
 	nameSearch: string
 }
 
+export interface Course {
+	id: string
+	name: string
+	sections: number[]
+}
+export type Courses = Course[]
+
 export interface SectionsNotFound {
 	missingSections: string[]
 }
