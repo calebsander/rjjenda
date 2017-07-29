@@ -1,11 +1,12 @@
 import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import * as Sequelize from 'sequelize'
-import {Groups, NewGroupName, NewGroup} from '../../api'
+import {Groups, GroupStudent, NewGroupName, NewGroup, StudentQuery} from '../../api'
 import {error, success} from '../api-respond'
 import {Course, Group, Section, Student, Teacher} from '../models'
-import {GroupAttributes} from '../models/group'
+import {GroupAttributes, GroupInstance} from '../models/group'
 import {SectionInstance} from '../models/section'
+import {StudentAttributes, StudentInstance} from '../models/student'
 
 const router = express.Router()
 
@@ -134,5 +135,90 @@ router.post('/group',
 			.catch(err => error(res, err))
 	}
 )
+function toGroupStudents(students: StudentInstance[]): GroupStudent[] {
+	return students.map(student => ({
+		id: student.id,
+		name: student.firstName + ' ' + student.lastName
+	}))
+}
+router.get('/list-members/:id', (req, res) => {
+	const id = Number(req.params.id)
+	Group.findOne({
+		attributes: [],
+		include: [{
+			model: Student,
+			attributes: ['id', 'firstName', 'lastName']
+		}],
+		where: {id},
+		order: [
+			Sequelize.col('students.lastName'),
+			Sequelize.col('students.firstName')
+		]
+	})
+		.then(group => {
+			if (group === null) throw new Error('No group with id: ' + String(id))
+			const students = group.students
+			if (!students) throw new Error('Failed to load students for group with id: ' + String(id))
+			const response: GroupStudent[] = toGroupStudents(students)
+			success(res, response)
+		})
+		.catch(err => error(res, err))
+})
+const FULL_NAME = Sequelize.fn('lower',
+	Sequelize.fn('concat', Sequelize.col('firstName'), ' ', Sequelize.col('lastName'))
+)
+router.post('/search-students',
+	bodyParser.json(),
+	(req, res) => {
+		const {nameSearch} = req.body as StudentQuery
+		Student.findAll({
+			attributes: ['id', 'firstName', 'lastName'],
+			where: Sequelize.where(
+				Sequelize.fn('strpos', FULL_NAME, nameSearch.toLowerCase()),
+				{$ne: 0}
+			) as Sequelize.WhereOptions<StudentAttributes>
+		})
+			.then(students => {
+				const response: GroupStudent[] = toGroupStudents(students)
+				success(res, response)
+			})
+			.catch(err => error(res, err))
+	}
+)
+interface GroupAndStudent {
+	group: GroupInstance,
+	student: StudentInstance
+}
+function getGroupAndStudent(req: express.Request): Promise<GroupAndStudent> {
+	const id = Number(req.params.id)
+	const studentId = req.params.studentId as string
+	return Promise.all([
+		Group.findOne({
+			attributes: ['id'],
+			where: {id}
+		}),
+		Student.findOne({
+			attributes: ['id'],
+			where: {id: studentId}
+		})
+	])
+		.then(([group, student]) => {
+			if (group === null) throw new Error('No group with id: ' + String(id))
+			if (student === null) throw new Error('No student with id: ' + String(studentId))
+			return Promise.resolve({group, student})
+		})
+}
+router.get('/add-member/:id/:studentId', (req, res) => {
+	getGroupAndStudent(req)
+		.then(({group, student}) => group.addStudent(student))
+		.then(() => success(res))
+		.catch(err => error(res, err))
+})
+router.delete('/remove-member/:id/:studentId', (req, res) => {
+	getGroupAndStudent(req)
+		.then(({group, student}) => group.removeStudent(student))
+		.then(() => success(res))
+		.catch(err => error(res, err))
+})
 
 export default router

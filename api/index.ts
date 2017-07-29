@@ -45,6 +45,15 @@ export interface NewGroup {
 	name: string
 }
 
+export interface GroupStudent {
+	id: string
+	name: string
+}
+
+export interface StudentQuery {
+	nameSearch: string
+}
+
 export interface SectionsNotFound {
 	missingSections: string[]
 }

@@ -62,7 +62,7 @@
 		</md-table-card>
 
 		<md-dialog ref='editor' md-open-from='#groups-table' md-close-to='#groups-table'>
-			<md-dialog-title v-if='editGroup'> <!--Avoid computations if editGroup == null-->
+			<md-dialog-title v-if='editGroup'> <!--avoid computations if editGroup == null-->
 				Editing name of
 				{{ editGroup.name }}
 			</md-dialog-title>
@@ -93,6 +93,41 @@
 				<md-button class='md-primary' @click='cancelCreation'>Cancel</md-button>
 			</md-dialog-actions>
 		</md-dialog>
+
+		<md-dialog ref='selectStudents' md-open-from='#groups-table' md-close-to='#groups-table'>
+			<md-dialog-title v-if='editGroup'> <!--avoid computations if editGroup == null-->
+				Manage students in {{ editGroup.name }}
+			</md-dialog-title>
+			<md-dialog-content>
+				<md-list>
+				<md-list-item>
+						<md-input-container>
+							<label>Student name</label>
+							<md-autocomplete
+								v-model='newStudentName'
+								:fetch='getStudents'
+								:debounce='500'
+								:min-chars='3'
+								query-param='nameSearch'
+								@selected='selectStudent'
+							>
+							</md-autocomplete>
+						</md-input-container>
+						<md-button class='md-raised md-icon-button' @click='addStudent'>
+							<md-icon>add</md-icon>
+							<md-tooltip>Add student to group</md-tooltip>
+						</md-button>
+						<md-spinner md-indeterminate v-if='loading'></md-spinner>
+					</md-list-item>
+					<md-list-item v-for='(student, index) in groupStudents' :key='index'>
+						{{ student.name }}
+						<md-button class='md-icon-button md-raised' @click='deleteStudent(index)'>
+							<md-icon>delete</md-icon>
+						</md-button>
+					</md-list-item>
+				</md-list>
+			</md-dialog-content>
+		</md-dialog>
 	</div>
 </template>
 
@@ -101,7 +136,7 @@
 	import Component from 'vue-class-component'
 	import TeacherSelector from './TeacherSelector.vue'
 	import apiFetch from '../api-fetch'
-	import {Group, Groups, NewGroupName, NewGroup} from '../../../api'
+	import {Group, Groups, GroupStudent, NewGroupName, NewGroup, StudentQuery} from '../../../api'
 
 	interface PaginationOptions {
 		page: number
@@ -126,6 +161,9 @@
 		editGroup: Group | null = null
 		newName = ''
 		newGroupName = ''
+		groupStudents: GroupStudent[] = []
+		newStudent: GroupStudent | null = null
+		newStudentName = '' //write-only; use newStudent for read
 
 		mounted() {
 			this.loadGroups()
@@ -192,8 +230,23 @@
 				router: this.$router
 			})
 		}
+		resetSelectedStudent() {
+			this.newStudent = null
+			this.newStudentName = ''
+		}
 		editStudents(group: Group) {
-			console.log(group)
+			this.editGroup = group
+			this.resetSelectedStudent()
+			;(this.$refs.selectStudents as Dialog).open()
+			this.loading = true
+			apiFetch({
+				url: '/admin/list-members/' + String(group.id),
+				handler: (students: GroupStudent[]) => {
+					this.groupStudents = students
+					this.loading = false
+				},
+				router: this.$router
+			})
 		}
 		newGroup() {
 			this.newGroupName = ''
@@ -220,6 +273,61 @@
 		}
 		cancelCreation() {
 			(this.$refs.newGroup as Dialog).close()
+		}
+		getStudents(query: StudentQuery) {
+			return new Promise<GroupStudent[]>((resolve, _) => { //currently no capability for catching errors from apiFetch()
+				apiFetch({
+					url: '/admin/search-students',
+					data: query,
+					handler: resolve,
+					router: this.$router
+				})
+			})
+		}
+		selectStudent(student: GroupStudent) {
+			this.newStudent = student
+		}
+		addStudent() {
+			const group = this.editGroup as Group
+			const student = this.newStudent
+			if (student === null) {
+				alert('No student selected')
+				return
+			}
+			const matchingStudent = this.groupStudents.find(existingStudent => //check whether student has already been added
+				existingStudent.id === student.id
+			)
+			if (matchingStudent) {
+				alert('Student already exists in group')
+				return
+			}
+
+			this.loading = true
+			apiFetch({
+				url: '/admin/add-member/' + String(group.id) + '/' + student.id,
+				handler: () => {
+					this.loading = false
+					this.resetSelectedStudent()
+					this.groupStudents.push(student)
+					group.studentCount++
+				},
+				router: this.$router
+			})
+		}
+		deleteStudent(index: number) {
+			const group = this.editGroup as Group
+			const student = this.groupStudents[index]
+			this.loading = true
+			apiFetch({
+				url: '/admin/remove-member/' + String(group.id) + '/' + student.id,
+				method: 'DELETE',
+				handler: () => {
+					this.loading = false
+					this.groupStudents.splice(index, 1)
+					group.studentCount--
+				},
+				router: this.$router
+			})
 		}
 	}
 </script>

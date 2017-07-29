@@ -11,6 +11,9 @@ export interface GroupAttributes {
 
 export interface GroupInstance extends Instance<GroupAttributes>, GroupAttributes {
 	section: SectionInstance | null //null if not associated with a section
+	students?: StudentInstance[]
 	studentCount?: number
 	setStudents(students: StudentInstance[]): Promise<void>
+	addStudent(student: StudentInstance): Promise<void>
+	removeStudent(student: StudentInstance): Promise<void>
 }
