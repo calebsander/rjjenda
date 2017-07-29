@@ -1,7 +1,7 @@
 import * as Bluebird from 'bluebird'
 import {Readable} from 'stream'
 import {parse, RowObject} from './csv-parse'
-import {Assignment, Course, Group, Section, Student, Teacher} from '../models'
+import {Course, Group, Section, Student, Teacher} from '../models'
 import {CourseInstance} from '../models/course'
 import {GroupInstance} from '../models/group'
 import {StudentInstance} from '../models/student'
@@ -31,12 +31,7 @@ export default ({groupStream, memberStream}: GroupMemberStreams): Promise<string
 		Student.findAll({ //we need students to set advisors and group memberships, so get them all in one batch
 			attributes: ['id']
 		}),
-		Assignment.destroy({where: {}}) //destroy in order of dependencies (e.g. sections belong to courses)
-			.then(() => Group.destroy({where: {
-				sectionId: {$ne: null} //leave extracurricular groups
-			}}))
-			.then(() => Section.destroy({where: {}}))
-			.then(() => Course.destroy({where: {}}))
+		Course.destroy({where: {}}) //cascades to delete sections, groups, assignments, and memberships
 	])
 		.then(([groupRows, memberRows, allStudents]) => {
 			const groups = groupRows as Group[]

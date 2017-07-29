@@ -10,6 +10,8 @@ export default (sequelize: Sequelize.Sequelize): AssociableModel<GroupInstance, 
 		({Group, Student, Section, Assignment}) => {
 			Group.belongsToMany(Student, {through: 'memberships'})
 			Group.belongsTo(Section)
-			Group.hasMany(Assignment)
+			Group.hasMany(Assignment, {
+				onDelete: 'CASCADE'
+			})
 		}
 	)

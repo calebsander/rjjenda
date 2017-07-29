@@ -16,6 +16,8 @@ export default (sequelize: Sequelize.Sequelize): AssociableModel<CourseInstance,
 			}
 		}),
 		({Course, Section}) => {
-			Course.hasMany(Section)
+			Course.hasMany(Section, {
+				onDelete: 'CASCADE'
+			})
 		}
 	)

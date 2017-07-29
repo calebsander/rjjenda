@@ -13,6 +13,8 @@ export default (sequelize: Sequelize.Sequelize): AssociableModel<SectionInstance
 		({Section, Course, Teacher, Group}) => {
 			Section.belongsTo(Course)
 			Section.belongsTo(Teacher)
-			Section.hasOne(Group)
+			Section.hasOne(Group, {
+				onDelete: 'CASCADE'
+			})
 		}
 	)
