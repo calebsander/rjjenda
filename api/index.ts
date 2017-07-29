@@ -70,6 +70,11 @@ export interface Course {
 }
 export type Courses = Course[]
 
+export interface NewCourseName {
+	id: string
+	name: string
+}
+
 export interface SectionsNotFound {
 	missingSections: string[]
 }

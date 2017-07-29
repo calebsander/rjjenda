@@ -92,7 +92,7 @@
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
 	import apiFetch from '../api-fetch'
-	import {Course} from '../../../api'
+	import {Course, NewCourseName} from '../../../api'
 
 	interface PaginationOptions {
 		page: number
@@ -149,7 +149,30 @@
 			this.name = course.name
 			;(this.$refs.editName as Dialog).open()
 		}
-		saveName() {}
+		saveName() {
+			const course = this.editCourse as Course
+			const {name} = this
+			if (name === course.name) {
+				alert("Name hasn't changed")
+				return
+			}
+
+			const data: NewCourseName = {
+				id: course.id,
+				name
+			}
+			this.loading = true
+			apiFetch({
+				url: '/admin/course/set-name',
+				data,
+				handler: () => {
+					(this.$refs.editName as Dialog).close()
+					this.loading = false
+					course.name = name
+				},
+				router: this.$router
+			})
+		}
 		cancelName() {
 			(this.$refs.editName as Dialog).close()
 		}
