@@ -4,6 +4,10 @@
 			<md-toolbar>
 				<h1 class='md-title'>Students</h1>
 				<md-spinner md-indeterminate class='md-warn' v-if='loading'></md-spinner>
+				<md-button class='md-raised md-icon-button' @click='newStudent' id='new-student'>
+					<md-icon>add</md-icon>
+					<md-tooltip>Create a new student</md-tooltip>
+				</md-button>
 			</md-toolbar>
 			<md-table>
 				<md-table-header>
@@ -83,6 +87,36 @@
 		</md-dialog>
 
 		<teacher-selector ref='teacherSelector' @save='saveAdvisor'></teacher-selector>
+
+		<md-dialog ref='newStudent' md-open-from='#new-student' md-close-to='#new-student'>
+			<md-dialog-title>New student</md-dialog-title>
+			<md-dialog-content>
+				<md-input-container>
+					<label>ID (must start with "S")</label>
+					<md-input v-model='newId' required></md-input>
+				</md-input-container>
+				<md-input-container>
+					<label>First name</label>
+					<md-input v-model='newFirstName' required></md-input>
+				</md-input-container>
+				<md-input-container>
+					<label>Last name</label>
+					<md-input v-model='newLastName' required></md-input>
+				</md-input-container>
+				<md-input-container>
+					<label>Username (from e-mail)</label>
+					<md-input v-model='newUsername' required></md-input>
+				</md-input-container>
+				<md-input-container>
+					<label>Graduation Year</label>
+					<md-input v-model='newYear' type='number' required></md-input>
+				</md-input-container>
+			</md-dialog-content>
+			<md-dialog-actions>
+				<md-button class='md-accent' @click='create'>Create</md-button>
+				<md-button class='md-primary' @click='cancelCreation'>Cancel</md-button>
+			</md-dialog-actions>
+		</md-dialog>
 	</div>
 </template>
 
@@ -91,7 +125,7 @@
 	import Component from 'vue-class-component'
 	import TeacherSelector from './TeacherSelector.vue'
 	import apiFetch from '../api-fetch'
-	import {Student, Students, StudentUpdate} from '../../../api'
+	import {NewStudent, Student, Students, StudentUpdate} from '../../../api'
 
 	interface PaginationOptions {
 		page: number
@@ -106,6 +140,10 @@
 		name: 'manage-students',
 		components: {
 			'teacher-selector': TeacherSelector
+		},
+		watch: {
+			newFirstName: 'updateUsername',
+			newLastName: 'updateUsername'
 		}
 	})
 	export default class ManageStudents extends Vue {
@@ -113,9 +151,19 @@
 		students: Students = []
 		studentsSlice: Students = []
 		loading = true
+
+		page: number = 1
+		size: number = this.DEFAULT_PAGINATION
+
 		editStudent: Student | null = null
 		editAttribute = ''
 		editValue = ''
+
+		newId = ''
+		newFirstName = ''
+		newLastName = ''
+		newUsername = ''
+		newYear = 0
 
 		mounted() {
 			this.loadStudents()
@@ -125,14 +173,19 @@
 				url: '/admin/students',
 				handler: (students: Students) => {
 					this.students = students
-					this.paginate({page: 1, size: this.DEFAULT_PAGINATION})
+					this.paginate(this) //stay on current page after reload
 					this.loading = false
 				},
 				router: this.$router
 			})
 		}
+		getPageStart({page, size}: PaginationOptions) {
+			return (page - 1) * size
+		}
 		paginate({page, size}: PaginationOptions) {
-			this.studentsSlice = this.students.slice((page - 1) * size, page * size)
+			this.studentsSlice = this.students.slice(this.getPageStart({page, size}), page * size)
+			this.page = page
+			this.size = size
 		}
 		deleteStudent(id: string) {
 			this.loading = true
@@ -180,9 +233,70 @@
 			this.loading = true
 			apiFetch({
 				url: '/admin/student/set-advisor/' + student.id + '/' + advisorId,
-				handler: () => this.loadStudents(),
+				handler: () => this.loadStudents(), //we don't have advisor's name, so have to reload to display it
 				router: this.$router
 			})
+		}
+		newStudent() {
+			this.newId = ''
+			this.newFirstName = ''
+			this.newLastName = ''
+			this.newUsername = ''
+			this.newYear = new Date().getFullYear() + 4 //default to assuming incoming freshman
+			;(this.$refs.newStudent as Dialog).open()
+		}
+		updateUsername() { //automatically generate username
+			if (this.newFirstName && this.newLastName) {
+				this.newUsername = (this.newFirstName[0] + this.newLastName).toLowerCase()
+			}
+		}
+		create() {
+			if (!this.newId.startsWith('S')) {
+				alert('ID must start with "S"')
+				return
+			}
+			if (!this.newFirstName) {
+				alert('No first name given')
+				return
+			}
+			if (!this.newLastName) {
+				alert('No last name given')
+				return
+			}
+			if (!this.newFirstName) {
+				alert('No first name given')
+				return
+			}
+			if (!this.newUsername) {
+				alert('No username given')
+				return
+			}
+
+			const data: NewStudent = {
+				id: this.newId,
+				firstName: this.newFirstName,
+				lastName: this.newLastName,
+				username: this.newUsername,
+				year: this.newYear
+			}
+			this.loading = true
+			apiFetch({
+				url: '/admin/student',
+				data,
+				handler: () => {
+					(this.$refs.newStudent as Dialog).close()
+					this.loading = false
+					this.students.splice(this.getPageStart(this), 0, { //add student to top of current page
+						...data,
+						advisor: ''
+					})
+					this.paginate(this)
+				},
+				router: this.$router
+			})
+		}
+		cancelCreation() {
+			(this.$refs.newStudent as Dialog).close()
 		}
 	}
 </script>

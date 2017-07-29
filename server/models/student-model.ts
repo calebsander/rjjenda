@@ -8,7 +8,8 @@ export default (sequelize: Sequelize.Sequelize): AssociableModel<StudentInstance
 			id: {
 				type: Sequelize.STRING,
 				primaryKey: true,
-				allowNull: false
+				allowNull: false,
+				validate: {is: /^S/}
 			},
 			firstName: {
 				type: Sequelize.STRING,
@@ -20,7 +21,8 @@ export default (sequelize: Sequelize.Sequelize): AssociableModel<StudentInstance
 			},
 			username: {
 				type: Sequelize.STRING,
-				allowNull: false
+				allowNull: false,
+				unique: true
 			},
 			year: {
 				type: Sequelize.INTEGER,

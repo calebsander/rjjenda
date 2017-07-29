@@ -8,7 +8,8 @@ export default (sequelize: Sequelize.Sequelize): AssociableModel<TeacherInstance
 			id: {
 				type: Sequelize.STRING,
 				primaryKey: true,
-				allowNull: false
+				allowNull: false,
+				validate: {is: /^T/}
 			},
 			firstName: {
 				type: Sequelize.STRING,
@@ -20,7 +21,8 @@ export default (sequelize: Sequelize.Sequelize): AssociableModel<TeacherInstance
 			},
 			username: {
 				type: Sequelize.STRING,
-				allowNull: false
+				allowNull: false,
+				unique: true
 			},
 			admin: {
 				type: Sequelize.BOOLEAN,

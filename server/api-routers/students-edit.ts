@@ -1,6 +1,6 @@
 import * as bodyParser from 'body-parser'
 import * as express from 'express'
-import {Students, StudentUpdate} from '../../api'
+import {NewStudent, Students, StudentUpdate} from '../../api'
 import {error, success} from '../api-respond'
 import {Student, Teacher} from '../models'
 
@@ -77,5 +77,17 @@ router.get('/student/set-advisor/:id/:advisorId', (req, res) => {
 		.then(() => success(res))
 		.catch(err => error(res, err))
 })
+router.post('/student',
+	bodyParser.json(),
+	(req, res) => {
+		const newStudentInfo = req.body as NewStudent
+		Student.create({
+			...newStudentInfo,
+			advisor: null
+		})
+			.then(() => success(res))
+			.catch(err => error(res, err))
+	}
+)
 
 export default router

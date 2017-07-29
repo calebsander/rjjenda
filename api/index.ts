@@ -26,6 +26,15 @@ export interface StudentUpdate {
 	value: any
 }
 
+export interface NewStudent {
+	id: string
+	firstName: string
+	lastName: string
+	username: string
+	year: number
+	//advisor can be set later
+}
+
 export interface Group {
 	id: number
 	section: boolean
