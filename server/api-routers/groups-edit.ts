@@ -115,10 +115,8 @@ router.delete('/group/:id', (req, res) => {
 	})
 		.then(group => {
 			if (group === null) throw new Error('No group with id: ' + String(id))
-			let sectionDeletion: PromiseLike<any>
-			if (group.sectionId === null) sectionDeletion = Promise.resolve()
-			else sectionDeletion = Section.destroy({where: {id: group.sectionId}})
-			return sectionDeletion.then(() => group.destroy())
+			if (group.sectionId === null) return group.destroy() as PromiseLike<any>
+			else return Section.destroy({where: {id: group.sectionId}}) as PromiseLike<any> //will cascade to delete group as well
 		})
 		.then(() => success(res))
 		.catch(err => error(res, err))

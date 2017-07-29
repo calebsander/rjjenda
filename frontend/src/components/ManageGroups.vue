@@ -158,6 +158,10 @@
 		groups: Groups = []
 		groupsSlice: Groups = []
 		loading = true
+
+		page: number = 1
+		size: number = this.DEFAULT_PAGINATION
+
 		editGroup: Group | null = null
 		newName = ''
 		newGroupName = ''
@@ -173,7 +177,7 @@
 				url: '/admin/groups',
 				handler: (groups: Groups) => {
 					this.groups = groups
-					this.paginate({page: 1, size: this.DEFAULT_PAGINATION})
+					this.paginate(this) //stay on current page after reload
 					this.loading = false
 				},
 				router: this.$router
@@ -181,6 +185,8 @@
 		}
 		paginate({page, size}: PaginationOptions) {
 			this.groupsSlice = this.groups.slice((page - 1) * size, page * size)
+			this.page = page
+			this.size = size
 		}
 		deleteGroup(id: number) {
 			this.loading = true
