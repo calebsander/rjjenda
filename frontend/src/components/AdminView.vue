@@ -1,15 +1,9 @@
 <template>
 	<div>
-		<md-layout>
-			<md-layout md-flex=65>
-				<user-csv-upload class='card'></user-csv-upload>
-				<manage-students class='card'></manage-students>
-			</md-layout>
-			<md-layout md-flex=35>
-				<group-member-csv-upload class='card'></group-member-csv-upload>
-				<manage-groups class='card'></manage-groups>
-			</md-layout>
-		</md-layout>
+		<user-csv-upload class='card'></user-csv-upload>
+		<group-member-csv-upload class='card'></group-member-csv-upload>
+		<manage-students class='card'></manage-students>
+		<manage-groups class='card'></manage-groups>
 	</div>
 </template>
 
@@ -35,4 +29,8 @@
 <style lang='sass' scoped>
 	.card
 		flex-grow: 1
+</style>
+<style lang='sass'>
+	.md-table-cell .md-icon
+		margin-left: 10px
 </style>

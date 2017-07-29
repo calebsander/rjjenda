@@ -3,7 +3,7 @@
 		<md-table-card id='students-table'>
 			<md-toolbar>
 				<h1 class='md-title'>Students</h1>
-				<md-spinner md-indeterminate v-if='loading'></md-spinner>
+				<md-spinner md-indeterminate class='md-warn' v-if='loading'></md-spinner>
 			</md-toolbar>
 			<md-table>
 				<md-table-header>
@@ -77,7 +77,7 @@
 				</md-input-container>
 			</md-dialog-content>
 			<md-dialog-actions>
-				<md-button class='md-primary' @click='save'>Save</md-button>
+				<md-button class='md-accent' @click='save'>Save</md-button>
 				<md-button class='md-primary' @click='cancel'>Cancel</md-button>
 			</md-dialog-actions>
 		</md-dialog>

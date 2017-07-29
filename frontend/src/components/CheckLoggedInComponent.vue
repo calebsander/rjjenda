@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<md-spinner md-indeterminate></md-spinner>
+		<md-spinner md-indeterminate class='md-warn'></md-spinner>
 		Checking if logged in...
 	</div>
 </template>

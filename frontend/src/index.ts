@@ -12,6 +12,13 @@ import TeacherView from './components/TeacherView.vue'
 Vue.use(VueMaterial)
 Vue.use(VueRouter)
 
+Vue.material.registerTheme('default', {
+	primary: 'red',
+	accent: 'purple',
+	warn: 'orange',
+	background: 'white'
+})
+
 const routes = [
 	{path: '/', component: CheckLoggedInComponent},
 	{path: '/login', component: LoginComponent},

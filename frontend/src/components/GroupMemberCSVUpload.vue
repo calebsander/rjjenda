@@ -29,8 +29,8 @@
 				</md-input-container>
 			</md-card-content>
 			<md-card-actions>
-				<md-spinner md-indeterminate v-if='loading'></md-spinner>
-				<md-button @click='upload' :disabled='groupFile === null || memberFile === null'>Upload</md-button>
+				<md-spinner md-indeterminate class='md-warn' v-if='loading'></md-spinner>
+				<md-button class='md-accent' @click='upload' :disabled='groupFile === null || memberFile === null'>Upload</md-button>
 			</md-card-actions>
 		</md-card>
 		<md-dialog-alert

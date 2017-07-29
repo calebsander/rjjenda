@@ -3,7 +3,7 @@
 		<md-table-card id='groups-table'>
 			<md-toolbar>
 				<h1 class='md-title'>Groups</h1>
-				<md-spinner md-indeterminate v-if='loading'></md-spinner>
+				<md-spinner md-indeterminate class='md-warn' v-if='loading'></md-spinner>
 				<md-button class='md-raised md-icon-button' @click='newGroup' id='new-group'>
 					<md-icon>add</md-icon>
 					<md-tooltip>Create a new extracurricular group</md-tooltip>
@@ -73,7 +73,7 @@
 				</md-input-container>
 			</md-dialog-content>
 			<md-dialog-actions>
-				<md-button class='md-primary' @click='save'>Save</md-button>
+				<md-button class='md-accent' @click='save'>Save</md-button>
 				<md-button class='md-primary' @click='cancel'>Cancel</md-button>
 			</md-dialog-actions>
 		</md-dialog>
@@ -89,7 +89,7 @@
 				</md-input-container>
 			</md-dialog-content>
 			<md-dialog-actions>
-				<md-button class='md-primary' @click='create'>Create</md-button>
+				<md-button class='md-accent' @click='create'>Create</md-button>
 				<md-button class='md-primary' @click='cancelCreation'>Cancel</md-button>
 			</md-dialog-actions>
 		</md-dialog>
@@ -117,7 +117,7 @@
 							<md-icon>add</md-icon>
 							<md-tooltip>Add student to group</md-tooltip>
 						</md-button>
-						<md-spinner md-indeterminate v-if='loading'></md-spinner>
+						<md-spinner md-indeterminate class='md-warn' v-if='loading'></md-spinner>
 					</md-list-item>
 					<md-list-item v-for='(student, index) in groupStudents' :key='index'>
 						{{ student.name }}
