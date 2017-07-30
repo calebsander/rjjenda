@@ -7,6 +7,7 @@ import {GroupAttributes, GroupInstance} from './group'
 import {AssignmentAttributes, AssignmentInstance} from './assignment'
 import {LimitAttributes, LimitInstance} from './limit'
 import {InfoAttributes, InfoInstance} from './info'
+import {GradeGroupAttributes, GradeGroupInstance} from './grade-group'
 import StudentModel from './student-model'
 import TeacherModel from './teacher-model'
 import CourseModel from './course-model'
@@ -15,6 +16,7 @@ import GroupModel from './group-model'
 import AssignmentModel from './assignment-model'
 import LimitModel from './limit-model'
 import InfoModel from './info-model'
+import GradeGroupModel from './grade-group-model'
 const env: string = process.env.NODE_ENV || 'development'
 const config = require('../../config/config')[env]
 
@@ -28,6 +30,7 @@ export interface SequelizeModels {
 	Teacher: AssociableModel<TeacherInstance, TeacherAttributes>
 	Course: AssociableModel<CourseInstance, CourseAttributes>
 	Section: AssociableModel<SectionInstance, SectionAttributes>
+	GradeGroup: AssociableModel<GradeGroupInstance, GradeGroupAttributes>
 	Group: AssociableModel<GroupInstance, GroupAttributes>
 	Assignment: AssociableModel<AssignmentInstance, AssignmentAttributes>
 	Limit: AssociableModel<LimitInstance, LimitAttributes>
@@ -52,7 +55,8 @@ class Database {
 			Group: GroupModel(this.sequelize),
 			Assignment: AssignmentModel(this.sequelize),
 			Limit: LimitModel(this.sequelize),
-			Info: InfoModel(this.sequelize)
+			Info: InfoModel(this.sequelize),
+			GradeGroup: GradeGroupModel(this.sequelize)
 		}
 
 		for (const modelName in this.models) {
@@ -64,5 +68,5 @@ class Database {
 
 const database = new Database
 export const sequelize = database.sequelize
-export const {Student, Teacher, Course, Section, Group, Assignment, Limit, Info} =
+export const {Student, Teacher, Course, Section, Group, Assignment, Limit, Info, GradeGroup} =
 	database.models

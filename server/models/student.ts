@@ -10,4 +10,6 @@ export interface StudentAttributes {
 	year: number //e.g. 2017
 }
 
-export interface StudentInstance extends Instance<StudentAttributes>, StudentAttributes {}
+export interface StudentInstance extends Instance<StudentAttributes>, StudentAttributes {
+	advisorId: number
+}
