@@ -74,7 +74,7 @@
 						<md-list-item>
 							<md-input-container>
 								<label>Section number</label>
-								<md-input v-model='newSection' type='number' required></md-input>
+								<md-input v-model='newSection' type='number'></md-input>
 							</md-input-container>
 							<md-button class='md-raised md-icon-button' @click='addSection'>
 								<md-icon>add</md-icon>
@@ -105,7 +105,7 @@
 					<md-input v-model='newName' required></md-input>
 				</md-input-container>
 				<md-input-container>
-					<label>Sections</label>
+					<label>Number of sections</label>
 					<md-input v-model='newSectionCount' type='number' required></md-input>
 				</md-input-container>
 			</md-dialog-content>
@@ -121,7 +121,7 @@
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
 	import apiFetch from '../api-fetch'
-	import {Course, NewCourseName} from '../../../api'
+	import {Course, NewCourse, NewCourseName} from '../../../api'
 
 	interface PaginationOptions {
 		page: number
@@ -254,15 +254,49 @@
 				router: this.$router
 			})
 		}
-		saveSections() {}
-		cancelSections() {}
 		newCourse() {
 			this.newId = ''
 			this.newName = ''
 			this.newSectionCount = 1
 			;(this.$refs.newCourse as Dialog).open()
 		}
-		create() {}
+		create() {
+			if (!this.newId) {
+				alert('No course ID given')
+				return
+			}
+			if (!this.newName) {
+				alert('No name given')
+				return
+			}
+
+			const id = this.newId
+			const name = this.newName
+			const sectionCount = this.newSectionCount
+			const sections: number[] = []
+			for (let section = 1; section <= sectionCount; section++) sections.push(section)
+			const data: NewCourse = {
+				id,
+				name,
+				sectionCount
+			}
+			this.loading = true
+			apiFetch({
+				url: '/admin/course',
+				data,
+				handler: () => {
+					(this.$refs.newCourse as Dialog).close()
+					this.loading = false
+					this.courses.splice(this.getPageStart(this), 0, { //add course to top of page
+						id,
+						name,
+						sections
+					})
+					this.paginate(this)
+				},
+				router: this.$router
+			})
+		}
 		cancelCreation() {
 			(this.$refs.newCourse as Dialog).close()
 		}

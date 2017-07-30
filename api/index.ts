@@ -70,6 +70,11 @@ export interface Course {
 }
 export type Courses = Course[]
 
+export interface NewCourse {
+	id: string
+	name: string
+	sectionCount: number
+}
 export interface NewCourseName {
 	id: string
 	name: string

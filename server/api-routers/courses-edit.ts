@@ -1,9 +1,9 @@
 import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import * as Sequelize from 'sequelize'
-import {Courses, NewCourseName} from '../../api'
+import {Courses, NewCourse, NewCourseName} from '../../api'
 import {success, error} from '../api-respond'
-import {Course, Section} from '../models'
+import {Course, Group, Section} from '../models'
 
 const router = express.Router()
 router.get('/courses', (_, res) => {
@@ -71,5 +71,35 @@ router.delete('/section/:courseId/:number', (req, res) => {
 		.then(() => success(res))
 		.catch(err => error(res, err))
 })
+router.post('/course',
+	bodyParser.json(),
+	(req, res) => {
+		const {id, name, sectionCount} = req.body as NewCourse
+		Course.create({
+			id,
+			name
+		})
+			.then(() => {
+				const sectionPromises: PromiseLike<any>[] = []
+				for (let section = 1; section <= sectionCount; section++) {
+					sectionPromises.push(
+						Section.create({
+							courseId: id,
+							number: section
+						})
+							.then(createdSection =>
+								Group.create({
+									sectionId: createdSection.id as number,
+									name: null
+								})
+							)
+					)
+				}
+				return Promise.all(sectionPromises)
+			})
+			.then(() => success(res))
+			.catch(err => error(res, err))
+	}
+)
 
 export default router
