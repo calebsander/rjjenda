@@ -300,6 +300,19 @@
 		cancelCreation() {
 			(this.$refs.newCourse as Dialog).close()
 		}
-		deleteCourse(course: Course) {}
+		deleteCourse(course: Course) {
+			this.loading = true
+			apiFetch({
+				url: '/admin/course/' + course.id,
+				method: 'DELETE',
+				handler: () => {
+					this.loading = false
+					const courseIndex = this.courses.indexOf(course)
+					this.courses.splice(courseIndex, 1)
+					this.paginate(this)
+				},
+				router: this.$router
+			})
+		}
 	}
 </script>

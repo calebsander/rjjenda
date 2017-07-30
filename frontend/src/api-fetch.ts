@@ -3,7 +3,7 @@ import {APIResponse, NEED_TO_BE_LOGGED_IN} from '../../api'
 
 interface FetchOptions {
 	url: string
-	method?: string
+	method?: 'DELETE' //'GET' or 'POST' should not have to be specified
 	data?: any
 	handler?: (response: any) => void
 	router: VueRouter

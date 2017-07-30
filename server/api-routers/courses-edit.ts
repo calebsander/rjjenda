@@ -101,5 +101,13 @@ router.post('/course',
 			.catch(err => error(res, err))
 	}
 )
+router.delete('/course/:id', (req, res) => {
+	const id = req.params.id as string
+	Course.destroy({
+		where: {id}
+	})
+		.then(() => success(res))
+		.catch(err => error(res, err))
+})
 
 export default router
