@@ -1,5 +1,6 @@
 import * as bodyParser from 'body-parser'
 import * as express from 'express'
+import * as Sequelize from 'sequelize'
 import {Courses, NewCourseName} from '../../api'
 import {success, error} from '../api-respond'
 import {Course, Section} from '../models'
@@ -13,7 +14,8 @@ router.get('/courses', (_, res) => {
 			attributes: ['number']
 		}],
 		order: [
-			['name']
+			'name',
+			Sequelize.col('sections.number')
 		]
 	})
 		.then(courses => {
@@ -47,5 +49,27 @@ router.post('/course/set-name',
 			.catch(err => error(res, err))
 	}
 )
+router.get('/new-section/:courseId/:number', (req, res) => {
+	const courseId = req.params.courseId as string
+	const number = req.params.number as number
+	Section.create({
+		courseId,
+		number
+	})
+		.then(() => success(res))
+		.catch(err => error(res, err))
+})
+router.delete('/section/:courseId/:number', (req, res) => {
+	const courseId = req.params.courseId as string
+	const number = req.params.number as number
+	Section.destroy({
+		where: {
+			courseId,
+			number
+		}
+	})
+		.then(() => success(res))
+		.catch(err => error(res, err))
+})
 
 export default router

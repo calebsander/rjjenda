@@ -62,9 +62,11 @@ router.get('/groups', (_, res) => {
 			return responsePromise
 		})
 		.then((response: Groups) => {
-			response.sort((group1, group2) => {
-				if (group1.name < group2.name) return -1
-				else if (group1.name > group2.name) return 1
+			response.sort((group1, group2) => { //sort groups by display name, case-insensitive
+				const name1 = group1.name.toLowerCase()
+				const name2 = group2.name.toLowerCase()
+				if (name1 < name2) return -1
+				else if (name1 > name2) return 1
 				else return 0
 			})
 			success(res, response)

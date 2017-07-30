@@ -49,7 +49,7 @@
 		</md-table-card>
 
 		<md-dialog ref='editName' md-open-from='#courses-table' md-close-to='#courses-table'>
-			<md-dialog-title v-if='editCourse'> <!--Avoid computations if editCourse == null-->
+			<md-dialog-title v-if='editCourse'> <!--avoid computations if editCourse == null-->
 				Editing name of {{ editCourse.name }}
 			</md-dialog-title>
 			<md-dialog-content>
@@ -62,6 +62,35 @@
 				<md-button class='md-accent' @click='saveName'>Save</md-button>
 				<md-button class='md-primary' @click='cancelName'>Cancel</md-button>
 			</md-dialog-actions>
+		</md-dialog>
+
+		<md-dialog ref='editSections' md-open-from='#courses-table' md-close-to='#courses-table'>
+			<div v-if='editCourse'> <!--avoid computations if editCourse == null-->
+				<md-dialog-title v-if='editCourse'>
+					Editing sections of {{ editCourse.name }}
+				</md-dialog-title>
+				<md-dialog-content>
+					<md-list>
+						<md-list-item>
+							<md-input-container>
+								<label>Section number</label>
+								<md-input v-model='newSection' type='number' required></md-input>
+							</md-input-container>
+							<md-button class='md-raised md-icon-button' @click='addSection'>
+								<md-icon>add</md-icon>
+								<md-tooltip>Add section</md-tooltip>
+							</md-button>
+						</md-list-item>
+						<md-list-item v-for='(section, sectionIndex) in editCourse.sections' :key='section'>
+							{{ section }}
+							<md-button class='md-raised md-icon-button' @click='deleteSection(sectionIndex)'>
+								<md-icon>delete</md-icon>
+								<md-tooltip>Remove section</md-tooltip>
+							</md-button>
+						</md-list-item>
+					</md-list>
+				</md-dialog-content>
+			</div>
 		</md-dialog>
 
 		<md-dialog ref='newCourse' md-open-from='#new-course' md-close-to='#new-course'>
@@ -77,7 +106,7 @@
 				</md-input-container>
 				<md-input-container>
 					<label>Sections</label>
-					<md-input v-model='newSections' type='number' required></md-input>
+					<md-input v-model='newSectionCount' type='number' required></md-input>
 				</md-input-container>
 			</md-dialog-content>
 			<md-dialog-actions>
@@ -117,10 +146,11 @@
 
 		editCourse: Course | null = null
 		name = ''
+		newSection: number = 1
 
 		newId = ''
 		newName = ''
-		newSections = 1
+		newSectionCount = 1
 
 		mounted() {
 			this.loadCourses()
@@ -176,13 +206,60 @@
 		cancelName() {
 			(this.$refs.editName as Dialog).close()
 		}
-		editSections(course: Course) {}
+		suggestNewSection() {
+			const course = this.editCourse as Course
+			let maxSection = null
+			for (const section of course.sections) {
+				if (maxSection === null || section > maxSection) maxSection = section
+			}
+			if (maxSection === null) this.newSection = 1
+			else this.newSection = maxSection + 1
+		}
+		editSections(course: Course) {
+			this.editCourse = course
+			this.suggestNewSection()
+			;(this.$refs.editSections as Dialog).open()
+		}
+		addSection() {
+			const course = this.editCourse as Course
+			this.newSection = Number(this.newSection) //not sure why Vue Material makes this a string
+			if (course.sections.indexOf(this.newSection) !== -1) { //section already exists
+				alert('Section ' + String(this.newSection) + ' already exists')
+				return
+			}
+
+			this.loading = true
+			apiFetch({
+				url: '/admin/new-section/' + course.id + '/' + String(this.newSection),
+				handler: () => {
+					this.loading = false
+					course.sections.push(this.newSection)
+					this.suggestNewSection()
+				},
+				router: this.$router
+			})
+		}
+		deleteSection(sectionIndex: number) {
+			const course = this.editCourse as Course
+			const section = course.sections[sectionIndex]
+			this.loading = true
+			apiFetch({
+				url: '/admin/section/' + course.id + '/' + String(section),
+				method: 'DELETE',
+				handler: () => {
+					this.loading = false
+					course.sections.splice(sectionIndex, 1)
+					this.suggestNewSection()
+				},
+				router: this.$router
+			})
+		}
 		saveSections() {}
 		cancelSections() {}
 		newCourse() {
 			this.newId = ''
 			this.newName = ''
-			this.newSections = 1
+			this.newSectionCount = 1
 			;(this.$refs.newCourse as Dialog).open()
 		}
 		create() {}

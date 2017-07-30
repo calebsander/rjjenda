@@ -100,7 +100,7 @@
 			</md-dialog-title>
 			<md-dialog-content>
 				<md-list>
-				<md-list-item>
+					<md-list-item>
 						<md-input-container>
 							<label>Student name</label>
 							<md-autocomplete
