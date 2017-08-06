@@ -181,7 +181,12 @@
 			apiFetch({
 				url: '/admin/teacher/' + String(teacher.id),
 				method: 'DELETE',
-				handler: () => this.loadTeachers(),
+				handler: () => {
+					this.loading = false
+					const teacherIndex = this.teachers.indexOf(teacher)
+					this.teachers.splice(teacherIndex, 1)
+					this.paginate(this)
+				},
 				router: this.$router
 			})
 		}

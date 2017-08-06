@@ -33,5 +33,13 @@ router.get('/teachers', (_, res) => {
 		})
 		.catch(err => error(res, err))
 })
+router.delete('/teacher/:id', (req, res) => {
+	const id = req.params.id as string
+	Teacher.destroy({
+		where: {id}
+	})
+		.then(() => success(res))
+		.catch(err => error(res, err))
+})
 
 export default router
