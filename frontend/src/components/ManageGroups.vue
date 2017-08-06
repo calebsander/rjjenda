@@ -6,7 +6,7 @@
 				<md-spinner md-indeterminate class='md-warn' v-if='loading'></md-spinner>
 				<md-button class='md-raised md-icon-button' @click='newGroup' id='new-group'>
 					<md-icon>add</md-icon>
-					<md-tooltip>Create a new extracurricular group</md-tooltip>
+					<md-tooltip md-direction='left'>Create a new extracurricular group</md-tooltip>
 				</md-button>
 			</md-toolbar>
 			<md-table>

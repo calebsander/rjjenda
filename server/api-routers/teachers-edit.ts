@@ -21,7 +21,14 @@ router.get('/teachers', (_, res) => {
 		]
 	})
 		.then(teachers => {
-			const response: Teachers = teachers
+			const response: Teachers = teachers.map(teacher => ({
+				id: teacher.id,
+				firstName: teacher.firstName,
+				lastName: teacher.lastName,
+				username: teacher.username,
+				admin: teacher.admin,
+				admissions: teacher.admissions
+			}))
 			success(res, response)
 		})
 		.catch(err => error(res, err))

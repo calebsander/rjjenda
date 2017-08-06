@@ -6,7 +6,7 @@
 				<md-spinner md-indeterminate class='md-warn' v-if='loading'></md-spinner>
 				<md-button class='md-raised md-icon-button' @click='newTeacher' id='new-teacher'>
 					<md-icon>add</md-icon>
-					<md-tooltip>Add a new teacher</md-tooltip>
+					<md-tooltip md-direction='left'>Add a new teacher</md-tooltip>
 				</md-button>
 			</md-toolbar>
 			<md-table>
