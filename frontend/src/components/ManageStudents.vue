@@ -263,10 +263,6 @@
 				alert('No last name given')
 				return
 			}
-			if (!this.newFirstName) {
-				alert('No first name given')
-				return
-			}
 			if (!this.newUsername) {
 				alert('No username given')
 				return

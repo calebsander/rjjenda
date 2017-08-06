@@ -35,6 +35,25 @@ export interface NewStudent {
 	//advisor can be set later
 }
 
+export interface Teacher {
+	id: string
+	firstName: string
+	lastName: string
+	username: string
+	admin: boolean
+	admissions: boolean
+	[attribute: string]: string | boolean
+}
+export type Teachers = Teacher[]
+
+export type TeacherEditAttribute = 'firstName' | 'lastName' | 'username'
+export interface TeacherUpdate {
+	attribute: TeacherEditAttribute
+	value: string
+}
+
+export type NewTeacher = Teacher
+
 export interface Group {
 	id: number
 	section: boolean

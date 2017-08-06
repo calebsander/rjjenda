@@ -3,6 +3,7 @@
 		<user-csv-upload class='card'></user-csv-upload>
 		<group-member-csv-upload class='card'></group-member-csv-upload>
 		<manage-students class='card'></manage-students>
+		<manage-teachers class='card'></manage-teachers>
 		<manage-courses class='card'></manage-courses>
 		<manage-groups class='card'></manage-groups>
 	</div>
@@ -15,6 +16,7 @@
 	import ManageCourses from './ManageCourses.vue'
 	import ManageGroups from './ManageGroups.vue'
 	import ManageStudents from './ManageStudents.vue'
+	import ManageTeachers from './ManageTeachers.vue'
 	import UserCSVUpload from './UserCSVUpload.vue'
 
 	@Component({
@@ -23,6 +25,7 @@
 			'manage-courses': ManageCourses,
 			'manage-groups': ManageGroups,
 			'manage-students': ManageStudents,
+			'manage-teachers': ManageTeachers,
 			'user-csv-upload': UserCSVUpload
 		}
 	})
