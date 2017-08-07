@@ -1,6 +1,6 @@
 import * as bodyParser from 'body-parser'
 import * as express from 'express'
-import {Teachers, TeacherUpdate} from '../../api'
+import {Teachers, TeacherPermission, TeacherUpdate} from '../../api'
 import {error, success} from '../api-respond'
 import {Teacher} from '../models'
 
@@ -53,6 +53,24 @@ router.post('/teacher/:id/update',
 			.then(teacher => {
 				if (teacher === null) throw new Error('No teacher with id: ' + id)
 				teacher.set(attribute, value)
+				return teacher.save()
+			})
+			.then(() => success(res))
+			.catch(err => error(res, err))
+	}
+)
+router.post('/teacher/:id/permission',
+	bodyParser.json(),
+	(req, res) => {
+		const id = req.params.id as string
+		const {permission, value} = req.body as TeacherPermission
+		Teacher.findOne({
+			attributes: ['id'],
+			where: {id}
+		})
+			.then(teacher => {
+				if (teacher === null) throw new Error('No teacher with id: ' + id)
+				teacher.set(permission, value)
 				return teacher.save()
 			})
 			.then(() => success(res))

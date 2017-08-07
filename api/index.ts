@@ -52,6 +52,11 @@ export interface TeacherUpdate {
 	value: string
 }
 
+export interface TeacherPermission {
+	permission: 'admin' | 'admissions'
+	value: boolean
+}
+
 export type NewTeacher = Teacher
 
 export interface Group {

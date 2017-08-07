@@ -117,7 +117,7 @@
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
 	import apiFetch from '../api-fetch'
-	import {NewTeacher, Teacher, Teachers, TeacherEditAttribute, TeacherUpdate} from '../../../api'
+	import {NewTeacher, Teacher, Teachers, TeacherEditAttribute, TeacherPermission, TeacherUpdate} from '../../../api'
 
 	interface PaginationOptions {
 		page: number
@@ -219,9 +219,19 @@
 			})
 		}
 		editPermission(teacher: Teacher, permission: 'admin' | 'admissions') {
-			this.loading = true
-			console.log(teacher, permission)
-			//not implemented yet
+			setTimeout(() => { //wait for value to update
+				const data: TeacherPermission = {
+					permission,
+					value: teacher[permission]
+				}
+				this.loading = true
+				apiFetch({
+					url: '/admin/teacher/' + teacher.id + '/permission',
+					data,
+					handler: () => this.loading = false,
+					router: this.$router
+				})
+			}, 10)
 		}
 		newTeacher() {
 			this.newId = ''
