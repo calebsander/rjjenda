@@ -73,7 +73,7 @@
 				<md-dialog-content>
 					<md-input-container>
 						<label>{{ editAttribute }}</label>
-						<md-input v-model='editTeacher[editAttribute]'></md-input>
+						<md-input v-model='editValue'></md-input>
 					</md-input-container>
 				</md-dialog-content>
 				<md-dialog-actions>
@@ -146,6 +146,7 @@
 
 		editTeacher: Teacher | null = null
 		editAttribute: TeacherEditAttribute = 'firstName' //arbitrary
+		editValue = ''
 
 		newId = ''
 		newFirstName = ''
@@ -193,6 +194,7 @@
 		edit(teacher: Teacher, attribute: TeacherEditAttribute) {
 			this.editTeacher = teacher
 			this.editAttribute = attribute
+			this.editValue = teacher[attribute]
 			;(this.$refs.editor as Dialog).open()
 		}
 		cancel() {
@@ -202,7 +204,7 @@
 			const teacher = this.editTeacher as Teacher //asserting it is not null
 			const updateData: TeacherUpdate = {
 				attribute: this.editAttribute,
-				value: teacher[this.editAttribute]
+				value: this.editValue
 			}
 			this.loading = true
 			apiFetch({
@@ -211,6 +213,7 @@
 				handler: () => {
 					(this.$refs.editor as Dialog).close()
 					this.loading = false
+					teacher[this.editAttribute] = this.editValue
 				},
 				router: this.$router
 			})

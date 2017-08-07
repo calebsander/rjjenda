@@ -1,6 +1,6 @@
-//import * as bodyParser from 'body-parser'
+import * as bodyParser from 'body-parser'
 import * as express from 'express'
-import {Teachers} from '../../api'
+import {Teachers, TeacherUpdate} from '../../api'
 import {error, success} from '../api-respond'
 import {Teacher} from '../models'
 
@@ -41,5 +41,23 @@ router.delete('/teacher/:id', (req, res) => {
 		.then(() => success(res))
 		.catch(err => error(res, err))
 })
+router.post('/teacher/:id/update',
+	bodyParser.json(),
+	(req, res) => {
+		const id = req.params.id as string
+		const {attribute, value} = req.body as TeacherUpdate
+		Teacher.findOne({
+			attributes: ['id'],
+			where: {id}
+		})
+			.then(teacher => {
+				if (teacher === null) throw new Error('No teacher with id: ' + id)
+				teacher.set(attribute, value)
+				return teacher.save()
+			})
+			.then(() => success(res))
+			.catch(err => error(res, err))
+	}
+)
 
 export default router
