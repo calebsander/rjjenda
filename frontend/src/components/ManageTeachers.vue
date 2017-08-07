@@ -202,14 +202,14 @@
 		}
 		save() {
 			const teacher = this.editTeacher as Teacher //asserting it is not null
-			const updateData: TeacherUpdate = {
+			const data: TeacherUpdate = {
 				attribute: this.editAttribute,
 				value: this.editValue
 			}
 			this.loading = true
 			apiFetch({
 				url: '/admin/teacher/' + teacher.id + '/update',
-				data: updateData,
+				data,
 				handler: () => {
 					(this.$refs.editor as Dialog).close()
 					this.loading = false

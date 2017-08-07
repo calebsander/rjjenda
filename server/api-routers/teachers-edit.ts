@@ -1,6 +1,6 @@
 import * as bodyParser from 'body-parser'
 import * as express from 'express'
-import {Teachers, TeacherPermission, TeacherUpdate} from '../../api'
+import {NewTeacher, Teachers, TeacherPermission, TeacherUpdate} from '../../api'
 import {error, success} from '../api-respond'
 import {Teacher} from '../models'
 
@@ -73,6 +73,14 @@ router.post('/teacher/:id/permission',
 				teacher.set(permission, value)
 				return teacher.save()
 			})
+			.then(() => success(res))
+			.catch(err => error(res, err))
+	}
+)
+router.post('/teacher',
+	bodyParser.json(),
+	(req, res) => {
+		Teacher.create(req.body as NewTeacher)
 			.then(() => success(res))
 			.catch(err => error(res, err))
 	}
