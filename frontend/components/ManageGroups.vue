@@ -136,7 +136,7 @@
 	import Component from 'vue-class-component'
 	import TeacherSelector from './TeacherSelector.vue'
 	import apiFetch from '../api-fetch'
-	import {Group, Groups, GroupStudent, NewGroupName, NewGroup, StudentQuery} from '../../../api'
+	import {Group, Groups, GroupStudent, NewGroupName, NewGroup, StudentQuery} from '../../api'
 
 	interface PaginationOptions {
 		page: number

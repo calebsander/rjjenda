@@ -20,8 +20,8 @@ app.use(passport.session())
 
 app.use(apiRouter)
 app.use(express.static(path.join(__dirname, '../public')))
-app.use((_, res) => {
+app.use((_, res) =>
 	res.sendFile(path.join(__dirname, '../public/index.html'))
-})
+)
 
 export default app

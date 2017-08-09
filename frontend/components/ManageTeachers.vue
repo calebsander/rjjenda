@@ -117,7 +117,7 @@
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
 	import apiFetch from '../api-fetch'
-	import {NewTeacher, Teacher, Teachers, TeacherEditAttribute, TeacherPermission, TeacherUpdate} from '../../../api'
+	import {NewTeacher, Teacher, Teachers, TeacherEditAttribute, TeacherPermission, TeacherUpdate} from '../../api'
 
 	interface PaginationOptions {
 		page: number

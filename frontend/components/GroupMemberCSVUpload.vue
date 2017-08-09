@@ -47,7 +47,7 @@
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
 	import apiFetch from '../api-fetch'
-	import {SectionsNotFound} from '../../../api'
+	import {SectionsNotFound} from '../../api'
 
 	interface BufferResult extends EventTarget {
 		result: ArrayBuffer

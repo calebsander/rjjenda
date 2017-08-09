@@ -121,7 +121,7 @@
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
 	import apiFetch from '../api-fetch'
-	import {Course, NewCourse, NewCourseName} from '../../../api'
+	import {Course, NewCourse, NewCourseName} from '../../api'
 
 	interface PaginationOptions {
 		page: number

@@ -38,7 +38,7 @@
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
 	import apiFetch from '../api-fetch'
-	import {UserInfo} from '../../../api'
+	import {UserInfo} from '../../api'
 
 	interface Sidebar extends Vue {
 		toggle(): void

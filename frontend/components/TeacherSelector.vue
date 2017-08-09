@@ -25,7 +25,7 @@
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
 	import apiFetch from '../api-fetch'
-	import {TeachersList} from '../../../api'
+	import {TeachersList} from '../../api'
 
 	interface Dialog extends Vue {
 		close(): void

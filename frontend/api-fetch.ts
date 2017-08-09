@@ -1,5 +1,5 @@
 import VueRouter from 'vue-router'
-import {APIResponse, NEED_TO_BE_LOGGED_IN} from '../../api'
+import {APIResponse, NEED_TO_BE_LOGGED_IN} from '../api'
 
 interface FetchOptions {
 	url: string

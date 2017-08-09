@@ -2,7 +2,7 @@ const path = require('path')
 const webpack = require('webpack')
 
 module.exports = {
-	entry: './frontend/src/index.ts',
+	entry: './frontend/index.ts',
 	output: {
 		path: path.join(__dirname, 'public/dist'),
 		filename: 'build.js'

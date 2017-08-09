@@ -9,7 +9,7 @@
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
 	import apiFetch from '../api-fetch'
-	import {LoggedIn} from '../../../api'
+	import {LoggedIn} from '../../api'
 
 	@Component
 	export default class CheckLoggedInComponent extends Vue {

@@ -15,7 +15,7 @@
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
 	import apiFetch from '../api-fetch'
-	import {UserInfo} from '../../../api'
+	import {UserInfo} from '../../api'
 
 	@Component
 	export default class StudentView extends Vue {
