@@ -10,6 +10,8 @@ export interface UserInfo {
 	name: string
 }
 
+export interface AssignmentGroup {}
+
 export interface Student {
 	id: string
 	firstName: string
