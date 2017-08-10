@@ -45,7 +45,7 @@
 			</md-table-body>
 		</md-table>
 
-		<md-dialog ref='addGroup' md-open-from='#add-group' md-close-to='#add-group'>
+		<md-dialog ref='addGroup' id='group-dialog' md-open-from='#add-group' md-close-to='#add-group'>
 			<md-dialog-title>Show another group</md-dialog-title>
 			<md-dialog-content>
 				<md-input-container>
@@ -172,4 +172,10 @@
 <style lang='sass' scoped>
 	#week-toolbar
 		justify-content: center
+</style>
+<style lang='sass'>
+	#group-dialog .md-dialog //make the whole dialog box wide (to accommodate long section names)
+		width: 100%
+	.md-menu-content //make the autocomplete list wide
+		min-width: 65%
 </style>
