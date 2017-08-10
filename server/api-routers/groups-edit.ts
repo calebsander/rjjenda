@@ -7,6 +7,7 @@ import {Course, Group, Section, Student, Teacher} from '../models'
 import {GroupAttributes, GroupInstance} from '../models/group'
 import {SectionInstance} from '../models/section'
 import {StudentAttributes, StudentInstance} from '../models/student'
+import sectionGroupName from '../section-group-name'
 
 const router = express.Router()
 
@@ -52,8 +53,7 @@ router.get('/groups', (_, res) => {
 						id: group.id as number,
 						section: section !== null,
 						name:
-							section ? (section.course.name + ' - section ' + String(section.number))
-							: (group.name || ''),
+							section ? sectionGroupName(section) : (group.name || ''),
 						teacher: section && section.teacher && section.teacher.lastName,
 						studentCount: Number(group.get('studentCount'))
 					}))

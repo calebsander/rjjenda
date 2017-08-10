@@ -1,3 +1,4 @@
+//Authentication
 export const NEED_TO_BE_LOGGED_IN = 'Need to be logged in'
 
 export type LoggedIn =
@@ -10,8 +11,24 @@ export interface UserInfo {
 	name: string
 }
 
-export interface AssignmentGroup {}
+//Assignments view
+export interface Assignment {}
 
+export interface AssignmentGroup {
+	editPrivileges: boolean
+	id: number
+	name: string
+}
+
+export interface GroupQuery {
+	nameSearch: string
+}
+export interface AddGroup {
+	id: number
+	name: string
+}
+
+//Admin interface
 export interface Student {
 	id: string
 	firstName: string
@@ -116,6 +133,7 @@ interface TeacherEntry {
 }
 export type TeachersList = TeacherEntry[]
 
+//Generic format for all API responses
 export type APIResponse =
 	{success: false, message: string} |
 	{success: true, data: any}

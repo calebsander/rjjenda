@@ -1,0 +1,103 @@
+import * as bodyParser from 'body-parser'
+import * as express from 'express'
+import * as Sequelize from 'sequelize'
+import {AddGroup, AssignmentGroup, GroupQuery} from '../../api'
+import {error, success} from '../api-respond'
+import {restrictToTeacher} from '../api-restrict'
+import {Course, Group, Section} from '../models'
+import {CourseAttributes} from '../models/course'
+import {GroupAttributes} from '../models/group'
+import {TeacherInstance} from '../models/teacher'
+import sectionGroupName from '../section-group-name'
+
+const router = express.Router()
+router.get('/my-sections',
+	restrictToTeacher,
+	(req, res) => {
+		const teacher: TeacherInstance = req.user
+		Section.findAll({
+			attributes: ['number'],
+			where: {teacherId: teacher.id},
+			include: [
+				{
+					model: Course,
+					attributes: ['name']
+				},
+				{
+					model: Group,
+					attributes: ['id']
+				}
+			],
+			order: [
+				Sequelize.col('course.name'),
+				'number'
+			]
+		})
+			.then(sections => {
+				const response: AssignmentGroup[] = sections.map(section => ({
+					editPrivileges: true,
+					id: section.group.id as number,
+					name: sectionGroupName(section)
+				}))
+				success(res, response)
+			})
+			.catch(err => error(res, err))
+	}
+)
+function containsCaseInsensitive(column: string, search: string) {
+	return Sequelize.where(
+		Sequelize.fn('strpos', Sequelize.fn('lower', Sequelize.col(column)), search.toLowerCase()),
+		{$ne: 0}
+	)
+}
+router.post('/search-groups',
+	restrictToTeacher, //students aren't allowed to look at groups besides the one they're in
+	bodyParser.json(),
+	(req, res) => {
+		const {nameSearch} = req.body as GroupQuery
+		const findSectionGroups = Course.findAll({
+			where: containsCaseInsensitive('course.name', nameSearch) as Sequelize.WhereOptions<CourseAttributes>,
+			attributes: ['name'],
+			include: [{
+				model: Section,
+				attributes: ['number'],
+				include: [{
+					model: Group,
+					attributes: ['id']
+				}]
+			}],
+			order: ['name']
+		})
+		const findExtraGroups = Group.findAll({
+			where: Sequelize.and(
+				{sectionId: null},
+				containsCaseInsensitive('name', nameSearch)
+			) as Sequelize.WhereOptions<GroupAttributes>,
+			attributes: ['id', 'name']
+		})
+		Promise.all([findSectionGroups, findExtraGroups])
+			.then(([courses, groups]) => {
+				const response: AddGroup[] = groups.map(group => ({
+					id: group.id as number,
+					name: group.name as string
+				}))
+				for (const course of courses) {
+					if (!course.sections) continue //should never occur
+					course.sections.sort((section1, section2) => //can't order on included model in Sequelize query
+						(section1.number as number) - (section2.number as number)
+					)
+					for (const section of course.sections) {
+						section.course = course
+						response.push({
+							id: section.group.id as number,
+							name: sectionGroupName(section)
+						})
+					}
+				}
+				success(res, response)
+			})
+			.catch(err => error(res, err))
+	}
+)
+
+export default router
