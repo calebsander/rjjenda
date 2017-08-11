@@ -1,10 +1,10 @@
 import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import * as Sequelize from 'sequelize'
-import {AddGroup, AssignmentGroup, GroupQuery} from '../../api'
+import {AddAssignment, AddGroup, AssignmentGroup, GroupQuery} from '../../api'
 import {error, success} from '../api-respond'
 import {restrictToTeacher} from '../api-restrict'
-import {Course, Group, Section} from '../models'
+import {Assignment, Course, Group, Section} from '../models'
 import {CourseAttributes} from '../models/course'
 import {GroupAttributes} from '../models/group'
 import {TeacherInstance} from '../models/teacher'
@@ -79,7 +79,8 @@ router.post('/search-groups',
 			.then(([courses, groups]) => {
 				const response: AddGroup[] = groups.map(group => ({
 					id: group.id as number,
-					name: group.name as string
+					name: group.name as string,
+					extracurricular: true
 				}))
 				for (const course of courses) {
 					if (!course.sections) continue //should never occur
@@ -90,12 +91,43 @@ router.post('/search-groups',
 						section.course = course
 						response.push({
 							id: section.group.id as number,
-							name: sectionGroupName(section)
+							name: sectionGroupName(section),
+							extracurricular: false
 						})
 					}
 				}
 				success(res, response)
 			})
+			.catch(err => error(res, err))
+	}
+)
+router.post('/new',
+	restrictToTeacher,
+	bodyParser.json(),
+	(req, res) => {
+		const teacher: TeacherInstance = req.user
+		const {due, groupId, major, name, visitors} = req.body as AddAssignment
+		Group.findOne({
+			attributes: [],
+			where: {id: groupId},
+			include: [{
+				model: Section,
+				attributes: ['teacherId']
+			}]
+		})
+			.then(group => {
+				if (group === null) throw new Error('No group with id: ' + String(groupId))
+				if (group.section && group.section.teacherId !== teacher.id) throw new Error('Edit privileges not granted')
+
+				return Assignment.create({
+					due: new Date(due),
+					groupId,
+					name,
+					visitors,
+					weight: major ? 1 : 0
+				})
+			})
+			.then(() => success(res))
 			.catch(err => error(res, err))
 	}
 )

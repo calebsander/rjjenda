@@ -19,7 +19,6 @@
 	export default class TeacherHome extends Vue {
 		mounted() {
 			const assignments = this.$refs.assignments as AssignmentsView
-			assignments.loading = true
 			apiFetch({
 				url: '/assignments/my-sections',
 				handler: (groups: AssignmentGroup[]) =>

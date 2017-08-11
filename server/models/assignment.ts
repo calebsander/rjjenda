@@ -2,12 +2,14 @@ import {Instance} from 'sequelize'
 import {GroupInstance} from './group'
 
 export interface AssignmentAttributes {
-	id: number //arbitrary
-	group: GroupInstance
-	weight: number //allows for flexibility, but currently will be 0 for minor/event and 1 for major
-	dueDate: Date
+	id?: number //arbitrary
+	due: Date
+	groupId: number
 	name: string
 	visitors: boolean //should visitors be allowed to class on that day
+	weight: number //allows for flexibility, but currently will be 0 for minor/event and 1 for major
 }
 
-export interface AssignmentInstance extends Instance<AssignmentAttributes>, AssignmentAttributes {}
+export interface AssignmentInstance extends Instance<AssignmentAttributes>, AssignmentAttributes {
+	group: GroupInstance
+}

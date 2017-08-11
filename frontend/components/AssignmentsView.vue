@@ -10,15 +10,15 @@
 			<md-button class='md-icon-button' @click='nextWeek'>
 				<md-icon>chevron_right</md-icon>
 			</md-button>
-			<md-spinner md-indeterminate :md-size='40' class='md-accent' v-if='loading'></md-spinner>
+			<md-spinner md-indeterminate :md-size='40' class='md-warn' v-if='loading'></md-spinner>
 		</md-toolbar>
 		<md-table>
 			<md-table-header>
 				<md-table-row>
-					<md-table-head>
+					<md-table-head class='center'>
 						Group
 					</md-table-head>
-					<md-table-head v-for='day in WEEK_DAYS' :key='day'>
+					<md-table-head v-for='day in WEEK_DAYS' :key='day' class='center'>
 						{{ getDayName(day) }}
 						{{ getDay(day).toShortDate() }}
 					</md-table-head>
@@ -27,12 +27,24 @@
 			<md-table-body>
 				<md-table-row v-for='(group, index) in groups' :key='group.id'>
 					<md-table-cell>
+						<md-icon v-if='group.editPrivileges' class='no-margin'>
+							edit
+							<md-tooltip md-direction='right'>
+								You have editing privileges
+							</md-tooltip>
+						</md-icon>
 						{{ group.name }}
 						<md-button class='md-icon-button md-raised' @click='removeGroup(index)'>
 							<md-icon>clear</md-icon>
 						</md-button>
 					</md-table-cell>
-					<md-table-cell v-for='day in WEEK_DAYS' :key='day'></md-table-cell>
+					<md-table-cell v-for='day in WEEK_DAYS' :key='day' @mouseover.native='showAssignmentAdd(group, day)'>
+						<md-layout md-align='center'>
+							<md-button class='md-icon-button md-raised' @click='openAddAssignment' v-if='isHoveredCell(group, day)'>
+								<md-icon>assignment</md-icon>
+							</md-button>
+						</md-layout>
+					</md-table-cell>
 				</md-table-row>
 				<md-table-row v-if='teacher'>
 					<md-table-cell>
@@ -65,6 +77,26 @@
 				<md-button class='md-accent' @click='addGroup'>Add</md-button>
 			</md-dialog-actions>
 		</md-dialog>
+
+		<md-dialog ref='addAssignment'>
+			<md-dialog-title v-if='hoveredGroup'> <!--avoid accessing properties of null-->
+				Add assignment for
+				{{ hoveredGroup.name }}
+				on
+				{{ getDay(hoveredDay).toShortDate() }}
+			</md-dialog-title>
+			<md-dialog-content>
+				<md-input-container>
+					<label>Name</label>
+					<md-input v-model='newAssignmentName' required></md-input>
+				</md-input-container>
+				<md-switch v-model='newAssignmentMajor'>Major assignment?</md-switch>
+				<md-switch v-model='newAssignmentVisitors'>Visitors allowed?</md-switch>
+			</md-dialog-content>
+			<md-dialog-actions>
+				<md-button class='md-accent' @click='addAssignment'>Add</md-button>
+			</md-dialog-actions>
+		</md-dialog>
 	</div>
 </template>
 
@@ -73,7 +105,7 @@
 	import Component from 'vue-class-component'
 	import apiFetch from '../api-fetch'
 	import ExtendedDate from '../extended-date'
-	import {AddGroup, Assignment, AssignmentGroup, GroupQuery} from '../../api'
+	import {AddAssignment, AddGroup, Assignment, AssignmentGroup, GroupQuery} from '../../api'
 
 	const DAYS_PER_WEEK = 7
 	const WEEK_DAYS = 5
@@ -96,12 +128,17 @@
 	@Component({
 		name: 'assignments-view',
 		props: {
-			'teacher': Boolean //controls whether additional groups can be displayed
+			teacher: Boolean //controls whether additional groups can be displayed
+		},
+		watch: {
+			mondayDate: 'reloadAssignments'
 		}
 	})
 	export default class AssignmentsView extends Vue {
 		readonly WEEK_DAYS = WEEK_DAYS
 		mondayDate: ExtendedDate = lastMonday
+
+		teacher: boolean //property of component
 
 		loading = false
 
@@ -110,6 +147,13 @@
 
 		newGroup: AddGroup | null = null
 		newGroupName = '' //use newGroup for read
+
+		hoveredGroup: AssignmentGroup | null = null
+		hoveredDay: number = -1
+
+		newAssignmentName = ''
+		newAssignmentMajor = false
+		newAssignmentVisitors = true
 
 		lastWeek() {
 			this.mondayDate = this.mondayDate.addDays(-DAYS_PER_WEEK)
@@ -125,6 +169,48 @@
 		}
 		getDayName(oneIndexedDay: number): string {
 			return DAY_NAMES[oneIndexedDay - 1]
+		}
+
+		showAssignmentAdd(group: AssignmentGroup, day: number) {
+			if (!group.editPrivileges) return
+
+			this.hoveredGroup = group
+			this.hoveredDay = day
+		}
+		isHoveredCell(group: AssignmentGroup, day: number): boolean {
+			return group === this.hoveredGroup && day === this.hoveredDay
+		}
+		openAddAssignment() {
+			this.newAssignmentName = ''
+			this.newAssignmentMajor = false
+			this.newAssignmentVisitors = true
+			;(this.$refs.addAssignment as Dialog).open()
+		}
+		addAssignment() {
+			const name = this.newAssignmentName
+			if (!name) {
+				alert('Please enter a name for the assignment')
+				return
+			}
+
+			const group = this.hoveredGroup as AssignmentGroup
+			const data: AddAssignment = {
+				due: this.getDay(this.hoveredDay).date.toISOString(),
+				groupId: group.id,
+				major: this.newAssignmentMajor,
+				name,
+				visitors: this.newAssignmentVisitors
+			}
+			this.loading = true
+			apiFetch({
+				url: '/assignments/new',
+				data,
+				handler: () => {
+					(this.$refs.addAssignment as Dialog).close()
+					this.loading = false
+				},
+				router: this.$router
+			})
 		}
 
 		openAddGroup() {
@@ -152,19 +238,32 @@
 			}
 
 			;(this.$refs.addGroup as Dialog).close()
-			this.groups.push({
-				editPrivileges: false,
+			const assignmentGroup = {
+				editPrivileges: group.extracurricular,
 				id: group.id,
 				name: group.name
-			})
+			}
+			this.groups.push(assignmentGroup)
+			this.loadAssignmentsForGroups([assignmentGroup])
 		}
 		removeGroup(index: number) {
-			this.groups.splice(index, 1)
+			const [group] = this.groups.splice(index, 1)
+			this.weekAssignments.delete(group)
+		}
+		reloadAssignments() {
+			this.loadAssignmentsForGroups(this.groups)
+		}
+		loadAssignmentsForGroups(groups: AssignmentGroup[]) {
+			console.log(groups)
+			//not implemented yet
+			this.loading = true
+			setTimeout(() => this.loading = false, 200)
 		}
 
 		//For external usage
 		setGroups(groups: AssignmentGroup[]) {
 			this.groups = groups
+			this.loadAssignmentsForGroups(groups)
 		}
 	}
 </script>
@@ -172,6 +271,10 @@
 <style lang='sass' scoped>
 	#week-toolbar
 		justify-content: center
+	.center
+		text-align: center
+	.no-margin
+		margin: 0px
 </style>
 <style lang='sass'>
 	#group-dialog .md-dialog //make the whole dialog box wide (to accommodate long section names)

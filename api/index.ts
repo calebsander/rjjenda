@@ -26,6 +26,15 @@ export interface GroupQuery {
 export interface AddGroup {
 	id: number
 	name: string
+	extracurricular: boolean
+}
+
+export interface AddAssignment {
+	due: string //ISO string
+	groupId: number
+	major: boolean
+	name: string
+	visitors: boolean
 }
 
 //Admin interface
