@@ -226,7 +226,7 @@
 				data,
 				handler: () => {
 					(this.$refs.addAssignment as Dialog).close()
-					this.loading = false
+					this.loadAssignmentsForGroups([group])
 				},
 				router: this.$router
 			})
@@ -273,9 +273,9 @@
 			this.loadAssignmentsForGroups(this.groups)
 		}
 		loadAssignmentsForGroups(groups: AssignmentGroup[]) {
-			this.weekAssignments.clear()
 			this.loading = true
 			Promise.all(groups.map(group => {
+				this.weekAssignments.delete(group)
 				const data: AssignmentListRequest = {
 					groupId: group.id,
 					...this.mondayDate.toYMD(),

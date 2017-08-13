@@ -3,7 +3,7 @@ import {GroupInstance} from './group'
 
 export interface AssignmentAttributes {
 	id?: number //arbitrary
-	due: Date
+	due: Date | string //querying returns it as 'YYYY-MM-DD'
 	groupId: number
 	name: string
 	visitors: boolean //should visitors be allowed to class on that day

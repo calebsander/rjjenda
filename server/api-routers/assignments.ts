@@ -137,10 +137,9 @@ router.post('/list',
 	bodyParser.json(),
 	(req, res) => {
 		const {groupId, year, month, date, days} = req.body as AssignmentListRequest
-		const startDate = new Date //midnight of start of day, in UTC time
-		startDate.setUTCFullYear(year, month, date)
-		startDate.setUTCHours(0, 0, 0, 0)
-		const endDate = new ExtendedDate(startDate).addDays(days) //exclusive
+		const startDate = new Date(year, month, date) //midnight of start of day, in this timezone
+		const extendedStartDate = new ExtendedDate(startDate)
+		const endDate = extendedStartDate.addDays(days) //exclusive
 		Assignment.findAll({
 			attributes: ['id', 'due', 'name', 'visitors', 'weight'],
 			where: {
@@ -153,7 +152,7 @@ router.post('/list',
 		})
 			.then(assignments => {
 				const response: Assignments = assignments.map(assignment => ({
-					day: new ExtendedDate(assignment.due).daysSince(startDate) + 1,
+					day: new ExtendedDate(assignment.due).daysSince(extendedStartDate.toUTC()) + 1,
 					id: assignment.id as number,
 					name: assignment.name,
 					visitors: assignment.visitors,

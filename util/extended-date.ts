@@ -20,7 +20,15 @@ export default class ExtendedDate {
 			date: this.date.getDate()
 		}
 	}
-	daysSince(firstDate: Date) { //both dates should be at the same time of day
-		return (this.date.getTime() - firstDate.getTime()) / MILLIS_PER_DAY
+	daysSince(firstDate: ExtendedDate) { //both dates should be at the same time of day
+		return (this.date.getTime() - firstDate.date.getTime()) / MILLIS_PER_DAY
+	}
+	//A date whose UTC time is the same as this date in local time
+	toUTC(): ExtendedDate {
+		const {date} = this
+		const utcDate = new Date
+		utcDate.setUTCFullYear(date.getFullYear(), date.getMonth(), date.getDate())
+		utcDate.setUTCHours(date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds())
+		return new ExtendedDate(utcDate)
 	}
 }
