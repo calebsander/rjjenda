@@ -1,9 +1,10 @@
 import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import * as Sequelize from 'sequelize'
-import {AddAssignment, AddGroup, AssignmentGroup, GroupQuery} from '../../api'
+import {AddAssignment, AddGroup, AssignmentGroup, AssignmentListRequest, Assignments, GroupQuery} from '../../api'
 import {error, success} from '../api-respond'
-import {restrictToTeacher} from '../api-restrict'
+import {restrictToLoggedIn, restrictToTeacher} from '../api-restrict'
+import ExtendedDate from '../../util/extended-date'
 import {Assignment, Course, Group, Section} from '../models'
 import {CourseAttributes} from '../models/course'
 import {GroupAttributes} from '../models/group'
@@ -128,6 +129,38 @@ router.post('/new',
 				})
 			})
 			.then(() => success(res))
+			.catch(err => error(res, err))
+	}
+)
+router.post('/list',
+	restrictToLoggedIn,
+	bodyParser.json(),
+	(req, res) => {
+		const {groupId, year, month, date, days} = req.body as AssignmentListRequest
+		const startDate = new Date //midnight of start of day, in UTC time
+		startDate.setUTCFullYear(year, month, date)
+		startDate.setUTCHours(0, 0, 0, 0)
+		const endDate = new ExtendedDate(startDate).addDays(days) //exclusive
+		Assignment.findAll({
+			attributes: ['id', 'due', 'name', 'visitors', 'weight'],
+			where: {
+				groupId,
+				due: {
+					$gte: startDate,
+					$lt: endDate.date
+				}
+			}
+		})
+			.then(assignments => {
+				const response: Assignments = assignments.map(assignment => ({
+					day: new ExtendedDate(assignment.due).daysSince(startDate) + 1,
+					id: assignment.id as number,
+					name: assignment.name,
+					visitors: assignment.visitors,
+					weight: assignment.weight
+				}))
+				success(res, response)
+			})
 			.catch(err => error(res, err))
 	}
 )

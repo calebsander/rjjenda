@@ -39,10 +39,26 @@
 						</md-button>
 					</md-table-cell>
 					<md-table-cell v-for='day in WEEK_DAYS' :key='day' @mouseover.native='showAssignmentAdd(group, day)'>
-						<md-layout md-align='center'>
-							<md-button class='md-icon-button md-raised' @click='openAddAssignment' v-if='isHoveredCell(group, day)'>
-								<md-icon>assignment</md-icon>
-							</md-button>
+						<md-layout md-column :md-gutter='8'>
+							<md-list class='md-double-line md-dense' v-if='getAssignments(group, day).length'>
+								<md-list-item v-for='assignment in getAssignments(group, day)' :key='assignment.id'>
+									<div class='md-list-text-container'>
+										<span>{{ assignment.name }}</span>
+										<span>
+											Weight: {{ assignment.weight }}
+											<span v-if='!assignment.visitors'>
+												<br>
+												No visitors
+											</span>
+										</span>
+									</div>
+								</md-list-item>
+							</md-list>
+							<md-layout md-align='center' v-if='isHoveredCell(group, day)'>
+								<md-button class='md-icon-button md-raised top-space' @click='openAddAssignment'>
+									<md-icon>assignment</md-icon>
+								</md-button>
+							</md-layout>
 						</md-layout>
 					</md-table-cell>
 				</md-table-row>
@@ -104,8 +120,8 @@
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
 	import apiFetch from '../api-fetch'
-	import ExtendedDate from '../extended-date'
-	import {AddAssignment, AddGroup, Assignment, AssignmentGroup, GroupQuery} from '../../api'
+	import ExtendedDate from '../../util/extended-date'
+	import {AddAssignment, AddGroup, Assignment, AssignmentGroup, AssignmentListRequest, Assignments, GroupQuery} from '../../api'
 
 	const DAYS_PER_WEEK = 7
 	const WEEK_DAYS = 5
@@ -156,12 +172,15 @@
 		newAssignmentVisitors = true
 
 		lastWeek() {
+			if (this.loading === true) return //avoid having multiple assignment requests running at same time
 			this.mondayDate = this.mondayDate.addDays(-DAYS_PER_WEEK)
 		}
 		today() {
+			if (this.loading === true) return //avoid having multiple assignment requests running at same time
 			this.mondayDate = lastMonday
 		}
 		nextWeek() {
+			if (this.loading === true) return //avoid having multiple assignment requests running at same time
 			this.mondayDate = this.mondayDate.addDays(DAYS_PER_WEEK)
 		}
 		getDay(oneIndexedDay: number): ExtendedDate {
@@ -254,10 +273,46 @@
 			this.loadAssignmentsForGroups(this.groups)
 		}
 		loadAssignmentsForGroups(groups: AssignmentGroup[]) {
-			console.log(groups)
-			//not implemented yet
+			this.weekAssignments.clear()
 			this.loading = true
-			setTimeout(() => this.loading = false, 200)
+			Promise.all(groups.map(group => {
+				const data: AssignmentListRequest = {
+					groupId: group.id,
+					...this.mondayDate.toYMD(),
+					days: WEEK_DAYS
+				}
+				return new Promise((resolve, _) =>
+					apiFetch({
+						url: '/assignments/list',
+						data,
+						handler: (assignments: Assignments) => {
+							const dayAssignments = new Map<number, Assignment[]>()
+							for (const assignment of assignments) {
+								let day = dayAssignments.get(assignment.day)
+								if (!day) {
+									day = []
+									dayAssignments.set(assignment.day, day)
+								}
+								day.push({
+									id: assignment.id,
+									name: assignment.name,
+									visitors: assignment.visitors,
+									weight: assignment.weight
+								})
+							}
+							this.weekAssignments.set(group, dayAssignments)
+							resolve()
+						},
+						router: this.$router
+					})
+				)
+			}))
+				.then(() => this.loading = false)
+		}
+		getAssignments(group: AssignmentGroup, day: number): Assignment[] {
+			const groupAssignments = this.weekAssignments.get(group)
+			if (!groupAssignments) return []
+			return groupAssignments.get(day) || []
 		}
 
 		//For external usage
@@ -275,6 +330,8 @@
 		text-align: center
 	.no-margin
 		margin: 0px
+	.top-space
+		margin-top: 10px !important
 </style>
 <style lang='sass'>
 	#group-dialog .md-dialog //make the whole dialog box wide (to accommodate long section names)

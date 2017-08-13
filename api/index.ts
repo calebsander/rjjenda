@@ -12,7 +12,12 @@ export interface UserInfo {
 }
 
 //Assignments view
-export interface Assignment {}
+export interface Assignment {
+	id: number
+	name: string
+	visitors: boolean
+	weight: number
+}
 
 export interface AssignmentGroup {
 	editPrivileges: boolean
@@ -36,6 +41,23 @@ export interface AddAssignment {
 	name: string
 	visitors: boolean
 }
+
+export interface AssignmentListRequest {
+	groupId: number
+	year: number
+	month: number //JavaScript-style (i.e. 0 to 11)
+	date: number
+	days: number
+}
+
+interface AssignmentResponse {
+	day: number //index (starting at 1) in the date window
+	id: number
+	name: string
+	visitors: boolean
+	weight: number
+}
+export type Assignments = AssignmentResponse[]
 
 //Admin interface
 export interface Student {

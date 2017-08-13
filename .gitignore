@@ -2,6 +2,7 @@ node_modules
 api/**/*.js
 init-scripts/**/*.js
 server/**/*.js
+util/*.js
 public/semantic/*
 !public/semantic/dist
 public/semantic/dist/*

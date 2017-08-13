@@ -13,4 +13,14 @@ export default class ExtendedDate {
 	toShortDate(): string {
 		return String(this.date.getMonth() + 1) + '/' + String(this.date.getDate())
 	}
+	toYMD(): {year: number, month: number, date: number} {
+		return {
+			year: this.date.getFullYear(),
+			month: this.date.getMonth(),
+			date: this.date.getDate()
+		}
+	}
+	daysSince(firstDate: Date) { //both dates should be at the same time of day
+		return (this.date.getTime() - firstDate.getTime()) / MILLIS_PER_DAY
+	}
 }
