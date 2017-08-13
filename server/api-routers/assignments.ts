@@ -163,5 +163,32 @@ router.post('/list',
 			.catch(err => error(res, err))
 	}
 )
+router.delete('/:id',
+	restrictToTeacher,
+	(req, res) => {
+		const teacher: TeacherInstance = req.user
+		const id = Number(req.params.id)
+		Assignment.findOne({
+			attributes: ['id'],
+			include: [{
+				model: Group,
+				attributes: ['id'],
+				include: [{
+					model: Section,
+					attributes: ['teacherId']
+				}]
+			}],
+			where: {id}
+		})
+			.then(assignment => {
+				if (assignment === null) throw new Error('No assignment with id: ' + String(id))
+				const {section} = assignment.group
+				if (section && section.teacherId !== teacher.id) throw new Error('Edit privileges not granted')
+				return assignment.destroy()
+			})
+			.then(() => success(res))
+			.catch(err => error(res, err))
+	}
+)
 
 export default router

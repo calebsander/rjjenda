@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<md-toolbar class='md-accent md-dense' id='week-toolbar'>
+		<md-toolbar class='md-dense' id='week-toolbar'>
 			<md-button class='md-icon-button' @click='lastWeek'>
 				<md-icon>chevron_left</md-icon>
 			</md-button>
@@ -52,6 +52,9 @@
 											</span>
 										</span>
 									</div>
+									<md-button class='md-icon-button md-list-action' v-if='group.editPrivileges' @click='deleteAssignment(group, day, assignment)'>
+										<md-icon>delete</md-icon>
+									</md-button>
 								</md-list-item>
 							</md-list>
 							<md-layout md-align='center' v-if='isHoveredCell(group, day)'>
@@ -227,6 +230,19 @@
 				handler: () => {
 					(this.$refs.addAssignment as Dialog).close()
 					this.loadAssignmentsForGroups([group])
+				},
+				router: this.$router
+			})
+		}
+		deleteAssignment(group: AssignmentGroup, day: number, assignment: Assignment) {
+			this.loading = true
+			apiFetch({
+				url: '/assignments/' + String(assignment.id),
+				method: 'DELETE',
+				handler: () => {
+					this.loading = false
+					const dayAssignments = this.getAssignments(group, day)
+					dayAssignments.splice(dayAssignments.indexOf(assignment), 1)
 				},
 				router: this.$router
 			})
