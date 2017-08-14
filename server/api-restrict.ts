@@ -8,14 +8,17 @@ export function restrictToLoggedIn(req: Request, res: Response, next: NextFuncti
 	if (req.isAuthenticated()) next()
 	else error(res, new Error(NEED_TO_BE_LOGGED_IN))
 }
-export function restrictToTeacher(req: Request, res: Response, next: NextFunction) {
-	restrictToLoggedIn(req, res, () => {
-		const user: UserType = req.user
-		const savedUser = new SavedUserType(user.id)
-		if (savedUser.type === 'teacher') next()
-		else error(res, new Error('Need to be a teacher'))
-	})
+function restrictToUserType(type: 'student' | 'teacher') {
+	return (req: Request, res: Response, next: NextFunction) =>
+		restrictToLoggedIn(req, res, () => {
+			const user: UserType = req.user
+			const savedUser = new SavedUserType(user.id)
+			if (savedUser.type === type) next()
+			else error(res, new Error('Need to be a ' + type))
+		})
 }
+export const restrictToStudent = restrictToUserType('student')
+export const restrictToTeacher = restrictToUserType('teacher')
 export function restrictToAdmin(req: Request, res: Response, next: NextFunction) {
 	restrictToTeacher(req, res, () => {
 		const user: TeacherInstance = req.user

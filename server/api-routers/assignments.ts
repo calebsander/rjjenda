@@ -3,11 +3,12 @@ import * as express from 'express'
 import * as Sequelize from 'sequelize'
 import {AddAssignment, AddGroup, AssignmentGroup, AssignmentListRequest, Assignments, GroupQuery} from '../../api'
 import {error, success} from '../api-respond'
-import {restrictToLoggedIn, restrictToTeacher} from '../api-restrict'
+import {restrictToLoggedIn, restrictToStudent, restrictToTeacher} from '../api-restrict'
 import ExtendedDate from '../../util/extended-date'
-import {Assignment, Course, Group, Section} from '../models'
+import {Assignment, Course, Group, Section, Student} from '../models'
 import {CourseAttributes} from '../models/course'
 import {GroupAttributes} from '../models/group'
+import {StudentInstance} from '../models/student'
 import {TeacherInstance} from '../models/teacher'
 import sectionGroupName from '../section-group-name'
 
@@ -40,6 +41,46 @@ router.get('/my-sections',
 					id: section.group.id as number,
 					name: sectionGroupName(section)
 				}))
+				success(res, response)
+			})
+			.catch(err => error(res, err))
+	}
+)
+router.get('/my-classes',
+	restrictToStudent,
+	(req, res) => {
+		const student: StudentInstance = req.user
+		const {id} = student
+		Student.findOne({
+			attributes: [],
+			include: [{
+				model: Group,
+				attributes: ['id', 'name'],
+				include: [{
+					model: Section,
+					attributes: ['number'],
+					include: [{
+						model: Course,
+						attributes: ['name']
+					}]
+				}]
+			}],
+			where: {id}
+		})
+			.then(student => {
+				if (student === null) throw new Error('No student with id: ' + id)
+				const response: AssignmentGroup[] = student.groups.map(group => ({
+					editPrivileges: false,
+					id: group.id as number,
+					name: group.section ? sectionGroupName(group.section) : group.name as string
+				}))
+				response.sort((group1, group2) => {
+					const name1 = group1.name.toLowerCase()
+					const name2 = group2.name.toLowerCase()
+					if (name1 < name2) return -1
+					else if (name1 > name2) return 1
+					else return 0
+				})
 				success(res, response)
 			})
 			.catch(err => error(res, err))

@@ -1,4 +1,5 @@
 import {Instance} from 'sequelize'
+import {GroupInstance} from './group'
 import {TeacherInstance} from './teacher'
 
 export interface StudentAttributes {
@@ -12,4 +13,5 @@ export interface StudentAttributes {
 
 export interface StudentInstance extends Instance<StudentAttributes>, StudentAttributes {
 	advisorId: number
+	groups: GroupInstance[]
 }

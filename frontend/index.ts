@@ -5,6 +5,7 @@ import VueRouter from 'vue-router'
 import AdminView from './components/AdminView.vue'
 import CheckLoggedInComponent from './components/CheckLoggedInComponent.vue'
 import LoginComponent from './components/Login.vue'
+import StudentHome from './components/StudentHome.vue'
 import StudentView from './components/StudentView.vue'
 import TeacherHome from './components/TeacherHome.vue'
 import TeacherView from './components/TeacherView.vue'
@@ -22,7 +23,10 @@ Vue.material.registerTheme('default', {
 const routes = [
 	{path: '/', component: CheckLoggedInComponent},
 	{path: '/login', component: LoginComponent},
-	{path: '/student', component: StudentView},
+	{path: '/student', component: StudentView, children: [
+		{path: '', redirect: 'home'},
+		{path: 'home', component: StudentHome}
+	]},
 	{path: '/teacher', component: TeacherView, children: [
 		{path: '', redirect: 'home'},
 		{path: 'home', component: TeacherHome},
