@@ -164,6 +164,14 @@ interface TeacherEntry {
 }
 export type TeachersList = TeacherEntry[]
 
+//Version info
+export interface VersionInfo {
+	app: string
+	node: string
+	sequelize: string
+	typescript: string
+}
+
 //Generic format for all API responses
 export type APIResponse =
 	{success: false, message: string} |

@@ -4,9 +4,10 @@
 			<md-button class='md-icon-button' @click='toggleSidebar'>
 				<md-icon>menu</md-icon>
 			</md-button>
-			<h2 class='md-title' v-if='teacher'>
+			<h2 class='md-title fill-toolbar' v-if='teacher'>
 				Welcome, {{ teacher.name }}
 			</h2>
+			<mermaid></mermaid>
 		</md-toolbar>
 		<md-sidenav class='md-left' ref='sidebar'>
 			<md-toolbar>
@@ -39,12 +40,17 @@
 	import Component from 'vue-class-component'
 	import apiFetch from '../api-fetch'
 	import {UserInfo} from '../../api'
+	import Mermaid from './Mermaid.vue'
 
 	interface Sidebar extends Vue {
 		toggle(): void
 	}
 
-	@Component
+	@Component({
+		components: {
+			'mermaid': Mermaid
+		}
+	})
 	export default class TeacherView extends Vue {
 		teacher: UserInfo | null = null
 
@@ -62,3 +68,8 @@
 		}
 	}
 </script>
+
+<style lang='sass' scoped>
+	.md-title.fill-toolbar
+		flex-grow: 1
+</style>
