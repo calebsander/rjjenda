@@ -34,6 +34,18 @@ export interface AddGroup {
 	extracurricular: boolean
 }
 
+export interface CheckAssignment {
+	due: string //ISO string
+	groupId: number
+	major: boolean
+}
+export interface LimitViolation {
+	start: string
+	days: number
+	student: string
+	assignments: string[]
+}
+
 export interface AddAssignment {
 	due: string //ISO string
 	groupId: number

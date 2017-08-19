@@ -1,16 +1,17 @@
 import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import * as Sequelize from 'sequelize'
-import {AddAssignment, AddGroup, AssignmentGroup, AssignmentListRequest, Assignments, GroupQuery} from '../../api'
+import {AddAssignment, AddGroup, AssignmentGroup, AssignmentListRequest, Assignments, CheckAssignment, LimitViolation, GroupQuery} from '../../api'
 import {error, success} from '../api-respond'
 import {restrictToLoggedIn, restrictToStudent, restrictToTeacher} from '../api-restrict'
-import ExtendedDate from '../../util/extended-date'
+import {checkAddition} from '../limit-check'
 import {Assignment, Course, Group, Section, Student} from '../models'
 import {CourseAttributes} from '../models/course'
 import {GroupAttributes} from '../models/group'
 import {StudentInstance} from '../models/student'
 import {TeacherInstance} from '../models/teacher'
 import sectionGroupName from '../section-group-name'
+import ExtendedDate from '../../util/extended-date'
 
 const router = express.Router()
 router.get('/my-sections',
@@ -143,6 +144,29 @@ router.post('/search-groups',
 			.catch(err => error(res, err))
 	}
 )
+function getWeight(major: boolean) {
+	if (major) return 1
+	return 0
+}
+router.post('/check-limit',
+	restrictToTeacher,
+	bodyParser.json(),
+	(req, res) => {
+		const {due, groupId, major} = req.body as CheckAssignment
+		let violationsPromise: Promise<LimitViolation[]>
+		if (major) {
+			violationsPromise = checkAddition(
+				new ExtendedDate(due).fromUTC(),
+				getWeight(major),
+				groupId
+			)
+		}
+		else violationsPromise = Promise.resolve([])
+		violationsPromise
+			.then((violations: LimitViolation[]) => success(res, violations))
+			.catch(err => error(res, err))
+	}
+)
 router.post('/new',
 	restrictToTeacher,
 	bodyParser.json(),
@@ -166,7 +190,7 @@ router.post('/new',
 					groupId,
 					name,
 					visitors,
-					weight: major ? 1 : 0
+					weight: getWeight(major)
 				})
 			})
 			.then(() => success(res))

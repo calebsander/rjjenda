@@ -32,7 +32,7 @@ router.get('/groups', (_, res) => {
 					let sectionPromise: PromiseLike<SectionInstance | null>
 					if (group.sectionId === null) sectionPromise = Promise.resolve(null)
 					else {
-						sectionPromise = Section.find({ //I was having issues including student count and section in same group query
+						sectionPromise = Section.findOne({ //I was having issues including student count and section in same group query
 							attributes: ['number'],
 							where: {
 								id: group.sectionId

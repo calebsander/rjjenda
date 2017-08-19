@@ -111,9 +111,17 @@
 				<md-switch v-model='newAssignmentVisitors'>Visitors allowed?</md-switch>
 			</md-dialog-content>
 			<md-dialog-actions>
-				<md-button class='md-accent' @click='addAssignment'>Add</md-button>
+				<md-button v-if='newAssignmentChecked' class='md-accent' @click='addAssignment'>Add</md-button>
+				<md-button v-else class='md-warn' @click='checkAssignment'>Check student limits</md-button>
 			</md-dialog-actions>
 		</md-dialog>
+
+		<md-dialog-alert
+			ref='checkAssignment'
+			md-title='Limit violations'
+			:md-content-html='checkContent'
+		>
+		</md-dialog-alert>
 	</div>
 </template>
 
@@ -122,7 +130,7 @@
 	import Component from 'vue-class-component'
 	import apiFetch from '../api-fetch'
 	import ExtendedDate from '../../util/extended-date'
-	import {AddAssignment, AddGroup, Assignment, AssignmentGroup, AssignmentListRequest, Assignments, GroupQuery} from '../../api'
+	import {AddAssignment, AddGroup, Assignment, AssignmentGroup, AssignmentListRequest, Assignments, CheckAssignment, LimitViolation, GroupQuery} from '../../api'
 
 	const DAYS_PER_WEEK = 7
 	const WEEK_DAYS = 5
@@ -148,7 +156,8 @@
 			teacher: Boolean //controls whether additional groups can be displayed
 		},
 		watch: {
-			mondayDate: 'reloadAssignments'
+			mondayDate: 'reloadAssignments',
+			newAssignmentMajor: 'recheckAssignment'
 		}
 	})
 	export default class AssignmentsView extends Vue {
@@ -171,6 +180,8 @@
 		newAssignmentName = ''
 		newAssignmentMajor = false
 		newAssignmentVisitors = true
+		newAssignmentChecked = false
+		checkContent = ' ' //errors are thrown if this is empty
 
 		lastWeek() {
 			if (this.loading === true) return //avoid having multiple assignment requests running at same time
@@ -204,7 +215,41 @@
 			this.newAssignmentName = ''
 			this.newAssignmentMajor = false
 			this.newAssignmentVisitors = true
+			this.recheckAssignment()
 			;(this.$refs.addAssignment as Dialog).open()
+		}
+		recheckAssignment() {
+			this.newAssignmentChecked = false
+		}
+		get due(): string {
+			return this.getDay(this.hoveredDay).date.toISOString()
+		}
+		checkAssignment() {
+			const data: CheckAssignment = {
+				due: this.due,
+				groupId: this.hoveredGroup!.id,
+				major: this.newAssignmentMajor
+			}
+			this.loading = true
+			apiFetch({
+				url: '/assignments/check-limit',
+				data,
+				handler: (violations: LimitViolation[]) => {
+					this.loading = false
+					if (violations.length) {
+						this.checkContent = 'Limits violated:'
+						for (const violation of violations) {
+							this.checkContent +=
+								'<br>' + String(violation.days) + ' day' + (violation.days === 1 ? '' : 's') +
+								' for ' + violation.student + ': ' +
+								violation.assignments.join(', ')
+							;(this.$refs.checkAssignment as Dialog).open()
+						}
+					}
+					this.newAssignmentChecked = true
+				},
+				router: this.$router
+			})
 		}
 		addAssignment() {
 			const name = this.newAssignmentName
@@ -213,9 +258,9 @@
 				return
 			}
 
-			const group = this.hoveredGroup as AssignmentGroup
+			const group = this.hoveredGroup!
 			const data: AddAssignment = {
-				due: this.getDay(this.hoveredDay).date.toISOString(),
+				due: this.due,
 				groupId: group.id,
 				major: this.newAssignmentMajor,
 				name,

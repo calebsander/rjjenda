@@ -2,7 +2,8 @@
 	"files.exclude": {
 		"api/**/*.js": true,
 		"init-scripts/**/*.js": true,
-		"server/**/*.js": true
+		"server/**/*.js": true,
+		"util/**/*.js": true
 	},
 	"files.associations": {
 		"*.vue": "vue"
