@@ -12,6 +12,7 @@
 		</manage-teachers>
 		<manage-courses class='card' ref='courses' @updateGroups='updateGroups'></manage-courses>
 		<manage-groups class='card' ref='groups' :teachers='teachers' @updateCourses='updateCourses'></manage-groups>
+		<manage-limits class='card'></manage-limits>
 	</div>
 </template>
 
@@ -23,6 +24,7 @@
 	import GroupMemberCSVUpload from './GroupMemberCSVUpload.vue'
 	import ManageCourses from './ManageCourses.vue'
 	import ManageGroups from './ManageGroups.vue'
+	import ManageLimits from './ManageLimits.vue'
 	import ManageStudents from './ManageStudents.vue'
 	import ManageTeachers from './ManageTeachers.vue'
 	import UserCSVUpload from './UserCSVUpload.vue'
@@ -32,6 +34,7 @@
 			'group-member-csv-upload': GroupMemberCSVUpload,
 			'manage-courses': ManageCourses,
 			'manage-groups': ManageGroups,
+			'manage-limits': ManageLimits,
 			'manage-students': ManageStudents,
 			'manage-teachers': ManageTeachers,
 			'user-csv-upload': UserCSVUpload

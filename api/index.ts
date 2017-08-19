@@ -154,6 +154,17 @@ export interface NewCourseName {
 	name: string
 }
 
+export interface Limit {
+	id: number
+	days: number
+	weight: number
+}
+export type Limits = Limit[]
+export interface NewLimit {
+	days: number
+	weight: number
+}
+
 export interface WrongDomainEmails {
 	invalidEmails: string[]
 }

@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<md-table-card id='students-table'>
+		<md-table-card id='courses-table'>
 			<md-toolbar>
 				<h1 class='md-title'>Courses</h1>
 				<md-spinner md-indeterminate class='md-warn' v-if='loading'></md-spinner>

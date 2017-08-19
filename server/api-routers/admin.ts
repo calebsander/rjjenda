@@ -6,6 +6,7 @@ import importUsersFromCSV from '../csv-import/students-and-teachers'
 import coursesEditRouter from './courses-edit'
 import groupsMembersRouter from './groups-members'
 import groupsEditRouter from './groups-edit'
+import limitsEditRouter from './limits-edit'
 import studentsEditRouter from './students-edit'
 import teachersEditRouter from './teachers-edit'
 import {Teacher} from '../models'
@@ -25,6 +26,7 @@ router.use(studentsEditRouter)
 router.use(groupsEditRouter)
 router.use(coursesEditRouter)
 router.use(teachersEditRouter)
+router.use(limitsEditRouter)
 router.get('/list-teachers', (_, res) => { //for selecting advisor or section teacher
 	Teacher.findAll({
 		attributes: ['id', 'firstName', 'lastName']
