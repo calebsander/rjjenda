@@ -3,6 +3,7 @@ import {Readable} from 'stream'
 import {NewStudent} from '../../api'
 import {GradeGroup, Group, Student, Teacher} from '../models'
 import {GroupInstance} from '../models/group'
+const {emailDomain} = require('../../settings')
 
 interface Person extends RowObject {
 	'User ID': string
@@ -14,7 +15,8 @@ interface Person extends RowObject {
 }
 
 function getUsername(email: string) {
-	return email.substring(0, email.indexOf('@')).toLowerCase()
+	const [username, domain] = email.toLowerCase().split('@')
+	return {username, domain}
 }
 //All student creation should happen through this function
 //so students are added to grade groups and all-school group
@@ -95,7 +97,7 @@ export function importStudents(students: NewStudent[], requireCreation: boolean)
 			}))
 		})
 }
-export default (csvStream: Readable): Promise<any> =>
+export default (csvStream: Readable): Promise<string[]> =>
 	parse(csvStream)
 		.then(rows => {
 			const people = rows as Person[]
@@ -105,7 +107,7 @@ export default (csvStream: Readable): Promise<any> =>
 					id: student['User ID'],
 					firstName: student['First Name'],
 					lastName: student['Last Name'],
-					username: getUsername(student['Email ID']),
+					...getUsername(student['Email ID']),
 					year: Number(student['Grade Level'])
 				})),
 				false
@@ -114,6 +116,7 @@ export default (csvStream: Readable): Promise<any> =>
 				const role = person['Role(s)']
 				return role === 'Staff' || role === 'Teacher'
 			})
+			const invalidEmails: string[] = []
 			const importTeachersPromise = Promise.all(teachers.map(teacher => {
 				const {
 					'User ID': id,
@@ -121,17 +124,20 @@ export default (csvStream: Readable): Promise<any> =>
 					'First Name': firstName,
 					'Email ID': email
 				} = teacher
+				const {username, domain} = getUsername(email)
+				if (domain !== emailDomain) invalidEmails.push(email)
 				return Teacher.findOrCreate({
 					where: {id},
 					defaults: {
 						id,
 						firstName,
 						lastName,
-						username: getUsername(email),
+						username,
 						admin: false,
 						admissions: false
 					}
 				})
 			}))
 			return Promise.all([importStudentsPromise, importTeachersPromise])
+				.then(() => Promise.resolve(invalidEmails))
 		})

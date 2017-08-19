@@ -64,7 +64,7 @@
 		loading = false
 		groupFile: File | null = null
 		memberFile: File | null = null
-		alertContent: string = ' ' //errors are thrown if this is empty
+		alertContent = ' ' //errors are thrown if this is empty
 
 		selectedGroup(files: FileList) {
 			this.groupFile = files[0]

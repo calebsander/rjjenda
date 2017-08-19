@@ -154,6 +154,10 @@ export interface NewCourseName {
 	name: string
 }
 
+export interface WrongDomainEmails {
+	invalidEmails: string[]
+}
+
 export interface SectionsNotFound {
 	missingSections: string[]
 }

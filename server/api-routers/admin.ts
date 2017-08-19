@@ -1,5 +1,5 @@
 import * as express from 'express'
-import {TeachersList} from '../../api'
+import {TeachersList, WrongDomainEmails} from '../../api'
 import {error, success} from '../api-respond'
 import {restrictToAdmin} from '../api-restrict'
 import importUsersFromCSV from '../csv-import/students-and-teachers'
@@ -14,7 +14,10 @@ const router = express.Router()
 router.use(restrictToAdmin)
 router.post('/upload-users', (req, res) => {
 	importUsersFromCSV(req)
-		.then(() => success(res))
+		.then(invalidEmails => {
+			const response: WrongDomainEmails = {invalidEmails}
+			success(res, response)
+		})
 		.catch(err => error(res, err))
 })
 router.use(groupsMembersRouter)
