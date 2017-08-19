@@ -34,9 +34,7 @@
 							</md-tooltip>
 						</md-icon>
 						{{ group.name }}
-						<md-button class='md-icon-button md-raised' @click='removeGroup(index)'>
-							<md-icon>clear</md-icon>
-						</md-button>
+						<md-button class='md-raised hide-group' @click='removeGroup(index)'>hide</md-button>
 					</md-table-cell>
 					<md-table-cell v-for='day in WEEK_DAYS' :key='day' @mouseover.native='showAssignmentAdd(group, day)'>
 						<md-layout md-column :md-gutter='8'>
@@ -342,6 +340,8 @@
 <style lang='sass' scoped>
 	#week-toolbar
 		justify-content: center
+	.hide-group
+		min-width: 70px !important
 	.center
 		text-align: center
 	.no-margin
