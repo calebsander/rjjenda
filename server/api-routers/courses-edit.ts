@@ -25,7 +25,7 @@ router.get('/courses', (_, res) => {
 				return {
 					id,
 					name: course.name,
-					sections: course.sections.map(section => section.number as number)
+					sections: course.sections.map(section => section.number!)
 				}
 			})
 			success(res, response)
@@ -56,6 +56,12 @@ router.get('/new-section/:courseId/:number', (req, res) => {
 		courseId,
 		number
 	})
+		.then(section =>
+			Group.create({
+				name: null,
+				sectionId: section.id!
+			})
+		)
 		.then(() => success(res))
 		.catch(err => error(res, err))
 })
@@ -89,7 +95,7 @@ router.post('/course',
 						})
 							.then(createdSection =>
 								Group.create({
-									sectionId: createdSection.id as number,
+									sectionId: createdSection.id!,
 									name: null
 								})
 							)

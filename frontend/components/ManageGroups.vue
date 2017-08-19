@@ -78,7 +78,7 @@
 			</md-dialog-actions>
 		</md-dialog>
 
-		<teacher-selector ref='teacherSelector' @save='saveTeacher'></teacher-selector>
+		<teacher-selector ref='teacherSelector' @save='saveTeacher' :teachers='teachers'></teacher-selector>
 
 		<md-dialog ref='newGroup' md-open-from='#new-group' md-close-to='#new-group'>
 			<md-dialog-title>New extracurricular group</md-dialog-title>
@@ -137,6 +137,7 @@
 	import TeacherSelector from './TeacherSelector.vue'
 	import apiFetch from '../api-fetch'
 	import {Group, Groups, GroupStudent, NewGroupName, NewGroup, StudentQuery} from '../../api'
+	import {UPDATE_COURSES} from '../admin-update-events'
 
 	interface PaginationOptions {
 		page: number
@@ -149,6 +150,7 @@
 
 	@Component({
 		name: 'manage-groups',
+		props: ['teachers'],
 		components: {
 			'teacher-selector': TeacherSelector
 		}
@@ -173,6 +175,7 @@
 			this.loadGroups()
 		}
 		loadGroups() {
+			this.loading = true
 			apiFetch({
 				url: '/admin/groups',
 				handler: (groups: Groups) => {
@@ -193,7 +196,10 @@
 			apiFetch({
 				url: '/admin/group/' + String(id),
 				method: 'DELETE',
-				handler: () => this.loadGroups(),
+				handler: () => {
+					this.loadGroups()
+					this.$emit(UPDATE_COURSES)
+				},
 				router: this.$router
 			})
 		}

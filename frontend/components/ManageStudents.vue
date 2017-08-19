@@ -86,7 +86,7 @@
 			</md-dialog-actions>
 		</md-dialog>
 
-		<teacher-selector ref='teacherSelector' @save='saveAdvisor'></teacher-selector>
+		<teacher-selector ref='teacherSelector' @save='saveAdvisor' :teachers='teachers'></teacher-selector>
 
 		<md-dialog ref='newStudent' md-open-from='#new-student' md-close-to='#new-student'>
 			<md-dialog-title>New student</md-dialog-title>
@@ -126,6 +126,7 @@
 	import TeacherSelector from './TeacherSelector.vue'
 	import apiFetch from '../api-fetch'
 	import {NewStudent, Student, Students, StudentUpdate} from '../../api'
+	import {UPDATE_GROUPS} from '../admin-update-events'
 
 	interface PaginationOptions {
 		page: number
@@ -138,6 +139,7 @@
 
 	@Component({
 		name: 'manage-students',
+		props: ['teachers'],
 		components: {
 			'teacher-selector': TeacherSelector
 		},
@@ -169,6 +171,7 @@
 			this.loadStudents()
 		}
 		loadStudents() {
+			this.loading = true
 			apiFetch({
 				url: '/admin/students',
 				handler: (students: Students) => {
@@ -192,7 +195,10 @@
 			apiFetch({
 				url: '/admin/student/' + id,
 				method: 'DELETE',
-				handler: () => this.loadStudents(),
+				handler: () => {
+					this.loadStudents()
+					this.$emit(UPDATE_GROUPS)
+				},
 				router: this.$router
 			})
 		}
@@ -220,6 +226,7 @@
 					(this.$refs.editor as Dialog).close()
 					student[this.editAttribute] = value
 					this.loading = false
+					if (this.editAttribute === 'year') this.$emit(UPDATE_GROUPS)
 				},
 				router: this.$router
 			})
@@ -287,6 +294,7 @@
 						advisor: ''
 					})
 					this.paginate(this)
+					this.$emit(UPDATE_GROUPS)
 				},
 				router: this.$router
 			})

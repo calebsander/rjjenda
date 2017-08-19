@@ -6,7 +6,7 @@
 				<label>Teacher</label>
 				<md-autocomplete
 					v-model='selectedTeacher'
-					:list='teachers'
+					:list='teachersOrDefault'
 					:filter-list='filterTeachers'
 					:debounce='500'
 					required
@@ -24,7 +24,6 @@
 <script lang='ts'>
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
-	import apiFetch from '../api-fetch'
 	import {TeachersList} from '../../api'
 
 	interface Dialog extends Vue {
@@ -37,27 +36,20 @@
 	}
 
 	@Component({
-		name: 'teacher-selector'
+		name: 'teacher-selector',
+		props: ['teachers']
 	})
 	export default class TeacherSelector extends Vue {
 		selectedTeacher = ''
-		teachers: TeacherName[] = [{name: 'placeholder'}] //prevent error being thrown for empty list
-		teacherIds: Map<string, string> = new Map //mapping of teacher names to ids
+		teachers: TeachersList | null
 
-		mounted() {
-			apiFetch({
-				url: '/admin/list-teachers',
-				handler: (teachers: TeachersList) => {
-					const teacherNames: TeacherName[] = []
-					this.teacherIds = new Map
-					for (const {id, name} of teachers) {
-						teacherNames.push({name})
-						this.teacherIds.set(name, id)
-					}
-					this.teachers = teacherNames
-				},
-				router: this.$router
-			})
+		get teachersOrDefault(): TeachersList {
+			return this.teachers || [{id: '', name: 'placeholder'}]
+		}
+		get teacherIds(): Map<string, string> { //mapping of teacher names to ids
+			return new Map(
+				this.teachersOrDefault.map(({id, name}) => [name, id] as [string, string])
+			)
 		}
 		filterTeachers(teachers: TeacherName[], query: string): TeacherName[] {
 			return teachers.filter(

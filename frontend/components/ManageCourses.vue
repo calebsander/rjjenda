@@ -122,6 +122,7 @@
 	import Component from 'vue-class-component'
 	import apiFetch from '../api-fetch'
 	import {Course, NewCourse, NewCourseName} from '../../api'
+	import {UPDATE_GROUPS} from '../admin-update-events'
 
 	interface PaginationOptions {
 		page: number
@@ -156,6 +157,7 @@
 			this.loadCourses()
 		}
 		loadCourses() {
+			this.loading = true
 			apiFetch({
 				url: '/admin/courses',
 				handler: (courses: Course[]) => {
@@ -199,6 +201,7 @@
 					(this.$refs.editName as Dialog).close()
 					this.loading = false
 					course.name = name
+					this.$emit(UPDATE_GROUPS)
 				},
 				router: this.$router
 			})
@@ -235,6 +238,7 @@
 					this.loading = false
 					course.sections.push(this.newSection)
 					this.suggestNewSection()
+					this.$emit(UPDATE_GROUPS)
 				},
 				router: this.$router
 			})
@@ -250,6 +254,7 @@
 					this.loading = false
 					course.sections.splice(sectionIndex, 1)
 					this.suggestNewSection()
+					this.$emit(UPDATE_GROUPS)
 				},
 				router: this.$router
 			})
@@ -293,6 +298,7 @@
 						sections
 					})
 					this.paginate(this)
+					this.$emit(UPDATE_GROUPS)
 				},
 				router: this.$router
 			})
@@ -310,6 +316,7 @@
 					const courseIndex = this.courses.indexOf(course)
 					this.courses.splice(courseIndex, 1)
 					this.paginate(this)
+					if (course.sections.length) this.$emit(UPDATE_GROUPS)
 				},
 				router: this.$router
 			})

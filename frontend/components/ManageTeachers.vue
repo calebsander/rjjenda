@@ -118,6 +118,7 @@
 	import Component from 'vue-class-component'
 	import apiFetch from '../api-fetch'
 	import {NewTeacher, Teacher, Teachers, TeacherEditAttribute, TeacherPermission, TeacherUpdate} from '../../api'
+	import {UPDATE_GROUPS, UPDATE_STUDENTS, UPDATE_TEACHERS_LIST} from '../admin-update-events'
 
 	interface PaginationOptions {
 		page: number
@@ -187,6 +188,9 @@
 					const teacherIndex = this.teachers.indexOf(teacher)
 					this.teachers.splice(teacherIndex, 1)
 					this.paginate(this)
+					this.$emit(UPDATE_GROUPS)
+					this.$emit(UPDATE_STUDENTS)
+					this.$emit(UPDATE_TEACHERS_LIST)
 				},
 				router: this.$router
 			})
@@ -214,6 +218,12 @@
 					(this.$refs.editor as Dialog).close()
 					this.loading = false
 					teacher[this.editAttribute] = this.editValue
+					if (this.editAttribute === 'firstName') this.$emit(UPDATE_TEACHERS_LIST)
+					else if (this.editAttribute === 'lastName') {
+						this.$emit(UPDATE_GROUPS)
+						this.$emit(UPDATE_STUDENTS)
+						this.$emit(UPDATE_TEACHERS_LIST)
+					}
 				},
 				router: this.$router
 			})
@@ -282,6 +292,7 @@
 					this.loading = false
 					this.teachers.splice(this.getPageStart(this), 0, data) //add student to top of current page
 					this.paginate(this)
+					this.$emit(UPDATE_TEACHERS_LIST)
 				},
 				router: this.$router
 			})
