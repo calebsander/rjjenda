@@ -206,7 +206,7 @@ router.post('/list',
 		const extendedStartDate = new ExtendedDate(startDate)
 		const endDate = extendedStartDate.addDays(days) //exclusive
 		Assignment.findAll({
-			attributes: ['id', 'due', 'name', 'visitors', 'weight'],
+			attributes: ['id', 'due', 'name', 'visitors', 'weight', 'updatedAt'],
 			where: {
 				groupId,
 				due: {
@@ -221,7 +221,8 @@ router.post('/list',
 					id: assignment.id as number,
 					name: assignment.name,
 					visitors: assignment.visitors,
-					weight: assignment.weight
+					weight: assignment.weight,
+					updated: assignment.updatedAt.toISOString()
 				}))
 				success(res, response)
 			})

@@ -12,13 +12,6 @@ export interface UserInfo {
 }
 
 //Assignments view
-export interface Assignment {
-	id: number
-	name: string
-	visitors: boolean
-	weight: number
-}
-
 export interface AssignmentGroup {
 	editPrivileges: boolean
 	id: number
@@ -69,6 +62,7 @@ interface AssignmentResponse {
 	id: number
 	name: string
 	visitors: boolean
+	updated: string //ISO string
 	weight: number
 }
 export type Assignments = AssignmentResponse[]

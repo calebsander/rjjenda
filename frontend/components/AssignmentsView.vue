@@ -48,6 +48,11 @@
 												<br>
 												No visitors
 											</span>
+											<br>
+											<span>
+												Created on
+												{{ assignment.updated.getMonth() + 1 }}/{{ assignment.updated.getDate() }}
+											</span>
 										</span>
 									</div>
 									<md-button class='md-icon-button md-list-action' v-if='group.editPrivileges' @click='deleteAssignment(group, day, assignment)'>
@@ -131,7 +136,7 @@
 	import Component from 'vue-class-component'
 	import apiFetch from '../api-fetch'
 	import ExtendedDate from '../../util/extended-date'
-	import {AddAssignment, AddGroup, Assignment, AssignmentGroup, AssignmentListRequest, Assignments, CheckAssignment, LimitViolation, GroupQuery} from '../../api'
+	import {AddAssignment, AddGroup, AssignmentGroup, AssignmentListRequest, Assignments, CheckAssignment, LimitViolation, GroupQuery} from '../../api'
 
 	const DAYS_PER_WEEK = 7
 	const WEEK_DAYS = 5
@@ -145,6 +150,14 @@
 
 	const now = new ExtendedDate
 	const lastMonday = now.addDays(1 - now.date.getDay())
+
+	interface Assignment {
+		id: number
+		name: string
+		visitors: boolean
+		weight: number
+		updated: Date
+	}
 
 	interface Dialog extends Vue {
 		close(): void
@@ -357,6 +370,7 @@
 									id: assignment.id,
 									name: assignment.name,
 									visitors: assignment.visitors,
+									updated: new Date(assignment.updated),
 									weight: assignment.weight
 								})
 							}
