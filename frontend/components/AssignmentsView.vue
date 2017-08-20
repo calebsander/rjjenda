@@ -80,6 +80,7 @@
 				<md-input-container>
 					<label>Name of group or section</label>
 					<md-autocomplete
+						required
 						v-model='newGroupName'
 						:fetch='getGroups'
 						:debounce='500'

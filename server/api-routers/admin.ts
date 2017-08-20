@@ -31,7 +31,8 @@ router.use(limitsEditRouter)
 router.use(violationsRouter)
 router.get('/list-teachers', (_, res) => { //for selecting advisor or section teacher
 	Teacher.findAll({
-		attributes: ['id', 'firstName', 'lastName']
+		attributes: ['id', 'firstName', 'lastName'],
+		order: ['lastName']
 	})
 		.then(teachers => {
 			const response: TeachersList = teachers.map(

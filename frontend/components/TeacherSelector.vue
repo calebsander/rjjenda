@@ -4,14 +4,11 @@
 		<md-dialog-content>
 			<md-input-container>
 				<label>Teacher</label>
-				<md-autocomplete
-					v-model='selectedTeacher'
-					:list='teachersOrDefault'
-					:filter-list='filterTeachers'
-					:debounce='500'
-					required
-				>
-				</md-autocomplete>
+				<md-select v-model='selectedId' required>
+					<md-option v-for='teacher in teachersOrDefault' :value='teacher.id' :key='teacher.id'>
+						{{ teacher.name }}
+					</md-option>
+				</md-select>
 			</md-input-container>
 		</md-dialog-content>
 		<md-dialog-actions>
@@ -31,49 +28,31 @@
 		open(): void
 	}
 
-	interface TeacherName {
-		name: string
-	}
-
 	@Component({
 		name: 'teacher-selector',
 		props: ['teachers']
 	})
 	export default class TeacherSelector extends Vue {
-		selectedTeacher = ''
+		selectedId = ''
 		teachers: TeachersList | null
 
 		get teachersOrDefault(): TeachersList {
-			return this.teachers || [{id: '', name: 'placeholder'}]
-		}
-		get teacherIds(): Map<string, string> { //mapping of teacher names to ids
-			return new Map(
-				this.teachersOrDefault.map(({id, name}) => [name, id] as [string, string])
-			)
-		}
-		filterTeachers(teachers: TeacherName[], query: string): TeacherName[] {
-			return teachers.filter(
-				({name}) => name.toLowerCase().includes(query.toLowerCase())
-			)
-		}
-		get selectedId(): string | undefined {
-			return this.teacherIds.get(this.selectedTeacher)
+			return this.teachers || [{id: '', name: ''}]
 		}
 		open() {
-			this.selectedTeacher = ''
+			this.selectedId = ''
 			;(this.$refs.dialog as Dialog).open()
 		}
 		cancel() {
 			(this.$refs.dialog as Dialog).close()
 		}
 		save() {
-			const selectedId = this.selectedId
-			if (selectedId === undefined) {
-				alert('No such teacher')
+			if (!this.selectedId) {
+				alert('Please select a teacher')
 				return
 			}
 			(this.$refs.dialog as Dialog).close()
-			this.$emit('save', selectedId)
+			this.$emit('save', this.selectedId)
 		}
 	}
 </script>
