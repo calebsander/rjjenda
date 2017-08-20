@@ -391,7 +391,8 @@
 
 		//For external usage
 		setGroups(groups: AssignmentGroup[]) {
-			this.groups = groups
+			this.groups = groups.slice()
+			this.weekAssignments.clear()
 			this.loadAssignmentsForGroups(groups)
 		}
 	}
