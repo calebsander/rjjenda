@@ -1,5 +1,6 @@
 import {AtFaultViolation, LimitViolation} from '../../api'
 import {Assignment, Course, Limit, GradeGroup, Group, Section, Student, Teacher} from '../models'
+import {AssignmentInstance} from '../models/assignment'
 import sectionGroupName from '../section-group-name'
 import ExtendedDate from '../../util/extended-date'
 
@@ -138,6 +139,18 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 						const violations: AtFaultViolation[] = []
 						for (const student of students) {
 							const groups = new Set(student.groups.map(({id}) => id))
+							const studentAssignments = assignments.filter(assignment =>
+								assignment.weight && groups.has(assignment.groupId)
+							)
+							const dayAssignments = new Map<string, AssignmentInstance[]>() //map of YYYY-MM-DDs to lists of assignments
+							for (const assignment of studentAssignments) {
+								let day = dayAssignments.get(assignment.due)
+								if (!day) {
+									day = []
+									dayAssignments.set(assignment.due, day)
+								}
+								day.push(assignment)
+							}
 							for (const limit of limits) {
 								const assignmentsRange = end.daysSince(start)
 								const dayRange = limit.days - 1
@@ -145,12 +158,10 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 									const extendedWindowStart = start.addDays(windowStartDay)
 									const windowStartYYYYMMDD = extendedWindowStart.toYYYYMMDD()
 									const windowEndYYYYMMDD = extendedWindowStart.addDays(dayRange).toYYYYMMDD()
-									const assignmentsInRange = assignments.filter(assignment => //get assignments for student's classes in day range
-										groups.has(assignment.groupId) &&
-										windowStartYYYYMMDD <= assignment.due &&
-										assignment.due <= windowEndYYYYMMDD &&
-										assignment.weight //no point in counting assignments that don't contribute weight
-									)
+									const assignmentsInRange: AssignmentInstance[] = []
+									for (let day = extendedWindowStart; day.toYYYYMMDD() <= windowEndYYYYMMDD; day = day.addDays(1)) {
+										assignmentsInRange.push(...(dayAssignments.get(day.toYYYYMMDD()) || []))
+									}
 									//Prevents returning multiple violations for the same set of assignments
 									//if they lie in a smaller window that the limit window,
 									//since starting on the next day will yield the same violation
@@ -176,7 +187,7 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 											student: student.name,
 											assignments: assignmentsInRange
 												.map(({name, groupId, due}) => {
-													const [y, m, d] = (due as string).split('-')
+													const [y, m, d] = due.split('-')
 													return name + ' for ' + groupNames.get(groupId)! + ' on ' + m + '/' + d + '/' + y
 												}),
 											fault: faultGroupName +
