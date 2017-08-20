@@ -60,7 +60,7 @@
 		}
 		updateTeachers() {
 			apiFetch({
-				url: '/admin/list-teachers',
+				url: '/list-teachers',
 				handler: (teachers: TeachersList) => this.teachers = teachers,
 				router: this.$router
 			})

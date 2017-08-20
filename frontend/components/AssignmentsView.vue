@@ -72,6 +72,7 @@
 					<md-table-cell>
 						<md-button class='md-icon-button md-raised' @click='openAddGroup' id='add-group'>
 							<md-icon>add</md-icon>
+							<md-tooltip md-direction='right'>Show another group</md-tooltip>
 						</md-button>
 					</md-table-cell>
 					<md-table-cell v-for='day in WEEK_DAYS' :key='day'></md-table-cell> <!--for border along top of row-->

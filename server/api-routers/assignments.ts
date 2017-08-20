@@ -13,39 +13,44 @@ import {TeacherInstance} from '../models/teacher'
 import sectionGroupName from '../section-group-name'
 import ExtendedDate from '../../util/extended-date'
 
+function getSections(teacherId: string, editPrivileges: boolean, res: express.Response) {
+	Section.findAll({
+		attributes: ['number'],
+		where: {teacherId},
+		include: [
+			{
+				model: Course,
+				attributes: ['name']
+			},
+			{
+				model: Group,
+				attributes: ['id']
+			}
+		],
+		order: [
+			Sequelize.col('course.name'),
+			'number'
+		]
+	})
+		.then(sections => {
+			const response: AssignmentGroup[] = sections.map(section => ({
+				editPrivileges,
+				id: section.group.id as number,
+				name: sectionGroupName(section)
+			}))
+			success(res, response)
+		})
+		.catch(err => error(res, err))
+}
+
 const router = express.Router()
 router.get('/my-sections',
 	restrictToTeacher,
-	(req, res) => {
-		const teacher: TeacherInstance = req.user
-		Section.findAll({
-			attributes: ['number'],
-			where: {teacherId: teacher.id},
-			include: [
-				{
-					model: Course,
-					attributes: ['name']
-				},
-				{
-					model: Group,
-					attributes: ['id']
-				}
-			],
-			order: [
-				Sequelize.col('course.name'),
-				'number'
-			]
-		})
-			.then(sections => {
-				const response: AssignmentGroup[] = sections.map(section => ({
-					editPrivileges: true,
-					id: section.group.id as number,
-					name: sectionGroupName(section)
-				}))
-				success(res, response)
-			})
-			.catch(err => error(res, err))
-	}
+	(req, res) => getSections((req.user as TeacherInstance).id, true, res)
+)
+router.get('/teacher-sections/:teacherId',
+	restrictToTeacher,
+	(req, res) => getSections(req.params.teacherId as string, false, res)
 )
 router.get('/my-classes',
 	restrictToStudent,
@@ -72,8 +77,8 @@ router.get('/my-classes',
 				if (student === null) throw new Error('No student with id: ' + id)
 				const response: AssignmentGroup[] = student.groups.map(group => ({
 					editPrivileges: false,
-					id: group.id as number,
-					name: group.section ? sectionGroupName(group.section) : group.name as string
+					id: group.id!,
+					name: group.section ? sectionGroupName(group.section) : group.name!
 				}))
 				response.sort((group1, group2) => {
 					const name1 = group1.name.toLowerCase()

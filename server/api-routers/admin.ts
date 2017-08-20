@@ -1,5 +1,5 @@
 import * as express from 'express'
-import {TeachersList, WrongDomainEmails} from '../../api'
+import {WrongDomainEmails} from '../../api'
 import {error, success} from '../api-respond'
 import {restrictToAdmin} from '../api-restrict'
 import importUsersFromCSV from '../csv-import/students-and-teachers'
@@ -10,7 +10,6 @@ import limitsEditRouter from './limits-edit'
 import studentsEditRouter from './students-edit'
 import teachersEditRouter from './teachers-edit'
 import violationsRouter from './violations'
-import {Teacher} from '../models'
 
 const router = express.Router()
 router.use(restrictToAdmin)
@@ -29,21 +28,5 @@ router.use(coursesEditRouter)
 router.use(teachersEditRouter)
 router.use(limitsEditRouter)
 router.use(violationsRouter)
-router.get('/list-teachers', (_, res) => { //for selecting advisor or section teacher
-	Teacher.findAll({
-		attributes: ['id', 'firstName', 'lastName'],
-		order: ['lastName']
-	})
-		.then(teachers => {
-			const response: TeachersList = teachers.map(
-				teacher => ({
-					id: teacher.id,
-					name: teacher.firstName + ' ' + teacher.lastName
-				})
-			)
-			success(res, response)
-		})
-		.catch(err => error(res, err))
-})
 
 export default router
