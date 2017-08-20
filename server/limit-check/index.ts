@@ -74,6 +74,7 @@ export function checkAddition(day: ExtendedDate, newWeight: number, groupId: num
 						}
 					})
 					return allAssignments.then(assignments => {
+						const dayYYYYMMDD = day.toYYYYMMDD()
 						const violations: LimitViolation[] = []
 						for (const student of students) {
 							const groups = new Set(student.groups.map(({id}) => id))
@@ -81,20 +82,24 @@ export function checkAddition(day: ExtendedDate, newWeight: number, groupId: num
 								const dayRange = limit.days - 1
 								for (let startDay = -dayRange; startDay <= 0; startDay++) {
 									const extendedStart = day.addDays(startDay)
-									const startYYMMDD = extendedStart.toYYYYMMDD()
+									const startYYYYMMDD = extendedStart.toYYYYMMDD()
 									const endYYYYMMDD = extendedStart.addDays(dayRange).toYYYYMMDD()
 									const assignmentsInRange = assignments.filter(assignment => //get assignments for student's classes in day range
 										groups.has(assignment.groupId) &&
-										startYYMMDD <= assignment.due &&
+										startYYYYMMDD <= assignment.due &&
 										assignment.due <= endYYYYMMDD &&
 										assignment.weight //no point in counting assignments that don't contribute weight
 									)
+									//Prevents returning multiple violations for the same set of assignments
+									//if they lie in a smaller window that the limit window
+									if (startYYYYMMDD < dayYYYYMMDD && assignments[0].due !== startYYYYMMDD) continue
+
 									const weightSum = assignmentsInRange
 										.map(({weight}) => weight)
 										.reduce((a, b) => a + b, 0)
 										+ newWeight
 									if (weightSum >= limit.assignmentWeight) {
-										const [y, m, d] = startYYMMDD.split('-')
+										const [y, m, d] = startYYYYMMDD.split('-')
 										violations.push({
 											start: m + '/' + d + '/' + y,
 											days: limit.days,
