@@ -67,6 +67,12 @@ interface AssignmentResponse {
 }
 export type Assignments = AssignmentResponse[]
 
+interface AssignmentCourse {
+	id: string
+	name: string
+}
+export type CourseList = AssignmentCourse[]
+
 //Admin interface
 export interface Student {
 	id: string

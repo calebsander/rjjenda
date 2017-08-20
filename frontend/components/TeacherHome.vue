@@ -3,15 +3,33 @@
 		<assignments-view ref='assignments' :teacher='true'></assignments-view>
 		<md-button class='md-raised' @click='loadMyGroups'>Show my sections</md-button>
 		<md-button class='md-raised' @click='selectTeacher'>Show another teacher's sections</md-button>
+		<md-button class='md-raised' @click='selectCourse'>Show all sections for a course</md-button>
 
 		<teacher-selector ref='teacherSelector' @save='loadTeacher' :teachers='teachers'></teacher-selector>
+		<md-dialog ref='courseSelector'>
+			<md-dialog-title>Select course</md-dialog-title>
+			<md-dialog-content>
+				<md-input-container>
+					<label>Course</label>
+					<md-select v-model='selectedCourse' required>
+						<md-option v-for='course in courses' :value='course.id' :key='course.id'>
+							{{ course.id }} - {{ course.name }}
+						</md-option>
+					</md-select>
+				</md-input-container>
+			</md-dialog-content>
+			<md-dialog-actions>
+				<md-button class='md-accent' @click='loadCourse'>Load</md-button>
+				<md-button class='md-primary' @click='cancelCourse'>Cancel</md-button>
+			</md-dialog-actions>
+		</md-dialog>
 	</div>
 </template>
 
 <script lang='ts'>
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
-	import {AssignmentGroup, TeachersList} from '../../api'
+	import {AssignmentGroup, CourseList, TeachersList} from '../../api'
 	import apiFetch from '../api-fetch'
 	import AssignmentsView from './AssignmentsView.vue'
 	import TeacherSelector from './TeacherSelector.vue'
@@ -30,6 +48,8 @@
 	export default class TeacherHome extends Vue {
 		myGroups: AssignmentGroup[] = []
 		teachers: TeachersList = []
+		selectedCourse: string = ''
+		courses: CourseList = []
 
 		mounted() {
 			apiFetch({
@@ -60,6 +80,33 @@
 		loadTeacher(teacherId: string) {
 			apiFetch({
 				url: '/assignments/teacher-sections/' + teacherId,
+				handler: (groups: AssignmentGroup[]) => this.loadGroups(groups),
+				router: this.$router
+			})
+		}
+		selectCourse() {
+			if (!this.courses.length) {
+				this.courses = [{id: '', name: ''}]
+				apiFetch({
+					url: '/assignments/list-courses',
+					handler: (courses: CourseList) => this.courses.push(...courses),
+					router: this.$router
+				})
+			}
+			this.selectedCourse = ''
+			;(this.$refs.courseSelector as Dialog).open()
+		}
+		cancelCourse() {
+			(this.$refs.courseSelector as Dialog).close()
+		}
+		loadCourse() {
+			if (!this.selectedCourse) {
+				alert('Please select a course')
+				return
+			}
+			(this.$refs.courseSelector as Dialog).close()
+			apiFetch({
+				url: '/assignments/course-sections/' + this.selectedCourse,
 				handler: (groups: AssignmentGroup[]) => this.loadGroups(groups),
 				router: this.$router
 			})

@@ -1,22 +1,26 @@
 import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import * as Sequelize from 'sequelize'
-import {AddAssignment, AddGroup, AssignmentGroup, AssignmentListRequest, Assignments, CheckAssignment, LimitViolation, GroupQuery} from '../../api'
+import {AddAssignment, AddGroup, AssignmentGroup, AssignmentListRequest, Assignments, CheckAssignment, CourseList, LimitViolation, GroupQuery} from '../../api'
 import {error, success} from '../api-respond'
 import {restrictToLoggedIn, restrictToStudent, restrictToTeacher} from '../api-restrict'
 import {checkAddition} from '../limit-check'
 import {Assignment, Course, Group, Section, Student} from '../models'
 import {CourseAttributes} from '../models/course'
 import {GroupAttributes} from '../models/group'
+import {SectionAttributes} from '../models/section'
 import {StudentInstance} from '../models/student'
 import {TeacherInstance} from '../models/teacher'
 import sectionGroupName from '../section-group-name'
 import ExtendedDate from '../../util/extended-date'
 
-function getSections(teacherId: string, editPrivileges: boolean, res: express.Response) {
+function getSectionsForTeacher(requestingTeacher: string, teacherId: string, res: express.Response): void {
+	getSections(requestingTeacher, {teacherId}, res)
+}
+function getSections(requestingTeacher: string, where: Sequelize.WhereOptions<SectionAttributes>, res: express.Response): void {
 	Section.findAll({
-		attributes: ['number'],
-		where: {teacherId},
+		attributes: ['number', 'teacherId'],
+		where,
 		include: [
 			{
 				model: Course,
@@ -34,7 +38,7 @@ function getSections(teacherId: string, editPrivileges: boolean, res: express.Re
 	})
 		.then(sections => {
 			const response: AssignmentGroup[] = sections.map(section => ({
-				editPrivileges,
+				editPrivileges: section.teacherId! === requestingTeacher,
 				id: section.group.id as number,
 				name: sectionGroupName(section)
 			}))
@@ -46,11 +50,35 @@ function getSections(teacherId: string, editPrivileges: boolean, res: express.Re
 const router = express.Router()
 router.get('/my-sections',
 	restrictToTeacher,
-	(req, res) => getSections((req.user as TeacherInstance).id, true, res)
+	(req, res) => {
+		const {id} = req.user as TeacherInstance
+		getSectionsForTeacher(id, id, res)
+	}
 )
 router.get('/teacher-sections/:teacherId',
 	restrictToTeacher,
-	(req, res) => getSections(req.params.teacherId as string, false, res)
+	(req, res) =>
+		getSectionsForTeacher((req.user as TeacherInstance).id, req.params.teacherId as string, res)
+)
+router.get('/list-courses',
+	restrictToTeacher,
+	(_, res) =>
+		Course.findAll({
+			attributes: ['id', 'name'],
+			order: ['name']
+		})
+			.then(courses => {
+				const response: CourseList = courses.map(({id, name}) => ({id, name}))
+				success(res, response)
+			})
+			.catch(err => error(res, err))
+)
+router.get('/course-sections/:courseId',
+	restrictToTeacher,
+	(req, res) => {
+		const courseId = req.params.courseId as string
+		getSections((req.user as TeacherInstance).id, {courseId}, res)
+	}
 )
 router.get('/my-classes',
 	restrictToStudent,
