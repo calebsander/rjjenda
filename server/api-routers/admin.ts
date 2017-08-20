@@ -9,6 +9,7 @@ import groupsEditRouter from './groups-edit'
 import limitsEditRouter from './limits-edit'
 import studentsEditRouter from './students-edit'
 import teachersEditRouter from './teachers-edit'
+import violationsRouter from './violations'
 import {Teacher} from '../models'
 
 const router = express.Router()
@@ -27,6 +28,7 @@ router.use(groupsEditRouter)
 router.use(coursesEditRouter)
 router.use(teachersEditRouter)
 router.use(limitsEditRouter)
+router.use(violationsRouter)
 router.get('/list-teachers', (_, res) => { //for selecting advisor or section teacher
 	Teacher.findAll({
 		attributes: ['id', 'firstName', 'lastName']

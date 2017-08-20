@@ -13,5 +13,5 @@ export interface SectionAttributes {
 export interface SectionInstance extends Instance<SectionAttributes>, SectionAttributes {
 	course: CourseInstance
 	group: GroupInstance,
-	teacher: TeacherInstance
+	teacher: TeacherInstance | null
 }

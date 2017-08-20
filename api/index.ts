@@ -40,10 +40,12 @@ export interface CheckAssignment {
 	major: boolean
 }
 export interface LimitViolation {
-	start: string
 	days: number
 	student: string
 	assignments: string[]
+}
+export interface AtFaultViolation extends LimitViolation {
+	fault: string //the group name at fault
 }
 
 export interface AddAssignment {

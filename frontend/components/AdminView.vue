@@ -13,6 +13,7 @@
 		<manage-courses class='card' ref='courses' @updateGroups='updateGroups'></manage-courses>
 		<manage-groups class='card' ref='groups' :teachers='teachers' @updateCourses='updateCourses'></manage-groups>
 		<manage-limits class='card'></manage-limits>
+		<limit-violations class='card'></limit-violations>
 	</div>
 </template>
 
@@ -22,6 +23,7 @@
 	import apiFetch from '../api-fetch'
 	import {TeachersList} from '../../api'
 	import GroupMemberCSVUpload from './GroupMemberCSVUpload.vue'
+	import LimitViolations from './LimitViolations.vue'
 	import ManageCourses from './ManageCourses.vue'
 	import ManageGroups from './ManageGroups.vue'
 	import ManageLimits from './ManageLimits.vue'
@@ -32,6 +34,7 @@
 	@Component({
 		components: {
 			'group-member-csv-upload': GroupMemberCSVUpload,
+			'limit-violations': LimitViolations,
 			'manage-courses': ManageCourses,
 			'manage-groups': ManageGroups,
 			'manage-limits': ManageLimits,
