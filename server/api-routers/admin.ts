@@ -6,6 +6,7 @@ import importUsersFromCSV from '../csv-import/students-and-teachers'
 import coursesEditRouter from './courses-edit'
 import groupsMembersRouter from './groups-members'
 import groupsEditRouter from './groups-edit'
+import infosEditRouter from './infos-edit'
 import limitsEditRouter from './limits-edit'
 import studentsEditRouter from './students-edit'
 import teachersEditRouter from './teachers-edit'
@@ -27,6 +28,7 @@ router.use(groupsEditRouter)
 router.use(coursesEditRouter)
 router.use(teachersEditRouter)
 router.use(limitsEditRouter)
+router.use(infosEditRouter)
 router.use(violationsRouter)
 
 export default router

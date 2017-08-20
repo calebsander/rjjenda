@@ -13,6 +13,7 @@
 		<manage-courses class='card' ref='courses' @updateGroups='updateGroups'></manage-courses>
 		<manage-groups class='card' ref='groups' :teachers='teachers' @updateCourses='updateCourses'></manage-groups>
 		<manage-limits class='card'></manage-limits>
+		<manage-infos class='card'></manage-infos>
 		<limit-violations class='card'></limit-violations>
 	</div>
 </template>
@@ -26,6 +27,7 @@
 	import LimitViolations from './LimitViolations.vue'
 	import ManageCourses from './ManageCourses.vue'
 	import ManageGroups from './ManageGroups.vue'
+	import ManageInfos from './ManageInfos.vue'
 	import ManageLimits from './ManageLimits.vue'
 	import ManageStudents from './ManageStudents.vue'
 	import ManageTeachers from './ManageTeachers.vue'
@@ -37,6 +39,7 @@
 			'limit-violations': LimitViolations,
 			'manage-courses': ManageCourses,
 			'manage-groups': ManageGroups,
+			'manage-infos': ManageInfos,
 			'manage-limits': ManageLimits,
 			'manage-students': ManageStudents,
 			'manage-teachers': ManageTeachers,

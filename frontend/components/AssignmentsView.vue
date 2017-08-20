@@ -414,6 +414,6 @@
 <style lang='sass'>
 	#group-dialog .md-dialog //make the whole dialog box wide (to accommodate long section names)
 		width: 100%
-	.md-menu-content //make the autocomplete list wide
+	.md-menu-content //make the autocomplete list wide; not sure how to prevent this from applying to all autocompletes & selects
 		min-width: 65%
 </style>

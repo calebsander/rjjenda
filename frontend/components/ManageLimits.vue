@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<md-table-card id='limits-table'>
+		<md-table-card>
 			<md-toolbar>
 				<h1 class='md-title'>Limits</h1>
 				<md-spinner md-indeterminate class='md-warn' v-if='loading'></md-spinner>

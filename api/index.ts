@@ -179,6 +179,17 @@ export interface NewLimit {
 	weight: number
 }
 
+export interface Info {
+	id: number
+	color: string //#abcdef
+	weight: number
+}
+export type Infos = Info[]
+export interface NewInfo {
+	color: string //#abcdef
+	weight: number
+}
+
 export interface WrongDomainEmails {
 	invalidEmails: string[]
 }
