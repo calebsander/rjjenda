@@ -1,4 +1,5 @@
 import {Instance} from 'sequelize'
+import {AssignmentInstance} from './assignment'
 import {SectionInstance} from './section'
 import {StudentInstance} from './student'
 
@@ -11,6 +12,7 @@ export interface GroupAttributes {
 export interface GroupInstance extends Instance<GroupAttributes>, GroupAttributes {
 	section: SectionInstance | null //null if not associated with a section
 	students?: StudentInstance[]
+	assignments?: AssignmentInstance[]
 	studentCount?: number
 	setStudents(students: StudentInstance[]): Promise<void>
 	addStudent(student: StudentInstance): Promise<void>

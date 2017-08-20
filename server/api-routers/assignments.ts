@@ -1,10 +1,10 @@
 import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import * as Sequelize from 'sequelize'
-import {AddAssignment, AddGroup, AssignmentGroup, AssignmentListRequest, Assignments, CheckAssignment, CourseList, LimitViolation, GroupQuery} from '../../api'
+import {AddAssignment, AddGroup, AssignmentGroup, AssignmentListRequest, Assignments, CheckAssignment, CourseList, DayInfos, LimitViolation, StudentWarning, GroupQuery} from '../../api'
 import {error, success} from '../api-respond'
 import {restrictToLoggedIn, restrictToStudent, restrictToTeacher} from '../api-restrict'
-import {checkAddition} from '../limit-check'
+import {checkAddition, getInfo, InfoMatched} from '../limit-check'
 import {Assignment, Course, Group, Section, Student} from '../models'
 import {CourseAttributes} from '../models/course'
 import {GroupAttributes} from '../models/group'
@@ -230,6 +230,10 @@ router.post('/new',
 			.catch(err => error(res, err))
 	}
 )
+interface StudentDayInfo {
+	day: number
+	info: InfoMatched | null
+}
 router.post('/list',
 	restrictToLoggedIn,
 	bodyParser.json(),
@@ -238,7 +242,7 @@ router.post('/list',
 		const startDate = new Date(year, month, date) //midnight of start of day, in this timezone
 		const extendedStartDate = new ExtendedDate(startDate)
 		const endDate = extendedStartDate.addDays(days) //exclusive
-		Assignment.findAll({
+		const assignmentsResponse = Assignment.findAll({
 			attributes: ['id', 'due', 'name', 'visitors', 'weight', 'updatedAt'],
 			where: {
 				groupId,
@@ -249,14 +253,70 @@ router.post('/list',
 			}
 		})
 			.then(assignments => {
-				const response: Assignments = assignments.map(assignment => ({
-					day: new ExtendedDate(assignment.due).daysSince(extendedStartDate.toUTC()) + 1,
-					id: assignment.id as number,
-					name: assignment.name,
-					visitors: assignment.visitors,
-					weight: assignment.weight,
-					updated: assignment.updatedAt.toISOString()
-				}))
+				return Promise.resolve(
+					assignments.map(assignment => ({
+						day: new ExtendedDate(assignment.due).daysSince(extendedStartDate.toUTC()) + 1,
+						id: assignment.id as number,
+						name: assignment.name,
+						visitors: assignment.visitors,
+						weight: assignment.weight,
+						updated: assignment.updatedAt.toISOString()
+					}))
+				)
+			})
+		const findStudents = Group.findOne({
+			attributes: [],
+			where: {id: groupId},
+			include: [{
+				model: Student,
+				attributes: ['id']
+			}]
+		})
+			.then(group => {
+				if (group === null) throw new Error('No group with id: ' + String(groupId))
+				return Promise.resolve(group.students!.map(({id}) => id))
+			})
+		const infosResponse = findStudents.then(students => {
+			const infoPromises: Promise<StudentDayInfo>[] = []
+			for (let day = 0; day < days; day++) {
+				for (const student of students) {
+					infoPromises.push(
+						getInfo(extendedStartDate.addDays(day).toUTC(), student)
+							.then(info => Promise.resolve({
+								day,
+								info
+							}))
+					)
+				}
+			}
+			return Promise.all(infoPromises)
+		})
+			.then(studentDayInfos => {
+				const infos: DayInfos[] = []
+				for (let day = 0; day < days; day++) {
+					const dayInfos = new Map<string, StudentWarning[]>() //map of colors to lists of warnings for individual students
+					for (const {info} of studentDayInfos.filter(info => info.day === day)) {
+						if (!info) continue
+
+						let infoWarning = dayInfos.get(info.color)
+						if (!infoWarning) {
+							infoWarning = []
+							dayInfos.set(info.color, infoWarning)
+						}
+						infoWarning.push({
+							student: info.student,
+							assignments: info.assignments
+						})
+					}
+					const dayInfo: DayInfos = []
+					for (const [color, students] of dayInfos) dayInfo.push({color, students})
+					infos[day] = dayInfo
+				}
+				return Promise.resolve(infos)
+			})
+		Promise.all([assignmentsResponse, infosResponse])
+			.then(([assignments, infos]) => {
+				const response: Assignments = {assignments, infos}
 				success(res, response)
 			})
 			.catch(err => error(res, err))

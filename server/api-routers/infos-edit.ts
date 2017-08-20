@@ -7,7 +7,8 @@ import {Info} from '../models'
 const router = express.Router()
 router.get('/infos', (_, res) =>
 	Info.findAll({
-		attributes: ['id', 'assignmentWeight', 'color']
+		attributes: ['id', 'assignmentWeight', 'color'],
+		order: ['assignmentWeight']
 	})
 		.then(infos => {
 			const response: Infos = infos.map(({id, assignmentWeight, color}) => ({

@@ -65,7 +65,19 @@ interface AssignmentResponse {
 	updated: string //ISO string
 	weight: number
 }
-export type Assignments = AssignmentResponse[]
+export interface StudentWarning {
+	student: string
+	assignments: string[]
+}
+interface InfoWarning {
+	color: string //#abcdef
+	students: StudentWarning[]
+}
+export type DayInfos = InfoWarning[]
+export interface Assignments {
+	assignments: AssignmentResponse[]
+	infos: DayInfos[]
+}
 
 interface AssignmentCourse {
 	id: string

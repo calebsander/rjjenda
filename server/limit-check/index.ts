@@ -1,8 +1,35 @@
 import {AtFaultViolation, LimitViolation} from '../../api'
-import {Assignment, Course, Limit, GradeGroup, Group, Section, Student, Teacher} from '../models'
+import {Assignment, Course, Limit, GradeGroup, Group, Info, Section, Student, Teacher} from '../models'
 import {AssignmentInstance} from '../models/assignment'
+import {StudentInstance} from '../models/student'
 import sectionGroupName from '../section-group-name'
 import ExtendedDate from '../../util/extended-date'
+
+interface GroupInfo {
+	id: number
+	name: string
+	teacher: string | null
+}
+interface StudentGroupsInfo {
+	name: string
+	groups: GroupInfo[]
+}
+function getStudentGroupsInfo({firstName, lastName, groups}: StudentInstance): StudentGroupsInfo {
+	return {
+		name: firstName + ' ' + lastName,
+		groups: groups.map(({id, name, section}) => ({
+			id: id!,
+			name: section ? sectionGroupName(section) : (name || ''),
+			teacher: section && section.teacher && section.teacher.lastName
+		}))
+	}
+}
+function assignmentName(groupNames: Map<number, string>): (assignment: AssignmentInstance) => string {
+	return({name, groupId, due}: AssignmentInstance): string => {
+		const [y, m, d] = due.split('-')
+		return name + ' for ' + groupNames.get(groupId)! + ' on ' + m + '/' + d + '/' + y
+	}
+}
 
 export function checkAddition(day: ExtendedDate, newWeight: number, groupId: number): Promise<LimitViolation[]> {
 	return checkRange(day, day, newWeight, groupId)
@@ -99,18 +126,7 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 				})
 					.then(group => {
 						if (group === null) throw new Error('No group with id ' + String(groupId))
-						return Promise.resolve(
-							group.students!.map(({firstName, lastName, groups}) =>
-								({
-									name: firstName + ' ' + lastName,
-									groups: groups.map(({id, name, section}) => ({
-										id: id!,
-										name: section ? sectionGroupName(section) : (name || ''),
-										teacher: section && section.teacher && section.teacher.lastName
-									}))
-								})
-							)
-						)
+						return Promise.resolve(group.students!.map(getStudentGroupsInfo))
 					})
 				return studentsAndOtherGroups.then(students => {
 					const groupNames = new Map<number, string>() //map of ids to group names
@@ -131,7 +147,8 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 							due: {
 								$gt: start.addDays(-maxDays).date,
 								$lt: end.addDays(+maxDays).date
-							}
+							},
+							weight: {$gt: 0}
 						}
 					})
 					return allAssignments.then(assignments => {
@@ -139,9 +156,7 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 						const violations: AtFaultViolation[] = []
 						for (const student of students) {
 							const groups = new Set(student.groups.map(({id}) => id))
-							const studentAssignments = assignments.filter(assignment =>
-								assignment.weight && groups.has(assignment.groupId)
-							)
+							const studentAssignments = assignments.filter(assignment => groups.has(assignment.groupId))
 							const dayAssignments = new Map<string, AssignmentInstance[]>() //map of YYYY-MM-DDs to lists of assignments
 							for (const assignment of studentAssignments) {
 								let day = dayAssignments.get(assignment.due)
@@ -185,11 +200,7 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 										violations.push({
 											days: limit.days,
 											student: student.name,
-											assignments: assignmentsInRange
-												.map(({name, groupId, due}) => {
-													const [y, m, d] = due.split('-')
-													return name + ' for ' + groupNames.get(groupId)! + ' on ' + m + '/' + d + '/' + y
-												}),
+											assignments: assignmentsInRange.map(assignmentName(groupNames)),
 											fault: faultGroupName +
 												(faultTeacher ? ' (' + faultTeacher + ')' : '')
 										})
@@ -201,5 +212,77 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 					})
 				})
 			})
+	)
+}
+
+export interface InfoMatched {
+	assignments: string[]
+	color: string
+	student: string
+}
+export function getInfo(day: ExtendedDate, studentId: string): Promise<InfoMatched | null> {
+	return Promise.resolve(
+		Student.findOne({
+		attributes: ['firstName', 'lastName'],
+		where: {id: studentId},
+		include: [{
+			model: Group,
+			attributes: ['id', 'name'],
+			include: [
+				{ //in order to be able to get the names of section groups
+					model: Section,
+					attributes: ['number'],
+					include: [
+						{
+							model: Course,
+							attributes: ['name']
+						},
+						{
+							model: Teacher,
+							attributes: ['lastName']
+						}
+					]
+				},
+				{
+					model: Assignment,
+					attributes: ['due', 'name', 'weight', 'groupId'], //getting the date again because it is used in assignmentName()
+					where: {
+						due: day.date,
+						weight: {$gt: 0}
+					}
+				}
+			]
+		}]
+	})
+		.then(student => {
+			if (student === null) throw new Error('No student with id: ' + studentId)
+			const assignments: AssignmentInstance[] = []
+			for (const group of student.groups) assignments.push(...group.assignments!)
+			return Promise.resolve({
+				student: getStudentGroupsInfo(student),
+				assignments
+			})
+		})
+		.then(({student, assignments}) => {
+			const groupNames = new Map<number, string>() //map of ids to group names
+			for (const group of student.groups) groupNames.set(group.id, group.name)
+			const weightSum = assignments.reduce((sum, {weight}) => sum + weight, 0)
+			if (weightSum === 0) return Promise.resolve(null)
+			return Info.findAll({
+				attributes: ['color', 'assignmentWeight'],
+				where: {
+					assignmentWeight: {$lte: weightSum}
+				}
+			})
+				.then(infos => {
+					if (!infos.length) return Promise.resolve(null)
+					const greatestInfo = argmax(infos.map(info => info.assignmentWeight))
+					return Promise.resolve({
+						assignments: assignments.map(assignmentName(groupNames)),
+						color: infos[greatestInfo].color,
+						student: student.name
+					})
+				})
+		})
 	)
 }

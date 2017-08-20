@@ -60,6 +60,17 @@
 									</md-button>
 								</md-list-item>
 							</md-list>
+							<md-layout md-align='center' v-if='getInfos(group, day).length'>
+								<md-button
+									v-for='info in getInfos(group, day)'
+									:key='info.color'
+									class='md-icon-button md-raised'
+									:style='{background: info.color, color: "white"}'
+									@click='showStudents(group, day)'
+								>
+									{{ info.students.length }}
+								</md-button>
+							</md-layout>
 							<md-layout md-align='center' v-if='isHoveredCell(group, day)'>
 								<md-button class='md-icon-button md-raised top-space' @click='openAddAssignment'>
 									<md-icon>assignment</md-icon>
@@ -129,6 +140,32 @@
 			:md-content-html='checkContent'
 		>
 		</md-dialog-alert>
+		<md-dialog ref='infoStudents' id='info-students'>
+			<div v-if='infoGroup'> <!--avoid rendering errors if no group yet selected-->
+				<md-dialog-title>
+					Students in
+					{{ infoGroup.name }}
+					with assignments on
+					{{ getDay(infoDay).toShortDate() }}
+				</md-dialog-title>
+				<md-dialog-content>
+					<md-list class='md-double-line'>
+						<div v-for='info in getInfos(infoGroup, infoDay)' :key='info.color'>
+							<md-list-item v-for='studentInfo in info.students' :key='studentInfo.student'>
+								<div class='md-list-text-container'>
+									<span>{{ studentInfo.student }}</span>
+									<span>
+										<div v-for='assignment in studentInfo.assignments' :key='assignment'>
+											{{ assignment }}
+										</div>
+									</span>
+								</div>
+							</md-list-item>
+						</div>
+					</md-list>
+				</md-dialog-content>
+			</div>
+		</md-dialog>
 	</div>
 </template>
 
@@ -137,7 +174,7 @@
 	import Component from 'vue-class-component'
 	import apiFetch from '../api-fetch'
 	import ExtendedDate from '../../util/extended-date'
-	import {AddAssignment, AddGroup, AssignmentGroup, AssignmentListRequest, Assignments, CheckAssignment, LimitViolation, GroupQuery} from '../../api'
+	import {AddAssignment, AddGroup, AssignmentGroup, AssignmentListRequest, Assignments, CheckAssignment, DayInfos, LimitViolation, GroupQuery} from '../../api'
 
 	const DAYS_PER_WEEK = 7
 	const WEEK_DAYS = 5
@@ -184,7 +221,10 @@
 		loading = false
 
 		groups: AssignmentGroup[] = []
+		//Map of groups to maps of days to lists of assignments
 		weekAssignments = new Map<AssignmentGroup, Map<number, Assignment[]>>()
+		//Map of groups to maps of days to lists of infos
+		weekInfos = new Map<AssignmentGroup, Map<number, DayInfos>>()
 
 		newGroup: AddGroup | null = null
 		newGroupName = '' //use newGroup for read
@@ -197,6 +237,9 @@
 		newAssignmentVisitors = true
 		newAssignmentChecked = false
 		checkContent = ' ' //errors are thrown if this is empty
+
+		infoGroup: AssignmentGroup | null = null
+		infoDay: number = -1
 
 		lastWeek() {
 			if (this.loading === true) return //avoid having multiple assignment requests running at same time
@@ -350,6 +393,7 @@
 			this.loading = true
 			Promise.all(groups.map(group => {
 				this.weekAssignments.delete(group)
+				this.weekInfos.delete(group)
 				const data: AssignmentListRequest = {
 					groupId: group.id,
 					...this.mondayDate.toYMD(),
@@ -359,7 +403,7 @@
 					apiFetch({
 						url: '/assignments/list',
 						data,
-						handler: (assignments: Assignments) => {
+						handler: ({assignments, infos}: Assignments) => {
 							const dayAssignments = new Map<number, Assignment[]>()
 							for (const assignment of assignments) {
 								let day = dayAssignments.get(assignment.day)
@@ -376,6 +420,9 @@
 								})
 							}
 							this.weekAssignments.set(group, dayAssignments)
+							const mapInfos = new Map<number, DayInfos>()
+							for (let day = 0; day < infos.length; day++) mapInfos.set(day, infos[day])
+							this.weekInfos.set(group, mapInfos)
 							resolve()
 						},
 						router: this.$router
@@ -388,6 +435,16 @@
 			const groupAssignments = this.weekAssignments.get(group)
 			if (!groupAssignments) return []
 			return groupAssignments.get(day) || []
+		}
+		getInfos(group: AssignmentGroup, day: number): DayInfos {
+			const groupInfos = this.weekInfos.get(group)
+			if (!groupInfos) return []
+			return groupInfos.get(day) || []
+		}
+		showStudents(group: AssignmentGroup, day: number) {
+			this.infoGroup = group
+			this.infoDay = day
+			;(this.$refs.infoStudents as Dialog).open()
 		}
 
 		//For external usage
@@ -416,4 +473,6 @@
 		width: 100%
 	.md-menu-content //make the autocomplete list wide; not sure how to prevent this from applying to all autocompletes & selects
 		min-width: 65%
+	#info-students .md-dialog
+		overflow-y: auto
 </style>
