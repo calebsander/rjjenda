@@ -1,3 +1,6 @@
 {
-	"emailDomain": "commschool.org"
+	"emailDomain": "commschool.org",
+	"https": false,
+	"hostDomain": "rjjenda.calebsander.com",
+	"port": 8000
 }

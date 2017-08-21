@@ -8,6 +8,12 @@ interface OAuthConfig {
 	clientSecret: string
 }
 const {clientID, clientSecret}: OAuthConfig = require('../config/oauth.json')
+interface Settings {
+	https: boolean
+	hostDomain: string
+	port: number
+}
+const {https, hostDomain, port}: Settings = require('../settings.json')
 
 const COMMSCHOOL_DOMAIN = 'commschool.org'
 
@@ -70,7 +76,7 @@ function lookupUsername(username: string, done: (err: Error | null, user?: UserT
 passport.use(new GoogleStrategy({
 	clientID,
 	clientSecret,
-	callbackURL: 'http://rjjenda.calebsander.com:8000/auth/callback'
+	callbackURL: 'http' + (https ? 's' : '') + '://' + hostDomain + ':' + String(port) + '/auth/callback'
 }, (_, __, profile, done) => {
 	if (!profile.emails) {
 		done(new Error('No emails'))

@@ -3,9 +3,12 @@
 import app from './app'
 import {sequelize} from './models'
 
-const PORT = 8000
+interface Settings {
+	port: number
+}
+const {port}: Settings = require('../settings.json')
 
 sequelize.sync().then(() => {
-	app.listen(PORT)
-	console.log('Listening on port: ' + PORT)
+	app.listen(port)
+	console.log('Listening on port:', port)
 })
