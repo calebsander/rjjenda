@@ -38,7 +38,7 @@
 					</md-table-cell>
 					<md-table-cell v-for='day in WEEK_DAYS' :key='day' @mouseover.native='showAssignmentAdd(group, day)'>
 						<md-layout md-column :md-gutter='8'>
-							<md-list class='md-double-line md-dense' v-if='getAssignments(group, day).length'>
+							<md-list class='md-double-line md-dense assignment-list' v-if='getAssignments(group, day).length'>
 								<md-list-item v-for='assignment in getAssignments(group, day)' :key='assignment.id'>
 									<div class='md-list-text-container'>
 										<span>{{ assignment.name }}</span>
@@ -540,6 +540,8 @@
 		margin: 0px
 	.top-space
 		margin-top: 10px !important
+	.assignment-list
+		background: rgba(0,0,0,0)
 </style>
 <style lang='sass'>
 	#group-dialog .md-dialog //make the whole dialog box wide (to accommodate long section names)
