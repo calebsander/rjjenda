@@ -409,6 +409,9 @@
 			this.loadAssignmentsForGroups(this.groups)
 		}
 		loadInfos(): Promise<void> {
+			//Students shouldn't see infos
+			if (!this.teacher) return Promise.resolve()
+
 			return new Promise((resolve, _) => {
 				//If we are reloading for one, need to reload for all
 				//since changing an assignment for one group can affect students in others
