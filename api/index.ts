@@ -56,7 +56,6 @@ export interface AssignmentListRequest {
 	date: number
 	days: number
 }
-
 interface AssignmentResponse {
 	day: number //index (starting at 1) in the date window
 	id: number
@@ -65,19 +64,28 @@ interface AssignmentResponse {
 	updated: string //ISO string
 	weight: number
 }
+export type Assignments = AssignmentResponse[]
+
+export interface InfoListRequest {
+	groupIds: number[]
+	year: number
+	month: number
+	date: number
+	days: number
+}
 export interface StudentWarning {
-	student: string
 	assignments: string[]
-}
-interface InfoWarning {
 	color: string //#abcdef
-	students: StudentWarning[]
+	student: string
 }
-export type DayInfos = InfoWarning[]
-export interface Assignments {
-	assignments: AssignmentResponse[]
-	infos: DayInfos[]
+export interface GroupWarningIndices {
+	[groupId: number]: number[] | undefined
 }
+export interface DayGroupWarnings {
+	groups: GroupWarningIndices //indices into infos
+	infos: StudentWarning[]
+}
+export type GroupWarnings = DayGroupWarnings[]
 
 interface AssignmentCourse {
 	id: string

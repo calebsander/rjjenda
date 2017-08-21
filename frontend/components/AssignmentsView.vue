@@ -174,7 +174,18 @@
 	import Component from 'vue-class-component'
 	import apiFetch from '../api-fetch'
 	import ExtendedDate from '../../util/extended-date'
-	import {AddAssignment, AddGroup, AssignmentGroup, AssignmentListRequest, Assignments, CheckAssignment, DayInfos, LimitViolation, GroupQuery} from '../../api'
+	import {
+		AddAssignment,
+		AddGroup,
+		AssignmentGroup,
+		AssignmentListRequest,
+		Assignments,
+		CheckAssignment,
+		GroupWarnings,
+		InfoListRequest,
+		LimitViolation,
+		GroupQuery
+	} from '../../api'
 
 	const DAYS_PER_WEEK = 7
 	const WEEK_DAYS = 5
@@ -195,6 +206,14 @@
 		visitors: boolean
 		weight: number
 		updated: Date
+	}
+	interface StudentInfo {
+		student: string
+		assignments: string[]
+	}
+	interface InfoLevel {
+		color: string
+		students: StudentInfo[]
 	}
 
 	interface Dialog extends Vue {
@@ -224,7 +243,7 @@
 		//Map of groups to maps of days to lists of assignments
 		weekAssignments = new Map<AssignmentGroup, Map<number, Assignment[]>>()
 		//Map of groups to maps of days to lists of infos
-		weekInfos = new Map<AssignmentGroup, Map<number, DayInfos>>()
+		weekInfos = new Map<AssignmentGroup, Map<number, InfoLevel[]>>()
 
 		newGroup: AddGroup | null = null
 		newGroupName = '' //use newGroup for read
@@ -391,9 +410,8 @@
 		}
 		loadAssignmentsForGroups(groups: AssignmentGroup[]) {
 			this.loading = true
-			Promise.all(groups.map(group => {
+			const loadAssignments = Promise.all(groups.map(group => {
 				this.weekAssignments.delete(group)
-				this.weekInfos.delete(group)
 				const data: AssignmentListRequest = {
 					groupId: group.id,
 					...this.mondayDate.toYMD(),
@@ -403,7 +421,7 @@
 					apiFetch({
 						url: '/assignments/list',
 						data,
-						handler: ({assignments, infos}: Assignments) => {
+						handler: (assignments: Assignments) => {
 							const dayAssignments = new Map<number, Assignment[]>()
 							for (const assignment of assignments) {
 								let day = dayAssignments.get(assignment.day)
@@ -420,15 +438,54 @@
 								})
 							}
 							this.weekAssignments.set(group, dayAssignments)
-							const mapInfos = new Map<number, DayInfos>()
-							for (let day = 0; day < infos.length; day++) mapInfos.set(day, infos[day])
-							this.weekInfos.set(group, mapInfos)
 							resolve()
 						},
 						router: this.$router
 					})
 				)
 			}))
+			const loadInfos = new Promise((resolve, _) => {
+				for (const group of groups) this.weekInfos.delete(group)
+				const data: InfoListRequest = {
+					groupIds: groups.map(({id}) => id),
+					...this.mondayDate.toYMD(),
+					days: WEEK_DAYS
+				}
+				apiFetch({
+					url: '/assignments/infos',
+					data,
+					handler: (groupWarnings: GroupWarnings) => {
+						for (let day = 0; day < groupWarnings.length; day++) {
+							const {groups: affectedGroups, infos} = groupWarnings[day]
+							for (const group of groups) {
+								let groupInfos = this.weekInfos.get(group)
+								if (!groupInfos) {
+									groupInfos = new Map()
+									this.weekInfos.set(group, groupInfos)
+								}
+								const groupDayLevels: {[color: string]: InfoLevel} = {}
+								for (const infoIndex of affectedGroups[group.id] || []) {
+									const info = infos[infoIndex]
+									const {color} = info
+									let level = groupDayLevels[color]
+									if (!level) {
+										level = {color, students: []}
+										groupDayLevels[color] = level
+									}
+									level.students.push(info)
+								}
+								const levels: InfoLevel[] = []
+								for (const color in groupDayLevels) levels.push(groupDayLevels[color])
+								groupInfos.set(day + 1, levels)
+							}
+						}
+						console.log(groupWarnings)
+						resolve()
+					},
+					router: this.$router
+				})
+			})
+			Promise.all([loadAssignments, loadInfos])
 				.then(() => this.loading = false)
 		}
 		getAssignments(group: AssignmentGroup, day: number): Assignment[] {
@@ -436,7 +493,7 @@
 			if (!groupAssignments) return []
 			return groupAssignments.get(day) || []
 		}
-		getInfos(group: AssignmentGroup, day: number): DayInfos {
+		getInfos(group: AssignmentGroup, day: number): InfoLevel[] {
 			const groupInfos = this.weekInfos.get(group)
 			if (!groupInfos) return []
 			return groupInfos.get(day) || []

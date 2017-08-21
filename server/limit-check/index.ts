@@ -11,11 +11,13 @@ interface GroupInfo {
 	teacher: string | null
 }
 interface StudentGroupsInfo {
+	id: string
 	name: string
 	groups: GroupInfo[]
 }
-function getStudentGroupsInfo({firstName, lastName, groups}: StudentInstance): StudentGroupsInfo {
+function getStudentGroupsInfo({id, firstName, lastName, groups}: StudentInstance): StudentGroupsInfo {
 	return {
+		id,
 		name: firstName + ' ' + lastName,
 		groups: groups.map(({id, name, section}) => ({
 			id: id!,
@@ -218,13 +220,15 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 export interface InfoMatched {
 	assignments: string[]
 	color: string
-	student: string
+	studentId: string
+	studentName: string
 }
-export function getInfo(day: ExtendedDate, studentId: string): Promise<InfoMatched | null> {
-	return Promise.resolve(
-		Student.findOne({
-		attributes: ['firstName', 'lastName'],
-		where: {id: studentId},
+export function getInfo(day: ExtendedDate, studentIds: string[]): Promise<Map<string, InfoMatched>> {
+	const studentsAndGroups = Student.findAll({
+		attributes: ['id', 'firstName', 'lastName'],
+		where: {
+			id: {$in: studentIds}
+		},
 		include: [{
 			model: Group,
 			attributes: ['id', 'name'],
@@ -242,47 +246,69 @@ export function getInfo(day: ExtendedDate, studentId: string): Promise<InfoMatch
 							attributes: ['lastName']
 						}
 					]
-				},
-				{
-					model: Assignment,
-					attributes: ['due', 'name', 'weight', 'groupId'], //getting the date again because it is used in assignmentName()
-					where: {
-						due: day.date,
-						weight: {$gt: 0}
-					}
 				}
 			]
 		}]
 	})
-		.then(student => {
-			if (student === null) throw new Error('No student with id: ' + studentId)
-			const assignments: AssignmentInstance[] = []
-			for (const group of student.groups) assignments.push(...group.assignments!)
-			return Promise.resolve({
-				student: getStudentGroupsInfo(student),
-				assignments
-			})
-		})
-		.then(({student, assignments}) => {
-			const groupNames = new Map<number, string>() //map of ids to group names
+		.then(students =>
+			Promise.resolve(students.map(getStudentGroupsInfo))
+		)
+	const studentInfoMapPromise = studentsAndGroups.then(students => {
+		const groupNames = new Map<number, string>() //map of ids to group names
+		for (const student of students) {
 			for (const group of student.groups) groupNames.set(group.id, group.name)
-			const weightSum = assignments.reduce((sum, {weight}) => sum + weight, 0)
-			if (weightSum === 0) return Promise.resolve(null)
-			return Info.findAll({
-				attributes: ['color', 'assignmentWeight'],
-				where: {
-					assignmentWeight: {$lte: weightSum}
-				}
-			})
-				.then(infos => {
-					if (!infos.length) return Promise.resolve(null)
-					const greatestInfo = argmax(infos.map(info => info.assignmentWeight))
-					return Promise.resolve({
-						assignments: assignments.map(assignmentName(groupNames)),
-						color: infos[greatestInfo].color,
-						student: student.name
+		}
+		const allAssignments = Assignment.findAll({
+			attributes: ['due', 'name', 'weight', 'groupId'], //getting the date again because it is used in assignmentName()
+			order: ['due', 'updatedAt'],
+			where: {
+				groupId: {
+					$in: Array.from(groupNames.keys())
+				},
+				due: day.date,
+				weight: {$gt: 0}
+			}
+		})
+		return allAssignments.then(assignments => {
+			const studentInfoPromises: PromiseLike<InfoMatched | null>[] = []
+			for (const student of students) {
+				const groups = new Set(student.groups.map(({id}) => id))
+				const studentAssignments = assignments.filter(assignment => groups.has(assignment.groupId))
+				const weightSum = studentAssignments.reduce((sum, {weight}) => sum + weight, 0)
+				const noInfoMatched = Promise.resolve(null)
+				let studentInfoPromise: PromiseLike<InfoMatched | null>
+				if (weightSum) {
+					studentInfoPromise = Info.findAll({
+						attributes: ['color', 'assignmentWeight'],
+						where: {
+							assignmentWeight: {$lte: weightSum}
+						}
 					})
+						.then(infos => {
+							if (!infos.length) return noInfoMatched
+							const greatestInfo = argmax(infos.map(info => info.assignmentWeight))
+							return Promise.resolve<InfoMatched>({
+								assignments: studentAssignments.map(assignmentName(groupNames)),
+								color: infos[greatestInfo].color,
+								studentId: student.id,
+								studentName: student.name
+							})
+						})
+				}
+				else studentInfoPromise = noInfoMatched
+				studentInfoPromises.push(studentInfoPromise)
+			}
+			return Promise.all(studentInfoPromises)
+				.then(studentInfos => {
+					const studentInfoMap = new Map<string, InfoMatched>() //map of student ids to infos
+					for (const studentInfo of studentInfos) {
+						if (!studentInfo) continue
+
+						studentInfoMap.set(studentInfo.studentId, studentInfo)
+					}
+					return Promise.resolve(studentInfoMap)
 				})
 		})
-	)
+	})
+	return Promise.resolve(studentInfoMapPromise)
 }

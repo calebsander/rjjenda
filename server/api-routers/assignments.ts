@@ -1,10 +1,25 @@
 import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import * as Sequelize from 'sequelize'
-import {AddAssignment, AddGroup, AssignmentGroup, AssignmentListRequest, Assignments, CheckAssignment, CourseList, DayInfos, LimitViolation, StudentWarning, GroupQuery} from '../../api'
+import {
+	AddAssignment,
+	AddGroup,
+	AssignmentGroup,
+	AssignmentListRequest,
+	Assignments,
+	CheckAssignment,
+	CourseList,
+	DayGroupWarnings,
+	GroupWarningIndices,
+	GroupWarnings,
+	InfoListRequest,
+	LimitViolation,
+	StudentWarning,
+	GroupQuery
+} from '../../api'
 import {error, success} from '../api-respond'
 import {restrictToLoggedIn, restrictToStudent, restrictToTeacher} from '../api-restrict'
-import {checkAddition, getInfo, InfoMatched} from '../limit-check'
+import {checkAddition, getInfo} from '../limit-check'
 import {Assignment, Course, Group, Section, Student} from '../models'
 import {CourseAttributes} from '../models/course'
 import {GroupAttributes} from '../models/group'
@@ -230,10 +245,6 @@ router.post('/new',
 			.catch(err => error(res, err))
 	}
 )
-interface StudentDayInfo {
-	day: number
-	info: InfoMatched | null
-}
 router.post('/list',
 	restrictToLoggedIn,
 	bodyParser.json(),
@@ -242,7 +253,7 @@ router.post('/list',
 		const startDate = new Date(year, month, date) //midnight of start of day, in this timezone
 		const extendedStartDate = new ExtendedDate(startDate)
 		const endDate = extendedStartDate.addDays(days) //exclusive
-		const assignmentsResponse = Assignment.findAll({
+		Assignment.findAll({
 			attributes: ['id', 'due', 'name', 'visitors', 'weight', 'updatedAt'],
 			where: {
 				groupId,
@@ -253,73 +264,80 @@ router.post('/list',
 			}
 		})
 			.then(assignments => {
-				return Promise.resolve(
-					assignments.map(assignment => ({
-						day: new ExtendedDate(assignment.due).daysSince(extendedStartDate.toUTC()) + 1,
-						id: assignment.id as number,
-						name: assignment.name,
-						visitors: assignment.visitors,
-						weight: assignment.weight,
-						updated: assignment.updatedAt.toISOString()
-					}))
-				)
+				const response: Assignments = assignments.map(assignment => ({
+					day: new ExtendedDate(assignment.due).daysSince(extendedStartDate.toUTC()) + 1,
+					id: assignment.id as number,
+					name: assignment.name,
+					visitors: assignment.visitors,
+					weight: assignment.weight,
+					updated: assignment.updatedAt.toISOString()
+				}))
+				success(res, response)
 			})
-		const findStudents = Group.findOne({
-			attributes: [],
-			where: {id: groupId},
+			.catch(err => error(res, err))
+	}
+)
+router.post('/infos',
+	restrictToTeacher,
+	bodyParser.json(),
+	(req, res) => {
+		const {groupIds, year, month, date, days} = req.body as InfoListRequest
+		const startDate = new ExtendedDate(year, month, date)
+		Group.findAll({
+			attributes: ['id'],
+			where: {
+				id: {$in: groupIds}
+			},
 			include: [{
 				model: Student,
 				attributes: ['id']
 			}]
 		})
-			.then(group => {
-				if (group === null) throw new Error('No group with id: ' + String(groupId))
-				return Promise.resolve(group.students!.map(({id}) => id))
-			})
-		const infosResponse = findStudents.then(students => {
-			const infoPromises: Promise<StudentDayInfo>[] = []
-			for (let day = 0; day < days; day++) {
-				for (const student of students) {
-					infoPromises.push(
-						getInfo(extendedStartDate.addDays(day).toUTC(), student)
-							.then(info => Promise.resolve({
-								day,
-								info
-							}))
-					)
-				}
-			}
-			return Promise.all(infoPromises)
-		})
-			.then(studentDayInfos => {
-				const infos: DayInfos[] = []
-				for (let day = 0; day < days; day++) {
-					const dayInfos = new Map<string, StudentWarning[]>() //map of colors to lists of warnings for individual students
-					for (const {info} of studentDayInfos.filter(info => info.day === day)) {
-						if (!info) continue
-
-						let infoWarning = dayInfos.get(info.color)
-						if (!infoWarning) {
-							infoWarning = []
-							dayInfos.set(info.color, infoWarning)
+			.then(groups => {
+				const studentIds = new Set<string>()
+				const memberships = new Map<string, Set<number>>() //map of student ids to sets of group ids
+				for (const group of groups) {
+					const groupId = group.id!
+					for (const {id: studentId} of group.students!) {
+						studentIds.add(studentId)
+						let studentGroups = memberships.get(studentId)
+						if (!studentGroups) {
+							studentGroups = new Set()
+							memberships.set(studentId, studentGroups)
 						}
-						infoWarning.push({
-							student: info.student,
-							assignments: info.assignments
-						})
+						studentGroups.add(groupId)
 					}
-					const dayInfo: DayInfos = []
-					for (const [color, students] of dayInfos) dayInfo.push({color, students})
-					infos[day] = dayInfo
 				}
-				return Promise.resolve(infos)
+				const studentIdArray = Array.from(studentIds)
+				const dayPromises: Promise<DayGroupWarnings>[] = []
+				for (let day = 0; day < days; day++) {
+					dayPromises[day] = getInfo(startDate.addDays(day), studentIdArray)
+						.then(studentInfoMap => {
+							const groups: GroupWarningIndices = {}
+							const infos: StudentWarning[] = []
+							for (const [studentId, infoMatched] of studentInfoMap) {
+								const infoIndex = infos.length
+								infos.push({
+									assignments: infoMatched.assignments,
+									color: infoMatched.color,
+									student: infoMatched.studentName
+								})
+								for (const groupId of memberships.get(studentId)!) {
+									let groupInfoIndices = groups[groupId]
+									if (!groupInfoIndices) {
+										groupInfoIndices = []
+										groups[groupId] = groupInfoIndices
+									}
+									groupInfoIndices.push(infoIndex)
+								}
+							}
+							return Promise.resolve({groups, infos})
+						})
+				}
+				return Promise.all(dayPromises)
 			})
-		Promise.all([assignmentsResponse, infosResponse])
-			.then(([assignments, infos]) => {
-				const response: Assignments = {assignments, infos}
-				success(res, response)
-			})
-			.catch(err => error(res, err))
+				.then((response: GroupWarnings) => success(res, response))
+				.catch(err => error(res, err))
 	}
 )
 router.delete('/:id',
