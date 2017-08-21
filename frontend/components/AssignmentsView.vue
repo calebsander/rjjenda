@@ -71,8 +71,8 @@
 									{{ info.students.length }}
 								</md-button>
 							</md-layout>
-							<md-layout md-align='center' v-if='isHoveredCell(group, day)'>
-								<md-button class='md-icon-button md-raised top-space' @click='openAddAssignment'>
+							<md-layout md-align='center'>
+								<md-button class='md-icon-button md-raised top-space' :class="{hiddenButton: !isHoveredCell(group, day)}" @click='openAddAssignment'>
 									<md-icon>assignment</md-icon>
 								</md-button>
 							</md-layout>
@@ -542,6 +542,8 @@
 		margin-top: 10px !important
 	.assignment-list
 		background: rgba(0,0,0,0)
+	.hiddenButton
+		opacity: 0
 </style>
 <style lang='sass'>
 	#group-dialog .md-dialog //make the whole dialog box wide (to accommodate long section names)
