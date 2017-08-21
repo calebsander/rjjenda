@@ -360,9 +360,9 @@
 				url: '/assignments/' + String(assignment.id),
 				method: 'DELETE',
 				handler: () => {
-					this.loading = false
 					const dayAssignments = this.getAssignments(group, day)
 					dayAssignments.splice(dayAssignments.indexOf(assignment), 1)
+					this.loadInfos().then(() => this.loading = false)
 				},
 				router: this.$router
 			})
@@ -408,6 +408,51 @@
 		reloadAssignments() {
 			this.loadAssignmentsForGroups(this.groups)
 		}
+		loadInfos(): Promise<void> {
+			return new Promise((resolve, _) => {
+				//If we are reloading for one, need to reload for all
+				//since changing an assignment for one group can affect students in others
+				const groups = this.groups
+				for (const group of groups) this.weekInfos.delete(group)
+				const data: InfoListRequest = {
+					groupIds: groups.map(({id}) => id),
+					...this.mondayDate.toYMD(),
+					days: WEEK_DAYS
+				}
+				apiFetch({
+					url: '/assignments/infos',
+					data,
+					handler: (groupWarnings: GroupWarnings) => {
+						for (let day = 0; day < groupWarnings.length; day++) {
+							const {groups: affectedGroups, infos} = groupWarnings[day]
+							for (const group of groups) {
+								let groupInfos = this.weekInfos.get(group)
+								if (!groupInfos) {
+									groupInfos = new Map()
+									this.weekInfos.set(group, groupInfos)
+								}
+								const groupDayLevels: {[color: string]: InfoLevel} = {}
+								for (const infoIndex of affectedGroups[group.id] || []) {
+									const info = infos[infoIndex]
+									const {color} = info
+									let level = groupDayLevels[color]
+									if (!level) {
+										level = {color, students: []}
+										groupDayLevels[color] = level
+									}
+									level.students.push(info)
+								}
+								const levels: InfoLevel[] = []
+								for (const color in groupDayLevels) levels.push(groupDayLevels[color])
+								groupInfos.set(day + 1, levels)
+							}
+						}
+						resolve()
+					},
+					router: this.$router
+				})
+			})
+		}
 		loadAssignmentsForGroups(groups: AssignmentGroup[]) {
 			this.loading = true
 			const loadAssignments = Promise.all(groups.map(group => {
@@ -444,48 +489,7 @@
 					})
 				)
 			}))
-			const loadInfos = new Promise((resolve, _) => {
-				for (const group of groups) this.weekInfos.delete(group)
-				const data: InfoListRequest = {
-					groupIds: groups.map(({id}) => id),
-					...this.mondayDate.toYMD(),
-					days: WEEK_DAYS
-				}
-				apiFetch({
-					url: '/assignments/infos',
-					data,
-					handler: (groupWarnings: GroupWarnings) => {
-						for (let day = 0; day < groupWarnings.length; day++) {
-							const {groups: affectedGroups, infos} = groupWarnings[day]
-							for (const group of groups) {
-								let groupInfos = this.weekInfos.get(group)
-								if (!groupInfos) {
-									groupInfos = new Map()
-									this.weekInfos.set(group, groupInfos)
-								}
-								const groupDayLevels: {[color: string]: InfoLevel} = {}
-								for (const infoIndex of affectedGroups[group.id] || []) {
-									const info = infos[infoIndex]
-									const {color} = info
-									let level = groupDayLevels[color]
-									if (!level) {
-										level = {color, students: []}
-										groupDayLevels[color] = level
-									}
-									level.students.push(info)
-								}
-								const levels: InfoLevel[] = []
-								for (const color in groupDayLevels) levels.push(groupDayLevels[color])
-								groupInfos.set(day + 1, levels)
-							}
-						}
-						console.log(groupWarnings)
-						resolve()
-					},
-					router: this.$router
-				})
-			})
-			Promise.all([loadAssignments, loadInfos])
+			Promise.all([loadAssignments, this.loadInfos()])
 				.then(() => this.loading = false)
 		}
 		getAssignments(group: AssignmentGroup, day: number): Assignment[] {
