@@ -240,6 +240,7 @@
 		loading = false
 
 		groups: AssignmentGroup[] = []
+		allStudentsGroup: AssignmentGroup | null = null
 		//Map of groups to maps of days to lists of assignments
 		weekAssignments = new Map<AssignmentGroup, Map<number, Assignment[]>>()
 		//Map of groups to maps of days to lists of infos
@@ -405,6 +406,9 @@
 			const [group] = this.groups.splice(index, 1)
 			this.weekAssignments.delete(group)
 		}
+		addAllStudentsGroup() {
+			this.groups.unshift(this.allStudentsGroup!)
+		}
 		reloadAssignments() {
 			this.loadAssignmentsForGroups(this.groups)
 		}
@@ -514,8 +518,13 @@
 		//For external usage
 		setGroups(groups: AssignmentGroup[]) {
 			this.groups = groups.slice()
+			if (this.allStudentsGroup !== null) this.addAllStudentsGroup()
 			this.weekAssignments.clear()
-			this.loadAssignmentsForGroups(groups)
+			this.loadAssignmentsForGroups(this.groups)
+		}
+		setAllStudentsGroup(group: AssignmentGroup) {
+			this.allStudentsGroup = group
+			if (this.groups.length) this.addAllStudentsGroup()
 		}
 	}
 </script>

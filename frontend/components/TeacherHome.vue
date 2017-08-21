@@ -60,6 +60,12 @@
 				},
 				router: this.$router
 			})
+			apiFetch({
+				url: '/assignments/all-school',
+				handler: (group: AssignmentGroup) =>
+					(this.$refs.assignments as AssignmentsView).setAllStudentsGroup(group),
+				router: this.$router
+			})
 		}
 		loadMyGroups() {
 			this.loadGroups(this.myGroups)
