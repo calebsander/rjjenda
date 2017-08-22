@@ -53,7 +53,7 @@ passport.deserializeUser<UserType, SavedUserType>(({id, type}, done) => {
 	}
 })
 
-function lookupUsername(username: string, done: (err: Error | null, user?: UserType) => void): void {
+export function lookupUsername(username: string, done: (err: Error | null, user?: UserType) => void): void {
 	Student.findOne({
 		attributes: ['id'],
 		where: {username}

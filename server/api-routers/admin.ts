@@ -10,6 +10,7 @@ import infosEditRouter from './infos-edit'
 import limitsEditRouter from './limits-edit'
 import studentsEditRouter from './students-edit'
 import teachersEditRouter from './teachers-edit'
+import viewAsRouter from './view-as'
 import violationsRouter from './violations'
 
 const router = express.Router()
@@ -29,6 +30,7 @@ router.use(coursesEditRouter)
 router.use(teachersEditRouter)
 router.use(limitsEditRouter)
 router.use(infosEditRouter)
+router.use(viewAsRouter)
 router.use(violationsRouter)
 
 export default router

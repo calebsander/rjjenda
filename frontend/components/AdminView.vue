@@ -15,6 +15,7 @@
 		<manage-limits class='card'></manage-limits>
 		<manage-infos class='card'></manage-infos>
 		<limit-violations class='card'></limit-violations>
+		<view-as class='card'></view-as>
 	</div>
 </template>
 
@@ -32,6 +33,7 @@
 	import ManageStudents from './ManageStudents.vue'
 	import ManageTeachers from './ManageTeachers.vue'
 	import UserCSVUpload from './UserCSVUpload.vue'
+	import ViewAs from './ViewAs.vue'
 
 	@Component({
 		components: {
@@ -43,7 +45,8 @@
 			'manage-limits': ManageLimits,
 			'manage-students': ManageStudents,
 			'manage-teachers': ManageTeachers,
-			'user-csv-upload': UserCSVUpload
+			'user-csv-upload': UserCSVUpload,
+			'view-as': ViewAs
 		}
 	})
 	export default class AdminView extends Vue {
