@@ -5,6 +5,14 @@ import {StudentInstance} from '../models/student'
 import sectionGroupName from '../section-group-name'
 import ExtendedDate from '../../util/extended-date'
 
+interface Settings {
+	emailDomain: string
+}
+const {emailDomain}: Settings = require('../../settings.json')
+function getEmail(username: string) {
+	return username + '@' + emailDomain
+}
+
 interface GroupInfo {
 	id: number
 	name: string
@@ -13,9 +21,11 @@ interface GroupInfo {
 interface StudentGroupsInfo {
 	id: string
 	name: string
+	email?: string
+	advisorEmail?: string
 	groups: GroupInfo[]
 }
-function getStudentGroupsInfo({id, firstName, lastName, groups}: StudentInstance): StudentGroupsInfo {
+function getStudentGroupsInfo({id, firstName, lastName, groups, username, advisor}: StudentInstance): StudentGroupsInfo {
 	return {
 		id,
 		name: firstName + ' ' + lastName,
@@ -23,7 +33,9 @@ function getStudentGroupsInfo({id, firstName, lastName, groups}: StudentInstance
 			id: id!,
 			name: section ? sectionGroupName(section) : (name || ''),
 			teacher: section && section.teacher && section.teacher.lastName
-		}))
+		})),
+		email: username ? getEmail(username) : undefined,
+		advisorEmail: advisor ? getEmail(advisor.username) : undefined
 	}
 }
 function assignmentName(groupNames: Map<number, string>): (assignment: AssignmentInstance) => string {
@@ -36,7 +48,9 @@ export function checkAddition(day: ExtendedDate, newWeight: number, groupId: num
 	return checkRange(day, day, newWeight, groupId)
 		.then(violations => Promise.resolve(
 			//Keep only the necessary fields
-			violations.map(({days, student, assignments}) => ({days, student, assignments}))
+			violations.map(({days, student, assignments, studentEmail, advisorEmail}) =>
+					({days, student, assignments, studentEmail, advisorEmail})
+			)
 		))
 }
 export function getAllViolations(): Promise<AtFaultViolation[]> {
@@ -104,25 +118,32 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 					where: {id: groupId},
 					include: [{
 						model: Student,
-						attributes: ['firstName', 'lastName'],
-						include: [{
-							model: Group,
-							attributes: ['id', 'name'],
-							include: [{ //in order to be able to get the names of section groups
-								model: Section,
-								attributes: ['number'],
-								include: [
-									{
-										model: Course,
-										attributes: ['name']
-									},
-									{
-										model: Teacher,
-										attributes: ['lastName']
-									}
-								]
-							}]
-						}]
+						attributes: ['firstName', 'lastName', 'username'],
+						include: [
+							{
+								model: Group,
+								attributes: ['id', 'name'],
+								include: [{ //in order to be able to get the names of section groups
+									model: Section,
+									attributes: ['number'],
+									include: [
+										{
+											model: Course,
+											attributes: ['name']
+										},
+										{
+											model: Teacher,
+											attributes: ['lastName']
+										}
+									]
+								}]
+							},
+							{
+								model: Teacher,
+								as: 'advisor',
+								attributes: ['username']
+							}
+						]
 					}]
 				})
 					.then(group => {
@@ -203,7 +224,9 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 											student: student.name,
 											assignments: assignmentsInRange.map(assignmentName(groupNames)),
 											fault: faultGroupName +
-												(faultTeacher ? ' (' + faultTeacher + ')' : '')
+												(faultTeacher ? ' (' + faultTeacher + ')' : ''),
+											studentEmail: student.email!,
+											advisorEmail: student.advisorEmail
 										})
 									}
 								}

@@ -121,15 +121,20 @@
 			<md-dialog-content v-else>
 				<h4>Adding this assignment would cause some students' workloads to exceed the recommended limits.</h4>
 				<p v-for="violation in newAssignmentViolations" :key="violation.student + String(violation.days)">
-					<strong>{{ violation.student }}</strong> would have {{ violation.assignments.length + 1}}
-					major pieces of work in {{ violation.days == 1 ? 'one day' : String(violation.days) + ' consecutive days' }}:
+					<strong>{{ violation.student }}</strong>
+					would have
+					{{ violation.assignments.length + 1}}
+					major pieces of work in
+					{{ violation.days === 1 ? 'one day' : String(violation.days) + ' consecutive days' }}.
+					Click
+					<a :href='getMailtoLink(violation)' target='_blank'>here</a>
+					to e-mail student and advisor.
 					<ol>
 						<li v-for="assignment in violation.assignments" :key="assignment">
 							{{ assignment }}
 						</li>
 						<li><em>{{ newAssignmentName }}</em> (your new assignment)</li>
 					</ol>
-					<!-- TODO: add MAILTO link here -->
 				</p>
 				<p>
 					If you choose to add this assignment anyway, please contact affected students and their advisors with a plan for mitigation.
@@ -290,11 +295,8 @@
 				data,
 				handler: (violations: LimitViolation[]) => {
 					this.loading = false
-					if (violations.length === 0) {
-						this.addAssignment()
-					} else {
-						this.newAssignmentViolations = violations
-					}
+					if (violations.length) this.newAssignmentViolations = violations
+					else this.addAssignment()
 				},
 				router: this.$router
 			})
@@ -499,6 +501,11 @@
 			const groupInfos = this.weekInfos.get(group)
 			if (!groupInfos) return []
 			return groupInfos.get(day) || []
+		}
+		getMailtoLink(violation: LimitViolation) {
+			let link = 'mailto:' + violation.studentEmail
+			if (violation.advisorEmail) link += ',' + violation.advisorEmail
+			return link
 		}
 		showStudents(group: AssignmentGroup, day: number) {
 			this.infoGroup = group

@@ -36,6 +36,8 @@ export interface LimitViolation {
 	days: number
 	student: string
 	assignments: string[]
+	studentEmail: string
+	advisorEmail?: string
 }
 export interface AtFaultViolation extends LimitViolation {
 	fault: string //the group name at fault
