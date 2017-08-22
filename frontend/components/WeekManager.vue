@@ -48,4 +48,31 @@
 		text-align: center !important
 	.hide-button
 		min-width: 70px !important
+
+	.md-button
+		margin-left: 0
+	.assignment-grid .md-table-cell
+		max-width: 0
+
+	.assignment-list
+		background: transparent !important
+	.assignment-list .md-list-item
+		border: solid 1px black
+		border-radius: 5px
+		margin: 2px 0 2px 0
+	.assignment-name
+		white-space: normal !important
+		font-size: 0.8em
+		line-height: 1em
+		padding-top: 2px
+		padding-bottom: 2px
+	.assignment-list .md-list-item .md-chip
+		font-size: 0.8em
+
+	.assignments-row .md-table-cell
+		border-right: solid 1px rgba(0,0,0,.1)
+		vertical-align: top
+	.assignments-row .md-table-cell.name-cell
+		vertical-align: middle
+		line-height: 1.2em
 </style>

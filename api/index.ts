@@ -99,7 +99,24 @@ export interface AssignedStudent {
 	firstName: string
 	lastName: string
 }
-
+export interface AdviseeAssignmentRequest {
+	id: string
+	year: number
+	month: number
+	date: number
+	days: number
+}
+export interface AdviseeAssignment {
+	course: string
+	name: string
+	teacher?: string
+	weight: number
+}
+export interface AdviseeDay {
+	assignments: AdviseeAssignment[]
+	warning: string | undefined //#abcdef
+}
+export type AdviseeWeek = AdviseeDay[]
 
 //Admin interface
 export interface Student {

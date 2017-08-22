@@ -20,7 +20,7 @@
 			>
 			</md-spinner>
 		</md-toolbar>
-		<md-table>
+		<md-table class='assignment-grid'>
 			<md-table-header>
 				<md-table-row>
 					<md-table-head class='center'>
@@ -33,15 +33,15 @@
 				</md-table-row>
 			</md-table-header>
 			<md-table-body>
-				<md-table-row v-for='(group, index) in groups' :key='group.id' class='group-row'>
-					<md-table-cell class='group-name-cell'>
+				<md-table-row v-for='(group, index) in groups' :key='group.id' class='assignments-row'>
+					<md-table-cell class='name-cell'>
 						{{ group.name }}
 					</md-table-cell>
 					<md-table-cell v-for='day in WEEK_DAYS' :key='day' @mouseover.native='showAssignmentAdd(group, day)'>
 						<md-layout md-column :md-gutter='8'>
 							<md-list class='md-dense assignment-list' v-if='getAssignments(group, day).length'>
 								<md-list-item v-for='assignment in getAssignments(group, day)' :key='assignment.id'>
-									<span class = 'assignment-name' :title='assignment.name'>{{ assignment.name }}</span>
+									<span class='assignment-name' :title='assignment.name'>{{ assignment.name }}</span>
 									<md-chip v-if='!assignment.weight'>minor</md-chip>
 									<md-button
 										class='md-icon-button md-list-action'
@@ -522,12 +522,6 @@
 <style lang='sass' scoped>
 	.no-margin
 		margin: 0px
-	.assignment-list
-		background: rgba(0,0,0,0)
-	.assignment-list .md-list-item
-		border: solid 1px black
-		border-radius: 5px
-		margin: 2px 0 2px 0
 	.assignment-list .md-list-item:hover
 		background-color: rgba(0,0,0,.2)
 	.no-visitors
@@ -535,28 +529,6 @@
 		font-weight: bold
 	.md-table-cell:not(:hover) .assignment-add
 		opacity: 0
-	.md-button
-		margin-left: 0
-
-	.md-table-cell
-		max-width: 0
-
-	.assignment-name
-		white-space: normal !important
-		font-size: 0.8em
-		line-height: 1em
-		padding-top: 2px
-		padding-bottom: 2px
-	.assignment-list .md-list-item .md-chip
-		font-size: 0.8em
-
-	.group-row .md-table-cell
-		border-right: solid 1px rgba(0,0,0,.1)
-		vertical-align: top
-
-	.group-row .md-table-cell.group-name-cell
-		vertical-align: middle
-		line-height: 1.2em
 </style>
 <style lang='sass'>
 	#group-dialog .md-dialog //make the whole dialog box wide (to accommodate long section names)
@@ -565,6 +537,6 @@
 		min-width: 65%
 	#info-students .md-dialog
 		overflow-y: auto
-	#app .group-row .md-table-cell > div
+	#app .assignments-row .md-table-cell > div
 		padding: 6px
 </style>
