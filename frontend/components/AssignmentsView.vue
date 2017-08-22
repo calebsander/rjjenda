@@ -5,7 +5,7 @@
 				<md-icon>chevron_left</md-icon>
 			</md-button>
 			<md-button @click='today'>
-				Today
+				This week
 			</md-button>
 			<md-button class='md-icon-button' @click='nextWeek'>
 				<md-icon>chevron_right</md-icon>
