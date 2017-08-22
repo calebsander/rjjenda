@@ -107,9 +107,7 @@
 		</md-dialog>
 
 		<md-dialog ref='addAssignment'>
-			<md-dialog-title v-if='hoveredGroup'> <!--avoid accessing properties of null-->
-				Add assignment
-			</md-dialog-title>
+			<md-dialog-title>Add assignment</md-dialog-title>
 			<md-dialog-content v-if='newAssignmentViolations.length === 0'>
 				<md-input-container>
 					<label>Name</label>
