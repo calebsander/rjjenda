@@ -10,7 +10,13 @@
 			<md-button class='md-icon-button' @click='nextWeek'>
 				<md-icon>chevron_right</md-icon>
 			</md-button>
-			<md-spinner md-indeterminate :md-size='40' class='md-warn' v-if='loading'></md-spinner>
+			<md-spinner
+				md-indeterminate
+				:md-size='40'
+				class='md-warn'
+				:style='{visibility: loading ? "visible" : "hidden"}'
+			>
+			</md-spinner>
 		</md-toolbar>
 		<md-table>
 			<md-table-header>
@@ -242,9 +248,13 @@
 		groups: AssignmentGroup[] = []
 		allStudentsGroup: AssignmentGroup | null = null
 		//Map of groups to maps of days to lists of assignments
-		weekAssignments = new Map<AssignmentGroup, Map<number, Assignment[]>>()
+		weekAssignments = new WeakMap<AssignmentGroup, Map<number, Assignment[]>>()
 		//Map of groups to maps of days to lists of infos
-		weekInfos = new Map<AssignmentGroup, Map<number, InfoLevel[]>>()
+		weekInfos = new WeakMap<AssignmentGroup, Map<number, InfoLevel[]>>()
+		//Map of groups to current load tokens for their assigments
+		assignmentLoadTokens = new WeakMap<AssignmentGroup, object>()
+		//Current load token for warnings
+		warningLoadToken: object | null = null
 
 		newGroup: AddGroup | null = null
 		newGroupName = '' //use newGroup for read
@@ -262,15 +272,12 @@
 		infoDay: number = -1
 
 		lastWeek() {
-			if (this.loading === true) return //avoid having multiple assignment requests running at same time
 			this.mondayDate = this.mondayDate.addDays(-DAYS_PER_WEEK)
 		}
 		today() {
-			if (this.loading === true) return //avoid having multiple assignment requests running at same time
 			this.mondayDate = lastMonday
 		}
 		nextWeek() {
-			if (this.loading === true) return //avoid having multiple assignment requests running at same time
 			this.mondayDate = this.mondayDate.addDays(DAYS_PER_WEEK)
 		}
 		getDay(oneIndexedDay: number): ExtendedDate {
@@ -403,11 +410,11 @@
 			this.loadAssignmentsForGroups([assignmentGroup])
 		}
 		removeGroup(index: number) {
-			const [group] = this.groups.splice(index, 1)
-			this.weekAssignments.delete(group)
+			this.groups.splice(index, 1)
 		}
 		addAllStudentsGroup() {
 			this.groups.unshift(this.allStudentsGroup!)
+			this.loadAssignmentsForGroups([this.allStudentsGroup!])
 		}
 		reloadAssignments() {
 			this.loadAssignmentsForGroups(this.groups)
@@ -416,7 +423,10 @@
 			//Students shouldn't see infos
 			if (!this.teacher) return Promise.resolve()
 
-			return new Promise((resolve, _) => {
+			const loadToken = {}
+			this.warningLoadToken = loadToken
+
+			return new Promise((resolve, reject) => {
 				//If we are reloading for one, need to reload for all
 				//since changing an assignment for one group can affect students in others
 				const groups = this.groups
@@ -430,6 +440,11 @@
 					url: '/assignments/infos',
 					data,
 					handler: (groupWarnings: GroupWarnings) => {
+						if (loadToken !== this.warningLoadToken) {
+							reject()
+							return
+						}
+
 						for (let day = 0; day < groupWarnings.length; day++) {
 							const {groups: affectedGroups, infos} = groupWarnings[day]
 							for (const group of groups) {
@@ -464,16 +479,23 @@
 			this.loading = true
 			const loadAssignments = Promise.all(groups.map(group => {
 				this.weekAssignments.delete(group)
+				const loadToken = {}
+				this.assignmentLoadTokens.set(group, loadToken)
 				const data: AssignmentListRequest = {
 					groupId: group.id,
 					...this.mondayDate.toYMD(),
 					days: WEEK_DAYS
 				}
-				return new Promise((resolve, _) =>
+				return new Promise((resolve, reject) =>
 					apiFetch({
 						url: '/assignments/list',
 						data,
 						handler: (assignments: Assignments) => {
+							if (loadToken !== this.assignmentLoadTokens.get(group)) {
+								reject()
+								return
+							}
+
 							const dayAssignments = new Map<number, Assignment[]>()
 							for (const assignment of assignments) {
 								let day = dayAssignments.get(assignment.day)
@@ -498,6 +520,9 @@
 			}))
 			Promise.all([loadAssignments, this.loadInfos()])
 				.then(() => this.loading = false)
+				.catch(err => {
+					if (err) throw err //if err is undefined, just means that a newer request was sent that overrode this one
+				})
 		}
 		getAssignments(group: AssignmentGroup, day: number): Assignment[] {
 			const groupAssignments = this.weekAssignments.get(group)
@@ -519,7 +544,6 @@
 		setGroups(groups: AssignmentGroup[]) {
 			this.groups = groups.slice()
 			if (this.allStudentsGroup !== null) this.addAllStudentsGroup()
-			this.weekAssignments.clear()
 			this.loadAssignmentsForGroups(this.groups)
 		}
 		setAllStudentsGroup(group: AssignmentGroup) {
