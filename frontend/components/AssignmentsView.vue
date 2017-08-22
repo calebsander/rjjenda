@@ -25,16 +25,9 @@
 				</md-table-row>
 			</md-table-header>
 			<md-table-body>
-				<md-table-row v-for='(group, index) in groups' :key='group.id'>
-					<md-table-cell>
-						<md-icon v-if='group.editPrivileges' class='no-margin'>
-							edit
-							<md-tooltip md-direction='right'>
-								You have editing privileges
-							</md-tooltip>
-						</md-icon>
+				<md-table-row v-for='(group, index) in groups' :key='group.id' class='group-row'>
+					<md-table-cell class="group-name-cell">
 						{{ group.name }}
-						<md-button class='md-raised hide-group' @click='removeGroup(index)'>hide</md-button>
 					</md-table-cell>
 					<md-table-cell v-for='day in WEEK_DAYS' :key='day' @mouseover.native='showAssignmentAdd(group, day)'>
 						<md-layout md-column :md-gutter='8'>
