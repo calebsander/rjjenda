@@ -1,14 +1,16 @@
 <template>
 	<div>
 		<md-toolbar class='md-dense' id='week-toolbar'>
-			<md-button class='md-icon-button' @click='lastWeek'>
-				<md-icon>chevron_left</md-icon>
+			<md-button @click='lastWeek'>
+				<md-icon class='up-a-bit'>chevron_left</md-icon>
+				Last week
 			</md-button>
 			<md-button @click='today'>
-				Today
+				This week
 			</md-button>
-			<md-button class='md-icon-button' @click='nextWeek'>
-				<md-icon>chevron_right</md-icon>
+			<md-button @click='nextWeek'>
+				Next week
+				<md-icon class='up-a-bit'>chevron_right</md-icon>
 			</md-button>
 			<md-spinner
 				md-indeterminate
@@ -558,6 +560,8 @@
 		justify-content: center
 	.hide-group
 		min-width: 70px !important
+	.md-icon.up-a-bit
+		margin-top: -2px
 	.center
 		text-align: center
 	.no-margin
