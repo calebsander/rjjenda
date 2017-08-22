@@ -31,29 +31,19 @@
 					</md-table-cell>
 					<md-table-cell v-for='day in WEEK_DAYS' :key='day' @mouseover.native='showAssignmentAdd(group, day)'>
 						<md-layout md-column :md-gutter='8'>
-							<md-list class='md-double-line md-dense assignment-list' v-if='getAssignments(group, day).length'>
+							<md-list class='md-dense assignment-list' v-if='getAssignments(group, day).length'>
 								<md-list-item v-for='assignment in getAssignments(group, day)' :key='assignment.id'>
 									<div class='md-list-text-container'>
-										<span>{{ assignment.name }}</span>
-										<span>
-											Weight: {{ assignment.weight }}
-											<span v-if='!assignment.visitors'>
-												<br>
-												No visitors
-											</span>
-											<br>
-											<span>
-												Created on
-												{{ assignment.updated.getMonth() + 1 }}/{{ assignment.updated.getDate() }}
-											</span>
-										</span>
+										<span :title='assignment.name'>{{ assignment.name }}</span>
 									</div>
+									<md-chip v-if='assignment.weight === 0'>minor</md-chip>
 									<md-button class='md-icon-button md-list-action' v-if='group.editPrivileges' @click='deleteAssignment(group, day, assignment)'>
 										<md-icon>delete</md-icon>
 									</md-button>
 								</md-list-item>
 							</md-list>
-							<md-layout md-align='center' v-if='getInfos(group, day).length'>
+							<span class="center" style="margin-bottom: 3px; font-weight:bold" v-if="getAssignments(group, day).some(a => !a.visitors)">No visitors</span>
+							<md-layout>
 								<md-button
 									v-for='info in getInfos(group, day)'
 									:key='info.color'
@@ -63,12 +53,10 @@
 								>
 									{{ info.students.length }}
 								</md-button>
-							</md-layout>
-							<md-layout md-align='center'>
-								<md-button class='md-icon-button md-raised top-space' :class="{hiddenButton: !isHoveredCell(group, day)}" @click='openAddAssignment'>
+								<md-button class='md-icon-button md-raised' :class="{hiddenButton: !isHoveredCell(group, day)}" @click='openAddAssignment'>
 									<md-icon>assignment</md-icon>
 								</md-button>
-							</md-layout>
+							</md-layout>	
 						</md-layout>
 					</md-table-cell>
 				</md-table-row>
@@ -535,8 +523,43 @@
 		margin-top: 10px !important
 	.assignment-list
 		background: rgba(0,0,0,0)
+	.assignment-list .md-list-item
+		border: solid 1px black
+		border-radius: 5px
+		margin: 2px 0 2px 0
+	.assignment-list .md-list-item:hover
+		background-color: rgba(0,0,0,.2)
 	.hiddenButton
 		opacity: 0
+	.md-button
+		margin-left: 0
+
+	.md-table-cell
+		max-width: 0
+
+	.assignment-list .md-list-item .md-list-text-container > *
+		white-space: normal !important
+		font-size: 0.8em
+		line-height: 1em
+		padding-top: 2px
+		padding-bottom: 2px
+	
+	.assignment-list .md-list-item .md-chip
+		font-size: 0.8em
+
+	.group-row .md-table-cell
+		border-right: solid 1px rgba(0,0,0,.1)
+		vertical-align: top
+
+	.group-row .md-table-cell.group-name-cell
+		vertical-align: middle
+		line-height: 1.2em
+	
+	.md-spinner
+		position: absolute
+		right: 35px
+	
+
 </style>
 <style lang='sass'>
 	#group-dialog .md-dialog //make the whole dialog box wide (to accommodate long section names)
@@ -545,4 +568,6 @@
 		min-width: 65%
 	#info-students .md-dialog
 		overflow-y: auto
+	#app .group-row .md-table-cell > div
+		padding: 6px
 </style>
