@@ -108,22 +108,41 @@
 
 		<md-dialog ref='addAssignment'>
 			<md-dialog-title v-if='hoveredGroup'> <!--avoid accessing properties of null-->
-				Add assignment for
-				{{ hoveredGroup.name }}
-				on
-				{{ getDay(hoveredDay).toShortDate() }}
+				Add assignment
 			</md-dialog-title>
-			<md-dialog-content>
+			<md-dialog-content v-if='newAssignmentViolations.length === 0'>
 				<md-input-container>
 					<label>Name</label>
 					<md-input v-model='newAssignmentName' required></md-input>
 				</md-input-container>
+				<p v-if='hoveredGroup'><strong>Section: </strong>{{ hoveredGroup.name }}</p>
+				<p v-if='hoveredGroup'><strong>Date: </strong>{{ getDay(hoveredDay).toShortDate() }}</p>
 				<md-switch v-model='newAssignmentMajor'>Major assignment?</md-switch>
 				<md-switch v-model='newAssignmentVisitors'>Visitors allowed?</md-switch>
 			</md-dialog-content>
-			<md-dialog-actions>
-				<md-button v-if='newAssignmentChecked' class='md-accent' @click='addAssignment'>Add</md-button>
-				<md-button v-else class='md-warn' @click='checkAssignment'>Check student limits</md-button>
+			<md-dialog-content v-else>
+				<h4>Adding this assignment would cause some students' workloads to exceed the recommended limits.</h4>
+				<p v-for="violation in newAssignmentViolations" :key="violation.student + String(violation.days)">
+					<strong>{{ violation.student }}</strong> would have {{ violation.assignments.length + 1}}
+					major pieces of work in {{ violation.days == 1 ? 'one day' : String(violation.days) + ' consecutive days' }}:
+					<ol>
+						<li v-for="assignment in violation.assignments" :key="assignment">
+							{{ assignment }}
+						</li>
+						<li><em>{{ newAssignmentName }}</em> (your new assignment)</li>
+					</ol>
+					<!-- TODO: add MAILTO link here -->
+				</p>
+				<p>
+					If you choose to add this assignment anyway, please contact affected students and their advisors with a plan for mitigation.
+				</p>
+			</md-dialog-content>
+			<md-dialog-actions v-if='newAssignmentViolations.length === 0'>
+				<md-button class='md-accent' @click='checkAssignment'>Add</md-button>
+			</md-dialog-actions>
+			<md-dialog-actions v-else>
+				<md-button class='md-accent' @click='cancelAddAssignment'>Cancel</md-button>
+				<md-button class='md-accent' @click='addAssignment'>Add anyway</md-button>
 			</md-dialog-actions>
 		</md-dialog>
 
@@ -147,11 +166,11 @@
 							<md-list-item v-for='studentInfo in info.students' :key='studentInfo.student'>
 								<div class='md-list-text-container'>
 									<span>{{ studentInfo.student }}</span>
-									<span>
-										<div v-for='assignment in studentInfo.assignments' :key='assignment'>
+									<ol>
+										<li v-for='assignment in studentInfo.assignments' :key='assignment'>
 											{{ assignment }}
-										</div>
-									</span>
+										</li>
+									</ol>
 								</div>
 							</md-list-item>
 						</div>
@@ -208,7 +227,6 @@
 		},
 		watch: {
 			mondayDate: 'reloadAssignments',
-			newAssignmentMajor: 'recheckAssignment'
 		}
 	})
 	export default class AssignmentsView extends WeekManager {
@@ -234,9 +252,10 @@
 		hoveredDay: number = -1
 
 		newAssignmentName = ''
-		newAssignmentMajor = false
-		newAssignmentVisitors = true
-		newAssignmentChecked = false
+		newAssignmentMajor = true
+		newAssignmentVisitors = false
+		newAssignmentViolations: LimitViolation[] = []
+
 		checkContent = ' ' //errors are thrown if this is empty
 
 		infoGroup: AssignmentGroup | null = null
@@ -253,16 +272,13 @@
 		}
 		openAddAssignment() {
 			this.newAssignmentName = ''
-			this.newAssignmentMajor = false
-			this.newAssignmentVisitors = true
-			this.recheckAssignment()
+			this.newAssignmentMajor = true
+			this.newAssignmentVisitors = false
+			this.newAssignmentViolations = []
 			;(this.$refs.addAssignment as Dialog).open()
 		}
-		recheckAssignment() {
-			this.newAssignmentChecked = false
-		}
 		get due(): string {
-			return this.getDay(this.hoveredDay).toUTC().date.toISOString()
+			return this.getDay(this.hoveredDay).date.toISOString()
 		}
 		checkAssignment() {
 			const data: CheckAssignment = {
@@ -276,20 +292,17 @@
 				data,
 				handler: (violations: LimitViolation[]) => {
 					this.loading = false
-					if (violations.length) {
-						this.checkContent = 'Limits violated:'
-						for (const violation of violations) {
-							this.checkContent +=
-								'<br>' + String(violation.days) + ' day' + (violation.days === 1 ? '' : 's') +
-								' for ' + violation.student + ': ' +
-								violation.assignments.join(', ')
-							;(this.$refs.checkAssignment as Dialog).open()
-						}
+					if (violations.length === 0) {
+						this.addAssignment()
+					} else {
+						this.newAssignmentViolations = violations
 					}
-					this.newAssignmentChecked = true
 				},
 				router: this.$router
 			})
+		}
+		cancelAddAssignment() {
+			(this.$refs.addAssignment as Dialog).close()
 		}
 		addAssignment() {
 			const name = this.newAssignmentName
