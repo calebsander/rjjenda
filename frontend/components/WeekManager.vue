@@ -45,7 +45,7 @@
 	.md-icon.up-a-bit
 		margin-top: -2px
 	.center
-		text-align: center
+		text-align: center !important
 	.hide-button
 		min-width: 70px !important
 </style>
