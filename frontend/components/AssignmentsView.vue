@@ -252,8 +252,8 @@
 		hoveredDay: number = -1
 
 		newAssignmentName = ''
-		newAssignmentMajor = false
-		newAssignmentVisitors = true
+		newAssignmentMajor = true
+		newAssignmentVisitors = false
 		newAssignmentViolations: LimitViolation[] = []
 
 		checkContent = ' ' //errors are thrown if this is empty
@@ -291,8 +291,8 @@
 		}
 		openAddAssignment() {
 			this.newAssignmentName = ''
-			this.newAssignmentMajor = false
-			this.newAssignmentVisitors = true
+			this.newAssignmentMajor = true
+			this.newAssignmentVisitors = false
 			this.newAssignmentViolations = []
 			;(this.$refs.addAssignment as Dialog).open()
 		}
