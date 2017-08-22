@@ -5,6 +5,7 @@ import advisorRouter from './advisor'
 import authenticationRouter from './authentication'
 import listTeachersRouter from './list-teachers'
 import loggedInRouter from './logged-in'
+import logoutRouter from './logout'
 import userInfoRouter from './user-info'
 import versionRouter from './version'
 
@@ -14,6 +15,7 @@ router.use('/assignments', assignmentsRouter)
 router.use('/advisor', advisorRouter)
 router.use('/auth', authenticationRouter)
 router.use('/logged-in', loggedInRouter)
+router.use('/logout', logoutRouter)
 router.use('/user-info', userInfoRouter)
 router.use('/version', versionRouter)
 router.use('/list-teachers', listTeachersRouter)

@@ -34,6 +34,12 @@
 						Admin
 					</router-link>
 				</md-list-item>
+				<md-list-item>
+					<router-link to='/logout'>
+						<md-icon>power_settings_new</md-icon>
+						Sign out
+					</router-link>
+				</md-list-item>
 			</md-list>
 		</md-sidenav>
 
