@@ -9,13 +9,12 @@ interface OAuthConfig {
 }
 const {clientID, clientSecret}: OAuthConfig = require('../config/oauth.json')
 interface Settings {
+	emailDomain: string
 	https: boolean
 	hostDomain: string
 	port: number
 }
-const {https, hostDomain, port}: Settings = require('../settings.json')
-
-const COMMSCHOOL_DOMAIN = 'commschool.org'
+const {https, hostDomain, port, emailDomain}: Settings = require('../settings.json')
 
 export type UserType = StudentInstance | TeacherInstance
 export class SavedUserType {
@@ -85,12 +84,12 @@ passport.use(new GoogleStrategy({
 	for (const email of profile.emails) {
 		const {value} = email
 		const [username, domain] = value.split('@')
-		if (domain === COMMSCHOOL_DOMAIN) {
+		if (domain === emailDomain) {
 			lookupUsername(username, done)
 			return
 		}
 	}
-	done(new Error('Not a ' + COMMSCHOOL_DOMAIN + ' email address'))
+	done(new Error('Not a ' + emailDomain + ' email address'))
 }))
 
 export default passport
