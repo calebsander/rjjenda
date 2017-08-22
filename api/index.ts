@@ -93,6 +93,14 @@ interface AssignmentCourse {
 }
 export type CourseList = AssignmentCourse[]
 
+//Advisor view
+export interface AssignedStudent {
+	id: string
+	firstName: string
+	lastName: string
+}
+
+
 //Admin interface
 export interface Student {
 	id: string

@@ -4,8 +4,8 @@
 			<md-button class='md-icon-button' @click='toggleSidebar'>
 				<md-icon>menu</md-icon>
 			</md-button>
-			<h2 class='md-title fill-toolbar' v-if='teacher'>
-				Welcome, {{ teacher.name }}
+			<h2 class='md-title fill-toolbar'>
+				Welcome{{ teacher ? ', ' + teacher.name : '' }}
 			</h2>
 			<mermaid></mermaid>
 		</md-toolbar>
@@ -20,6 +20,12 @@
 					<router-link to='/teacher/home' @click.native='toggleSidebar'>
 						<md-icon>home</md-icon>
 						Home
+					</router-link>
+				</md-list-item>
+				<md-list-item>
+					<router-link to='/teacher/advisor' @click.native='toggleSidebar'>
+						<md-icon>supervisor_account</md-icon>
+						Advisees
 					</router-link>
 				</md-list-item>
 				<md-list-item v-if='teacher && teacher.admin'>

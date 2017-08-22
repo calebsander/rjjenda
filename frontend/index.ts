@@ -3,6 +3,7 @@ import VueMaterial from 'vue-material'
 import 'vue-material/dist/vue-material.css'
 import VueRouter from 'vue-router'
 import AdminView from './components/AdminView.vue'
+import AdvisorView from './components/AdvisorView.vue'
 import CheckLoggedInComponent from './components/CheckLoggedInComponent.vue'
 import LoginComponent from './components/Login.vue'
 import StudentHome from './components/StudentHome.vue'
@@ -30,6 +31,7 @@ const routes = [
 	{path: '/teacher', component: TeacherView, children: [
 		{path: '', redirect: 'home'},
 		{path: 'home', component: TeacherHome},
+		{path: 'advisor', component: AdvisorView},
 		{path: 'admin', component: AdminView}
 	]}
 ]

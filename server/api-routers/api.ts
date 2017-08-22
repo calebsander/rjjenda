@@ -1,6 +1,7 @@
 import * as express from 'express'
 import adminRouter from './admin'
 import assignmentsRouter from './assignments'
+import advisorRouter from './advisor'
 import authenticationRouter from './authentication'
 import listTeachersRouter from './list-teachers'
 import loggedInRouter from './logged-in'
@@ -10,6 +11,7 @@ import versionRouter from './version'
 const router = express.Router()
 router.use('/admin', adminRouter)
 router.use('/assignments', assignmentsRouter)
+router.use('/advisor', advisorRouter)
 router.use('/auth', authenticationRouter)
 router.use('/logged-in', loggedInRouter)
 router.use('/user-info', userInfoRouter)

@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<md-toolbar class='md-dense' id='week-toolbar'>
+		<md-toolbar class='md-dense week-toolbar'>
 			<md-button @click='lastWeek'>
 				<md-icon class='up-a-bit'>chevron_left</md-icon>
 				Last week
@@ -42,7 +42,7 @@
 							</md-tooltip>
 						</md-icon>
 						{{ group.name }}
-						<md-button class='md-raised hide-group' @click='removeGroup(index)'>hide</md-button>
+						<md-button class='md-raised hide-button' @click='removeGroup(index)'>hide</md-button>
 					</md-table-cell>
 					<md-table-cell v-for='day in WEEK_DAYS' :key='day' @mouseover.native='showAssignmentAdd(group, day)'>
 						<md-layout md-column :md-gutter='8'>
@@ -57,10 +57,8 @@
 												No visitors
 											</span>
 											<br>
-											<span>
-												Created on
-												{{ assignment.updated.getMonth() + 1 }}/{{ assignment.updated.getDate() }}
-											</span>
+											Created on
+											{{ assignment.updated.getMonth() + 1 }}/{{ assignment.updated.getDate() }}
 										</span>
 									</div>
 									<md-button class='md-icon-button md-list-action' v-if='group.editPrivileges' @click='deleteAssignment(group, day, assignment)'>
@@ -181,7 +179,6 @@
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
 	import apiFetch from '../api-fetch'
-	import ExtendedDate from '../../util/extended-date'
 	import {
 		AddAssignment,
 		AddGroup,
@@ -194,19 +191,7 @@
 		LimitViolation,
 		GroupQuery
 	} from '../../api'
-
-	const DAYS_PER_WEEK = 7
-	const WEEK_DAYS = 5
-	const DAY_NAMES: string[] = [
-		'Monday',
-		'Tuesday',
-		'Wednesday',
-		'Thursday',
-		'Friday'
-	]
-
-	const now = new ExtendedDate
-	const lastMonday = now.addDays(1 - now.date.getDay())
+	import WeekManager from './WeekManager.vue'
 
 	interface Assignment {
 		id: number
@@ -239,10 +224,7 @@
 			newAssignmentMajor: 'recheckAssignment'
 		}
 	})
-	export default class AssignmentsView extends Vue {
-		readonly WEEK_DAYS = WEEK_DAYS
-		mondayDate: ExtendedDate = lastMonday
-
+	export default class AssignmentsView extends WeekManager {
 		teacher: boolean //property of component
 
 		loading = false
@@ -272,22 +254,6 @@
 
 		infoGroup: AssignmentGroup | null = null
 		infoDay: number = -1
-
-		lastWeek() {
-			this.mondayDate = this.mondayDate.addDays(-DAYS_PER_WEEK)
-		}
-		today() {
-			this.mondayDate = lastMonday
-		}
-		nextWeek() {
-			this.mondayDate = this.mondayDate.addDays(DAYS_PER_WEEK)
-		}
-		getDay(oneIndexedDay: number): ExtendedDate {
-			return this.mondayDate.addDays(oneIndexedDay - 1)
-		}
-		getDayName(oneIndexedDay: number): string {
-			return DAY_NAMES[oneIndexedDay - 1]
-		}
 
 		showAssignmentAdd(group: AssignmentGroup, day: number) {
 			if (!group.editPrivileges) return
@@ -436,7 +402,7 @@
 				const data: InfoListRequest = {
 					groupIds: groups.map(({id}) => id),
 					...this.mondayDate.toYMD(),
-					days: WEEK_DAYS
+					days: this.WEEK_DAYS
 				}
 				apiFetch({
 					url: '/assignments/infos',
@@ -486,7 +452,7 @@
 				const data: AssignmentListRequest = {
 					groupId: group.id,
 					...this.mondayDate.toYMD(),
-					days: WEEK_DAYS
+					days: this.WEEK_DAYS
 				}
 				return new Promise((resolve, reject) =>
 					apiFetch({
@@ -556,14 +522,6 @@
 </script>
 
 <style lang='sass' scoped>
-	#week-toolbar
-		justify-content: center
-	.hide-group
-		min-width: 70px !important
-	.md-icon.up-a-bit
-		margin-top: -2px
-	.center
-		text-align: center
 	.no-margin
 		margin: 0px
 	.top-space

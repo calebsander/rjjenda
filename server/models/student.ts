@@ -8,10 +8,10 @@ export interface StudentAttributes {
 	lastName: string //e.g. Sander
 	username: string //e.g. csander
 	advisor: TeacherInstance | null //advisor relationships don't exist on initial import
+	advisorId?: string
 	year: number //e.g. 2017
 }
 
 export interface StudentInstance extends Instance<StudentAttributes>, StudentAttributes {
-	advisorId: number
 	groups: GroupInstance[]
 }
