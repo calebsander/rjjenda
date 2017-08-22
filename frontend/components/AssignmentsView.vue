@@ -135,11 +135,11 @@
 							<md-list-item v-for='studentInfo in info.students' :key='studentInfo.student'>
 								<div class='md-list-text-container'>
 									<span>{{ studentInfo.student }}</span>
-									<span>
-										<div v-for='assignment in studentInfo.assignments' :key='assignment'>
+									<ol>
+										<li v-for='assignment in studentInfo.assignments' :key='assignment'>
 											{{ assignment }}
-										</div>
-									</span>
+										</li>
+									</ol>
 								</div>
 							</md-list-item>
 						</div>
