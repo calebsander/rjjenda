@@ -27,9 +27,8 @@ function getStudentGroupsInfo({id, firstName, lastName, groups}: StudentInstance
 	}
 }
 function assignmentName(groupNames: Map<number, string>): (assignment: AssignmentInstance) => string {
-	return({name, groupId, due}: AssignmentInstance): string => {
-		const [y, m, d] = due.split('-')
-		return name + ' for ' + groupNames.get(groupId)! + ' on ' + m + '/' + d + '/' + y
+	return({name, groupId}: AssignmentInstance): string => {
+		return name + ' (' + groupNames.get(groupId)! + ')'
 	}
 }
 
@@ -259,8 +258,8 @@ export function getInfo(day: ExtendedDate, studentIds: string[]): Promise<Map<st
 			for (const group of student.groups) groupNames.set(group.id, group.name)
 		}
 		const allAssignments = Assignment.findAll({
-			attributes: ['due', 'name', 'weight', 'groupId'], //getting the date again because it is used in assignmentName()
-			order: ['due', 'updatedAt'],
+			attributes: ['name', 'weight', 'groupId'],
+			order: ['createdAt'],
 			where: {
 				groupId: {
 					$in: Array.from(groupNames.keys())
