@@ -14,7 +14,10 @@ Vue.use(VueMaterial)
 Vue.use(VueRouter)
 
 Vue.material.registerTheme('default', {
-	primary: 'red',
+	primary: {
+		color: 'red',
+		hue: 900
+	},
 	accent: 'purple',
 	warn: 'orange',
 	background: 'white'
