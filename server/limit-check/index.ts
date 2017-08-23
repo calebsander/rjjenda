@@ -53,7 +53,6 @@ export function checkAddition(day: ExtendedDate, newWeight: number, groupId: num
 		))
 }
 export function getAllViolations(): Promise<AtFaultViolation[]> {
-	const maxDaysBefore: PromiseLike<number> = Limit.max('days')
 	const minAssignmentDay = Assignment.min('due', {
 		where: {
 			weight: {$gt: 0}
@@ -78,11 +77,11 @@ export function getAllViolations(): Promise<AtFaultViolation[]> {
 			if (allStudentsGroup === null) throw new Error('No all-school group')
 			return Promise.resolve(allStudentsGroup.groupId!)
 		})
-	return Promise.all([maxDaysBefore, minAssignmentDay, maxAssignmentDay, allStudentsGroupId])
-		.then(([daysBefore, start, end, groupId]) => {
-			const daysBeforeLimit = new ExtendedDate().addDays(1 - daysBefore)
+	return Promise.all([minAssignmentDay, maxAssignmentDay, allStudentsGroupId])
+		.then(([start, end, groupId]) => {
+			const now = new ExtendedDate
 			let boundedStart: ExtendedDate
-			if (daysBeforeLimit.toYYYYMMDD() > start.toYYYYMMDD()) boundedStart = daysBeforeLimit
+			if (now.toYYYYMMDD() > start.toYYYYMMDD()) boundedStart = now
 			else boundedStart = start
 			return checkRange(boundedStart, end, 0, groupId)
 		})
