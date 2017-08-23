@@ -278,7 +278,7 @@
 			;(this.$refs.addAssignment as Dialog).open()
 		}
 		get due(): string {
-			return this.getDay(this.hoveredDay).date.toISOString()
+			return this.getDay(this.hoveredDay).toUTC().date.toISOString()
 		}
 		checkAssignment() {
 			const data: CheckAssignment = {

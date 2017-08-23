@@ -254,7 +254,7 @@ router.post('/new',
 				if (group.section && group.section.teacherId !== teacher.id) throw new Error('Edit privileges not granted')
 
 				return Assignment.create({
-					due: new Date(due),
+					due: new ExtendedDate(due).fromUTC().date,
 					groupId,
 					name,
 					visitors,
