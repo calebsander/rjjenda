@@ -33,8 +33,9 @@ export default (sequelize: Sequelize.Sequelize): AssociableModel<TeacherInstance
 				allowNull: false
 			}
 		}),
-		({Teacher, Student, Section}) => {
+		({Group, Section, Student, Teacher}) => {
 			Teacher.hasMany(Student, {as: 'Advisees', foreignKey: 'advisorId'})
 			Teacher.hasMany(Section)
+			Teacher.belongsToMany(Group, {through: 'displays'})
 		}
 	)

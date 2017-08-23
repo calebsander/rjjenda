@@ -1,4 +1,5 @@
 import {Instance} from 'sequelize'
+import {GroupInstance} from './group'
 
 export interface TeacherAttributes {
 	id: string //Commonwealth-assigned teacher ID (e.g. T1234)
@@ -9,4 +10,8 @@ export interface TeacherAttributes {
 	admissions: boolean //whether teacher has admissions privileges
 }
 
-export interface TeacherInstance extends Instance<TeacherAttributes>, TeacherAttributes {}
+export interface TeacherInstance extends Instance<TeacherAttributes>, TeacherAttributes {
+	groups: GroupInstance[]
+	addGroup(group: GroupInstance): Promise<void>
+	removeGroup(group: GroupInstance): Promise<void>
+}
