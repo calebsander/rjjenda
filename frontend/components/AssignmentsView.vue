@@ -55,7 +55,7 @@
 									</md-button>
 								</md-list-item>
 							</md-list>
-							<span class='center no-visitors' v-if='getAssignments(group, day).some(({visitors}) => !visitors)'>
+							<span class='center no-visitors' v-if='teacher && getAssignments(group, day).some(({visitors}) => !visitors)'>
 								No visitors
 							</span>
 							<md-layout>
