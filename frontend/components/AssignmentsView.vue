@@ -401,7 +401,7 @@
 				const groups = this.groups
 				for (const group of groups) this.weekInfos.delete(group)
 				const data: InfoListRequest = {
-					groupIds: groups.map(({id}) => id),
+					groupIds: groups.filter(group => group !== this.allStudentsGroup).map(({id}) => id),
 					...this.mondayDate.toYMD(),
 					days: this.WEEK_DAYS
 				}
