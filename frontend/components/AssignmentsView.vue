@@ -435,6 +435,7 @@
 								}
 								const levels: InfoLevel[] = []
 								for (const color in groupDayLevels) levels.push(groupDayLevels[color])
+								levels.sort((level1, level2) => level1.weight - level2.weight)
 								groupInfos.set(day + 1, levels)
 							}
 						}
