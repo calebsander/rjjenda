@@ -37,7 +37,8 @@
 					<md-table-cell class='name-cell'>
 						{{ student.firstName }} {{ student.lastName }}
 					</md-table-cell>
-					<md-table-cell v-for='day in WEEK_DAYS' :key='day'>
+					<md-table-cell v-for='day in WEEK_DAYS' :key='mondayDate + String(day)'>
+						<div class="warning-bg" v-if="getWarning(student, day) !== undefined" :style="{background: getWarning(student, day)}"></div>
 						<md-layout md-column :md-gutter='8'>
 							<md-list class='md-dense assignment-list'>
 								<md-list-item v-for='assignment in getAssignments(student, day)' :key='assignment.name'>
@@ -53,13 +54,6 @@
 									<md-chip v-if='!assignment.weight'>minor</md-chip>
 								</md-list-item>
 							</md-list>
-							<md-button
-								v-if='getWarning(student, day)'
-								class='md-icon-button md-raised'
-								:style='{background: getWarning(student, day), color: "white"}'
-							>
-								!
-							</md-button>
 						</md-layout>
 					</md-table-cell>
 				</md-table-row>
@@ -73,6 +67,20 @@
 		<md-button class='md-raised' @click='loadAdvisees'>Show advisees</md-button>
 	</div>
 </template>
+
+<style scoped lang="sass">
+	.md-table-cell
+		position: relative
+		z-index: 1
+	.md-table-cell .warning-bg
+		position: absolute
+		top: 0
+		left: 0
+		width: 100%
+		height: 100%
+		opacity: 0.1
+		z-index: -1
+</style>
 
 <script lang='ts'>
 	import Component from 'vue-class-component'
