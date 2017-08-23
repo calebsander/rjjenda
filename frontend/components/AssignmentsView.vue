@@ -161,6 +161,10 @@
 					Students with
 					{{ selectedWarning.weight }}
 					major assignment{{ selectedWarning.weight === 1 ? '' : 's' }}
+					<div class='subhead'>
+						For {{ hoveredGroup.name }}
+						on {{ getDayName(hoveredDay) }}
+					</div>
 				</md-dialog-title>
 				<md-dialog-content>
 					<md-list class='md-double-line'>
@@ -532,6 +536,12 @@
 		font-weight: bold
 	.md-table-cell:not(:hover) .assignment-add
 		opacity: 0
+
+	.subhead
+		opacity: .54
+		font-size: 14px
+		letter-spacing: .01em
+		line-height: 20px
 </style>
 <style lang='sass'>
 	#group-dialog .md-dialog //make the whole dialog box wide (to accommodate long section names)

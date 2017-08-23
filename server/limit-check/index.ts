@@ -161,7 +161,7 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 					}
 					const allAssignments = Assignment.findAll({
 						attributes: ['due', 'groupId', 'name', 'weight', 'updatedAt'],
-						order: ['due', 'updatedAt'],
+						order: ['createdAt'],
 						where: {
 							groupId: {
 								$in: Array.from(groupNames.keys())
