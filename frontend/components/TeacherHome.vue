@@ -46,18 +46,14 @@
 		}
 	})
 	export default class TeacherHome extends Vue {
-		myGroups: AssignmentGroup[] = []
 		teachers: TeachersList = []
 		selectedCourse: string = ''
 		courses: CourseList = []
 
 		mounted() {
 			apiFetch({
-				url: '/assignments/my-sections',
-				handler: (groups: AssignmentGroup[]) => {
-					this.myGroups = groups
-					this.loadMyGroups()
-				},
+				url: '/assignments/my-displayed',
+				handler: (groups: AssignmentGroup[]) => this.loadGroups(groups),
 				router: this.$router
 			})
 			apiFetch({
@@ -68,10 +64,14 @@
 			})
 		}
 		loadMyGroups() {
-			this.loadGroups(this.myGroups)
+			apiFetch({
+				url: '/assignments/my-sections',
+				handler: (groups: AssignmentGroup[]) => this.loadGroups(groups),
+				router: this.$router
+			})
 		}
 		loadGroups(groups: AssignmentGroup[]) {
-			(this.$refs.assignments as AssignmentsView).setGroups(groups)
+			(this.$refs.assignments as AssignmentsView).addGroups(groups)
 		}
 		selectTeacher() {
 			if (!this.teachers.length) {

@@ -36,8 +36,11 @@
 				<md-table-row v-for='(group, index) in groups' :key='group.id' class='assignments-row'>
 					<md-table-cell class='name-cell'>
 						{{ group.name }}
+						<span v-if='teacher && !(allStudentsGroup && group.id === allStudentsGroup.id)'>
+							(<a href='#' @click='removeGroup(index)'>hide</a>)
+						</span>
 					</md-table-cell>
-					<md-table-cell v-for='day in WEEK_DAYS' :key='day' @mouseover.native='showAssignmentAdd(group, day)'>
+					<md-table-cell v-for='day in WEEK_DAYS' :key='day' @mouseover.native='hoverCell(group, day)'>
 						<md-layout md-column :md-gutter='8'>
 							<md-list class='md-dense assignment-list' v-if='getAssignments(group, day).length'>
 								<md-list-item v-for='assignment in getAssignments(group, day)' :key='assignment.id'>
@@ -65,7 +68,7 @@
 								>
 									{{ info.students.length }}
 								</md-button>
-								<md-button class='md-icon-button md-raised assignment-add' @click='openAddAssignment'>
+								<md-button class='md-icon-button md-raised assignment-add' :class='{unprivileged: !group.editPrivileges}' @click='openAddAssignment'>
 									<md-icon>assignment</md-icon>
 								</md-button>
 							</md-layout>
@@ -191,7 +194,6 @@
 	import apiFetch from '../api-fetch'
 	import {
 		AddAssignment,
-		AddGroup,
 		AssignmentGroup,
 		AssignmentListRequest,
 		Assignments,
@@ -250,7 +252,7 @@
 		//Current load token for warnings
 		warningLoadToken: object | null = null
 
-		newGroup: AddGroup | null = null
+		newGroup: AssignmentGroup | null = null
 		newGroupName = '' //use newGroup for read
 
 		hoveredGroup: AssignmentGroup | null = null
@@ -265,9 +267,7 @@
 
 		selectedWarning: InfoLevel | null = null
 
-		showAssignmentAdd(group: AssignmentGroup, day: number) {
-			if (!group.editPrivileges) return
-
+		hoverCell(group: AssignmentGroup, day: number) {
 			this.hoveredGroup = group
 			this.hoveredDay = day
 		}
@@ -275,6 +275,8 @@
 			return group === this.hoveredGroup && day === this.hoveredDay
 		}
 		openAddAssignment() {
+			if (!this.hoveredGroup!.editPrivileges) return
+
 			this.newAssignmentName = ''
 			this.newAssignmentMajor = true
 			this.newAssignmentVisitors = false
@@ -350,7 +352,7 @@
 			;(this.$refs.addGroup as Dialog).open()
 		}
 		getGroups(query: GroupQuery) {
-			return new Promise<AddGroup[]>((resolve, _) => { //currently no capability for catching errors from apiFetch()
+			return new Promise<AssignmentGroup[]>((resolve, _) => { //currently no capability for catching errors from apiFetch()
 				apiFetch({
 					url: '/assignments/search-groups',
 					data: query,
@@ -359,7 +361,7 @@
 				})
 			})
 		}
-		selectGroup(group: AddGroup) {
+		selectGroup(group: AssignmentGroup) {
 			this.newGroup = group
 		}
 		addGroup() {
@@ -369,19 +371,21 @@
 				return
 			}
 
-			;(this.$refs.addGroup as Dialog).close()
-			const assignmentGroup = {
-				editPrivileges: group.extracurricular,
-				id: group.id,
-				name: group.name
-			}
-			this.groups.push(assignmentGroup)
-			this.loadAssignmentsForGroups([assignmentGroup])
+			(this.$refs.addGroup as Dialog).close()
+			this.addGroups([group])
+			this.loadAssignmentsForGroups([group])
 		}
 		removeGroup(index: number) {
-			this.groups.splice(index, 1)
+			const [group] = this.groups.splice(index, 1)
+			apiFetch({
+				url: '/assignments/my-displayed/' + String(group.id),
+				method: 'DELETE',
+				router: this.$router
+			})
 		}
 		addAllStudentsGroup() {
+			if (this.groups.find(({id}) => id === this.allStudentsGroup!.id)) return
+
 			this.groups.unshift(this.allStudentsGroup!)
 			this.loadAssignmentsForGroups([this.allStudentsGroup!])
 		}
@@ -515,9 +519,29 @@
 		}
 
 		//For external usage
-		setGroups(groups: AssignmentGroup[]) {
-			this.groups = groups.slice()
+		addGroups(groups: AssignmentGroup[]) {
+			const existingGroups = new Set(this.groups.map(({id}) => id))
+			const newGroups = groups.filter(({id}) => !existingGroups.has(id))
+			for (const newGroup of newGroups) {
+				this.groups.push(newGroup)
+				if (this.teacher) {
+					apiFetch({
+						url: '/assignments/my-displayed/' + String(newGroup.id),
+						data: {}, //to trigger a POST
+						router: this.$router
+					})
+				}
+			}
 			if (this.allStudentsGroup !== null) this.addAllStudentsGroup()
+			this.groups.sort((group1, group2) => {
+				if (this.allStudentsGroup) {
+					if (group1.id === this.allStudentsGroup.id) return -1
+					if (group2.id === this.allStudentsGroup.id) return 1
+				}
+				if (group1.name < group2.name) return -1
+				if (group1.name > group2.name) return 1
+				return 0
+			})
 			this.loadAssignmentsForGroups(this.groups)
 		}
 		setAllStudentsGroup(group: AssignmentGroup) {
@@ -535,7 +559,7 @@
 	.no-visitors
 		margin-bottom: 3px
 		font-weight: bold
-	.md-table-cell:not(:hover) .assignment-add
+	.md-table-cell:not(:hover) .assignment-add, .assignment-add.unprivileged
 		opacity: 0
 
 	.subhead

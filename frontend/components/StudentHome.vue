@@ -22,7 +22,7 @@
 			apiFetch({
 				url: '/assignments/my-classes',
 				handler: (groups: AssignmentGroup[]) =>
-					assignments.setGroups(groups),
+					assignments.addGroups(groups),
 				router: this.$router
 			})
 		}

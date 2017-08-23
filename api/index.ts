@@ -21,11 +21,6 @@ export interface AssignmentGroup {
 export interface GroupQuery {
 	nameSearch: string
 }
-export interface AddGroup {
-	id: number
-	name: string
-	extracurricular: boolean
-}
 
 export interface CheckAssignment {
 	due: string //ISO string

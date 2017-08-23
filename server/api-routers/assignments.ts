@@ -3,7 +3,6 @@ import * as express from 'express'
 import * as Sequelize from 'sequelize'
 import {
 	AddAssignment,
-	AddGroup,
 	AssignmentGroup,
 	AssignmentListRequest,
 	Assignments,
@@ -20,7 +19,7 @@ import {
 import {error, success} from '../api-respond'
 import {restrictToLoggedIn, restrictToStudent, restrictToTeacher} from '../api-restrict'
 import {checkAddition, getInfo} from '../limit-check'
-import {Assignment, Course, GradeGroup, Group, Section, Student} from '../models'
+import {Assignment, Course, GradeGroup, Group, Section, Student, Teacher} from '../models'
 import {CourseAttributes} from '../models/course'
 import {GroupAttributes} from '../models/group'
 import {SectionAttributes} from '../models/section'
@@ -54,7 +53,7 @@ function getSections(requestingTeacher: string, where: Sequelize.WhereOptions<Se
 		.then(sections => {
 			const response: AssignmentGroup[] = sections.map(section => ({
 				editPrivileges: section.teacherId! === requestingTeacher,
-				id: section.group.id as number,
+				id: section.group.id!,
 				name: sectionGroupName(section)
 			}))
 			success(res, response)
@@ -63,6 +62,71 @@ function getSections(requestingTeacher: string, where: Sequelize.WhereOptions<Se
 }
 
 const router = express.Router()
+router.get('/my-displayed',
+	restrictToTeacher,
+	(req, res) => {
+		const {id} = req.user as TeacherInstance
+		Teacher.findOne({
+			attributes: [],
+			where: {id},
+			include: [{
+				model: Group,
+				attributes: ['id', 'name'],
+				include: [{
+					model: Section,
+					attributes: ['number', 'teacherId'],
+					include: [{
+						model: Course,
+						attributes: ['name']
+					}]
+				}]
+			}]
+		})
+			.then(teacher => {
+				if (teacher === null) throw new Error('No teacher with id: ' + id)
+				if (!teacher.groups.length) return getSectionsForTeacher(id, id, res)
+				const response: AssignmentGroup[] = teacher.groups.map(({section, name, id: groupId}) => ({
+					editPrivileges: section ? section.teacherId! === id : true,
+					id: groupId!,
+					name: section ? sectionGroupName(section) : name!
+				}))
+				success(res, response)
+			})
+			.catch(err => error(res, err))
+	}
+)
+router.post('/my-displayed/:groupId',
+	restrictToTeacher,
+	(req, res) => {
+		const groupId = req.params.groupId as number
+		Group.findOne({
+			attributes: ['id'],
+			where: {id: groupId}
+		})
+			.then(group => {
+				if (group === null) throw new Error('No group with id: ' + String(groupId))
+				return (req.user as TeacherInstance).addGroup(group)
+			})
+			.then(() => success(res))
+			.catch(err => error(res, err))
+	}
+)
+router.delete('/my-displayed/:groupId',
+	restrictToTeacher,
+	(req, res) => {
+		const groupId = req.params.groupId as number
+		Group.findOne({
+			attributes: ['id'],
+			where: {id: groupId}
+		})
+			.then(group => {
+				if (group === null) throw new Error('No group with id: ' + String(groupId))
+				return (req.user as TeacherInstance).removeGroup(group)
+			})
+			.then(() => success(res))
+			.catch(err => error(res, err))
+	}
+)
 router.get('/my-sections',
 	restrictToTeacher,
 	(req, res) => {
@@ -145,13 +209,14 @@ router.post('/search-groups',
 	restrictToTeacher, //students aren't allowed to look at groups besides the one they're in
 	bodyParser.json(),
 	(req, res) => {
+		const teacherId = (req.user as TeacherInstance).id
 		const {nameSearch} = req.body as GroupQuery
 		const findSectionGroups = Course.findAll({
 			where: containsCaseInsensitive('course.name', nameSearch) as Sequelize.WhereOptions<CourseAttributes>,
 			attributes: ['name'],
 			include: [{
 				model: Section,
-				attributes: ['number'],
+				attributes: ['number', 'teacherId'],
 				include: [{
 					model: Group,
 					attributes: ['id']
@@ -168,10 +233,10 @@ router.post('/search-groups',
 		})
 		Promise.all([findSectionGroups, findExtraGroups])
 			.then(([courses, groups]) => {
-				const response: AddGroup[] = groups.map(group => ({
+				const response: AssignmentGroup[] = groups.map(group => ({
 					id: group.id as number,
 					name: group.name as string,
-					extracurricular: true
+					editPrivileges: true
 				}))
 				for (const course of courses) {
 					if (!course.sections) continue //should never occur
@@ -183,7 +248,7 @@ router.post('/search-groups',
 						response.push({
 							id: section.group.id as number,
 							name: sectionGroupName(section),
-							extracurricular: false
+							editPrivileges: section.teacherId === teacherId
 						})
 					}
 				}
