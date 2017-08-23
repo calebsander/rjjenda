@@ -79,6 +79,7 @@ export interface StudentWarning {
 	assignments: string[]
 	color: string //#abcdef
 	student: string
+	weight: number
 }
 export interface GroupWarningIndices {
 	[groupId: number]: number[] | undefined

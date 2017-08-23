@@ -244,6 +244,7 @@ export interface InfoMatched {
 	color: string
 	studentId: string
 	studentName: string
+	weight: number
 }
 export function getInfo(day: ExtendedDate, studentIds: string[]): Promise<Map<string, InfoMatched>> {
 	const studentsAndGroups = Student.findAll({
@@ -308,12 +309,14 @@ export function getInfo(day: ExtendedDate, studentIds: string[]): Promise<Map<st
 					})
 						.then(infos => {
 							if (!infos.length) return noInfoMatched
-							const greatestInfo = argmax(infos.map(info => info.assignmentWeight))
+							const greatestInfoIndex = argmax(infos.map(info => info.assignmentWeight))
+							const greatestInfo = infos[greatestInfoIndex]
 							return Promise.resolve<InfoMatched>({
 								assignments: studentAssignments.map(assignmentName(groupNames)),
-								color: infos[greatestInfo].color,
+								color: greatestInfo.color,
 								studentId: student.id,
-								studentName: student.name
+								studentName: student.name,
+								weight: greatestInfo.assignmentWeight
 							})
 						})
 				}

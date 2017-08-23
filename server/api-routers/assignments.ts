@@ -340,7 +340,8 @@ router.post('/infos',
 								infos.push({
 									assignments: infoMatched.assignments,
 									color: infoMatched.color,
-									student: infoMatched.studentName
+									student: infoMatched.studentName,
+									weight: infoMatched.weight
 								})
 								for (const groupId of memberships.get(studentId)!) {
 									let groupInfoIndices = groups[groupId]

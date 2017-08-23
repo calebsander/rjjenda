@@ -61,7 +61,7 @@
 									:key='info.color'
 									class='md-icon-button md-raised'
 									:style='{background: info.color, color: "white"}'
-									@click='showStudents(group, day)'
+									@click='showWarning(info)'
 								>
 									{{ info.students.length }}
 								</md-button>
@@ -155,28 +155,25 @@
 			:md-content-html='checkContent'
 		>
 		</md-dialog-alert>
-		<md-dialog ref='infoStudents' id='info-students'>
-			<div v-if='infoGroup'> <!--avoid rendering errors if no group yet selected-->
+		<md-dialog ref='warningDetail' id='warning-detail'>
+			<div v-if='selectedWarning'> <!--avoid rendering errors if no warning yet selected-->
 				<md-dialog-title>
-					Students in
-					{{ infoGroup.name }}
-					with assignments on
-					{{ getDay(infoDay).toShortDate() }}
+					Students with
+					{{ selectedWarning.weight }}
+					major assignment{{ selectedWarning.weight === 1 ? '' : 's' }}
 				</md-dialog-title>
 				<md-dialog-content>
 					<md-list class='md-double-line'>
-						<div v-for='info in getInfos(infoGroup, infoDay)' :key='info.color'>
-							<md-list-item v-for='studentInfo in info.students' :key='studentInfo.student'>
-								<div class='md-list-text-container'>
-									<span>{{ studentInfo.student }}</span>
-									<ol>
-										<li v-for='assignment in studentInfo.assignments' :key='assignment'>
-											{{ assignment }}
-										</li>
-									</ol>
-								</div>
-							</md-list-item>
-						</div>
+						<md-list-item v-for='student in selectedWarning.students' :key='student.student'>
+							<div class='md-list-text-container'>
+								<span>{{ student.student }}</span>
+								<ol>
+									<li v-for='assignment in student.assignments' :key='assignment'>
+										{{ assignment }}
+									</li>
+								</ol>
+							</div>
+						</md-list-item>
 					</md-list>
 				</md-dialog-content>
 			</div>
@@ -216,6 +213,7 @@
 	interface InfoLevel {
 		color: string
 		students: StudentInfo[]
+		weight: number
 	}
 
 	interface Dialog extends Vue {
@@ -261,8 +259,7 @@
 
 		checkContent = ' ' //errors are thrown if this is empty
 
-		infoGroup: AssignmentGroup | null = null
-		infoDay: number = -1
+		selectedWarning: InfoLevel | null = null
 
 		showAssignmentAdd(group: AssignmentGroup, day: number) {
 			if (!group.editPrivileges) return
@@ -424,10 +421,10 @@
 								const groupDayLevels: {[color: string]: InfoLevel} = {}
 								for (const infoIndex of affectedGroups[group.id] || []) {
 									const info = infos[infoIndex]
-									const {color} = info
+									const {color, weight} = info
 									let level = groupDayLevels[color]
 									if (!level) {
-										level = {color, students: []}
+										level = {color, students: [], weight}
 										groupDayLevels[color] = level
 									}
 									level.students.push(info)
@@ -507,10 +504,9 @@
 			if (violation.advisorEmail) link += ',' + violation.advisorEmail
 			return link
 		}
-		showStudents(group: AssignmentGroup, day: number) {
-			this.infoGroup = group
-			this.infoDay = day
-			;(this.$refs.infoStudents as Dialog).open()
+		showWarning(warning: InfoLevel) {
+			this.selectedWarning = warning
+			;(this.$refs.warningDetail as Dialog).open()
 		}
 
 		//For external usage
@@ -542,7 +538,7 @@
 		width: 100%
 	.md-menu-content //make the autocomplete list wide; not sure how to prevent this from applying to all autocompletes & selects
 		min-width: 65%
-	#info-students .md-dialog
+	#warning-detail .md-dialog
 		overflow-y: auto
 	#app .assignments-row .md-table-cell > div
 		padding: 6px
