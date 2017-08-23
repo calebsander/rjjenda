@@ -1,7 +1,7 @@
 <template>
 	<md-card>
 		<md-card-header>
-			<div class='md-title'>Sign in as another teacher</div>
+			<div class='md-title'>Sign in as another user</div>
 			<div class='md-subhead'>
 				You will have to sign out of the other account
 				in order to switch back to yours
