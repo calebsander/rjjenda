@@ -2,7 +2,6 @@ import {AtFaultViolation, LimitViolation} from '../../api'
 import {Assignment, Course, Limit, GradeGroup, Group, Info, Section, Student, Teacher} from '../models'
 import {AssignmentInstance} from '../models/assignment'
 import {StudentInstance} from '../models/student'
-import sectionGroupName from '../section-group-name'
 import ExtendedDate from '../../util/extended-date'
 
 interface Settings {
@@ -31,7 +30,7 @@ function getStudentGroupsInfo({id, firstName, lastName, groups, username, adviso
 		name: firstName + ' ' + lastName,
 		groups: groups.map(({id, name, section}) => ({
 			id: id!,
-			name: section ? sectionGroupName(section) : (name || ''),
+			name: section ? section.course.name + ' - ' + section.teacher!.lastName : (name || ''),
 			teacher: section && section.teacher && section.teacher.lastName
 		})),
 		email: username ? getEmail(username) : undefined,
