@@ -53,6 +53,7 @@ export function checkAddition(day: ExtendedDate, newWeight: number, groupId: num
 		))
 }
 export function getAllViolations(): Promise<AtFaultViolation[]> {
+	const maxDaysBefore: PromiseLike<number> = Limit.max('days')
 	const minAssignmentDay = Assignment.min('due', {
 		where: {
 			weight: {$gt: 0}
@@ -77,10 +78,14 @@ export function getAllViolations(): Promise<AtFaultViolation[]> {
 			if (allStudentsGroup === null) throw new Error('No all-school group')
 			return Promise.resolve(allStudentsGroup.groupId!)
 		})
-	return Promise.all([minAssignmentDay, maxAssignmentDay, allStudentsGroupId])
-		.then(([start, end, groupId]) =>
-			checkRange(start, end, 0, groupId)
-		)
+	return Promise.all([maxDaysBefore, minAssignmentDay, maxAssignmentDay, allStudentsGroupId])
+		.then(([daysBefore, start, end, groupId]) => {
+			const daysBeforeLimit = new ExtendedDate().addDays(1 - daysBefore)
+			let boundedStart: ExtendedDate
+			if (daysBeforeLimit.toYYYYMMDD() > start.toYYYYMMDD()) boundedStart = daysBeforeLimit
+			else boundedStart = start
+			return checkRange(boundedStart, end, 0, groupId)
+		})
 }
 function argmax(arr: number[]): number {
 	let maxIndex = -1
@@ -217,13 +222,11 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 										)
 										const lastUpdated = assignmentsInRange[argmax(assignmentUpdatedTimes)].groupId
 										const faultGroupName = groupNames.get(lastUpdated)!
-										const faultTeacher = groupTeachers.get(lastUpdated)
 										violations.push({
 											days: limit.days,
 											student: student.name,
 											assignments: assignmentsInRange.map(assignmentName(groupNames)),
-											fault: faultGroupName +
-												(faultTeacher ? ' (' + faultTeacher + ')' : ''),
+											fault: faultGroupName,
 											studentEmail: student.email!,
 											advisorEmail: student.advisorEmail
 										})
