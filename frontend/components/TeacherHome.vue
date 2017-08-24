@@ -1,9 +1,11 @@
 <template>
 	<div>
-		<assignments-view ref='assignments' :teacher='true'></assignments-view>
-		<md-button class='md-raised' @click='loadMyGroups'>Show my sections</md-button>
-		<md-button class='md-raised' @click='selectTeacher'>Show another teacher's sections</md-button>
-		<md-button class='md-raised' @click='selectCourse'>Show all sections for a course</md-button>
+		<assignments-view ref='assignments' teacher></assignments-view>
+		<div v-if='admin'>
+			<md-button class='md-raised' @click='loadMyGroups'>Show my sections</md-button>
+			<md-button class='md-raised' @click='selectTeacher'>Show another teacher's sections</md-button>
+			<md-button class='md-raised' @click='selectCourse'>Show all sections for a course</md-button>
+		</div>
 
 		<teacher-selector ref='teacherSelector' @save='loadTeacher' :teachers='teachers'></teacher-selector>
 		<md-dialog ref='courseSelector'>
@@ -49,6 +51,7 @@
 		teachers: TeachersList = []
 		selectedCourse: string = ''
 		courses: CourseList = []
+		admin = false
 
 		mounted() {
 			apiFetch({
@@ -60,6 +63,11 @@
 				url: '/assignments/all-school',
 				handler: (group: AssignmentGroup) =>
 					(this.$refs.assignments as AssignmentsView).setAllStudentsGroup(group),
+				router: this.$router
+			})
+			apiFetch({
+				url: '/is/admin',
+				handler: (admin: boolean) => this.admin = admin,
 				router: this.$router
 			})
 		}

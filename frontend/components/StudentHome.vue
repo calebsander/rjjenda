@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<assignments-view ref='assignments' :teacher='false'></assignments-view>
+		<assignments-view ref='assignments'></assignments-view>
 	</div>
 </template>
 

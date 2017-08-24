@@ -230,7 +230,10 @@
 	@Component({
 		name: 'assignments-view',
 		props: {
-			teacher: Boolean //controls whether additional groups can be displayed
+			teacher: {
+				type: Boolean,
+				default: false
+			}
 		},
 		watch: {
 			mondayDate: 'reloadAssignments',
