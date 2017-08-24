@@ -1,12 +1,12 @@
 import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import * as Sequelize from 'sequelize'
-import {Groups, GroupStudent, NewGroupName, NewGroup, StudentQuery} from '../../api'
+import {Groups, MatchingStudent, NewGroupName, NewGroup} from '../../api'
 import {error, success} from '../api-respond'
 import {Course, Group, Section, Student, Teacher} from '../models'
 import {GroupAttributes, GroupInstance} from '../models/group'
 import {SectionInstance} from '../models/section'
-import {StudentAttributes, StudentInstance} from '../models/student'
+import {StudentInstance} from '../models/student'
 import sectionGroupName from '../section-group-name'
 
 const router = express.Router()
@@ -135,10 +135,11 @@ router.post('/group',
 			.catch(err => error(res, err))
 	}
 )
-function toGroupStudents(students: StudentInstance[]): GroupStudent[] {
+export function toGroupStudents(students: StudentInstance[]): MatchingStudent[] {
 	return students.map(student => ({
 		id: student.id,
-		name: student.firstName + ' ' + student.lastName
+		firstName: student.firstName,
+		lastName: student.lastName
 	}))
 }
 router.get('/list-members/:id', (req, res) => {
@@ -159,32 +160,11 @@ router.get('/list-members/:id', (req, res) => {
 			if (group === null) throw new Error('No group with id: ' + String(id))
 			const students = group.students
 			if (!students) throw new Error('Failed to load students for group with id: ' + String(id))
-			const response: GroupStudent[] = toGroupStudents(students)
+			const response: MatchingStudent[] = toGroupStudents(students)
 			success(res, response)
 		})
 		.catch(err => error(res, err))
 })
-const FULL_NAME = Sequelize.fn('lower',
-	Sequelize.fn('concat', Sequelize.col('firstName'), ' ', Sequelize.col('lastName'))
-)
-router.post('/search-students',
-	bodyParser.json(),
-	(req, res) => {
-		const {nameSearch} = req.body as StudentQuery
-		Student.findAll({
-			attributes: ['id', 'firstName', 'lastName'],
-			where: Sequelize.where(
-				Sequelize.fn('strpos', FULL_NAME, nameSearch.toLowerCase()),
-				{$ne: 0}
-			) as Sequelize.WhereOptions<StudentAttributes>
-		})
-			.then(students => {
-				const response: GroupStudent[] = toGroupStudents(students)
-				success(res, response)
-			})
-			.catch(err => error(res, err))
-	}
-)
 interface GroupAndStudent {
 	group: GroupInstance,
 	student: StudentInstance

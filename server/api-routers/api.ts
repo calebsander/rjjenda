@@ -7,6 +7,7 @@ import isRouter from './is'
 import listTeachersRouter from './list-teachers'
 import loggedInRouter from './logged-in'
 import logoutRouter from './logout'
+import searchStudentsRouter from './search-students'
 import userInfoRouter from './user-info'
 import versionRouter from './version'
 
@@ -18,6 +19,7 @@ router.use('/auth', authenticationRouter)
 router.use('/is', isRouter)
 router.use('/logged-in', loggedInRouter)
 router.use('/logout', logoutRouter)
+router.use('/search-students', searchStudentsRouter)
 router.use('/user-info', userInfoRouter)
 router.use('/version', versionRouter)
 router.use('/list-teachers', listTeachersRouter)

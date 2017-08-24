@@ -120,7 +120,7 @@
 						<md-spinner md-indeterminate class='md-warn' v-if='loading'></md-spinner>
 					</md-list-item>
 					<md-list-item v-for='(student, index) in groupStudents' :key='index'>
-						{{ student.name }}
+						{{ student.firstName }} {{ student.lastName }}
 						<md-button class='md-icon-button md-raised' @click='deleteStudent(index)'>
 							<md-icon>delete</md-icon>
 						</md-button>
@@ -136,7 +136,7 @@
 	import Component from 'vue-class-component'
 	import TeacherSelector from './TeacherSelector.vue'
 	import apiFetch from '../api-fetch'
-	import {Group, Groups, GroupStudent, NewGroupName, NewGroup, StudentQuery} from '../../api'
+	import {Group, Groups, MatchingStudent, NewGroupName, NewGroup, StudentQuery} from '../../api'
 	import {UPDATE_COURSES} from '../admin-update-events'
 
 	interface PaginationOptions {
@@ -167,8 +167,8 @@
 		editGroup: Group | null = null
 		newName = ''
 		newGroupName = ''
-		groupStudents: GroupStudent[] = []
-		newStudent: GroupStudent | null = null
+		groupStudents: MatchingStudent[] = []
+		newStudent: MatchingStudent | null = null
 		newStudentName = '' //write-only; use newStudent for read
 
 		mounted() {
@@ -253,7 +253,7 @@
 			this.loading = true
 			apiFetch({
 				url: '/admin/list-members/' + String(group.id),
-				handler: (students: GroupStudent[]) => {
+				handler: (students: MatchingStudent[]) => {
 					this.groupStudents = students
 					this.loading = false
 				},
@@ -287,16 +287,23 @@
 			(this.$refs.newGroup as Dialog).close()
 		}
 		getStudents(query: StudentQuery) {
-			return new Promise<GroupStudent[]>((resolve, _) => { //currently no capability for catching errors from apiFetch()
+			return new Promise<(MatchingStudent & {name: string})[]>((resolve, _) => { //currently no capability for catching errors from apiFetch()
 				apiFetch({
-					url: '/admin/search-students',
+					url: '/search-students',
 					data: query,
-					handler: resolve,
+					handler: (students: MatchingStudent[]) => {
+						resolve(students.map(({id, firstName, lastName}) => ({
+							id,
+							firstName,
+							lastName,
+							name: firstName + ' ' + lastName
+						})))
+					},
 					router: this.$router
 				})
 			})
 		}
-		selectStudent(student: GroupStudent) {
+		selectStudent(student: MatchingStudent) {
 			this.newStudent = student
 		}
 		addStudent() {

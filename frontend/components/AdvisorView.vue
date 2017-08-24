@@ -57,14 +57,38 @@
 						</md-layout>
 					</md-table-cell>
 				</md-table-row>
-				<md-table-row> <!-- for border along last student row-->
-					<md-table-cell></md-table-cell>
-					<md-table-cell v-for='day in WEEK_DAYS' :key='day'></md-table-cell>
+				<md-table-row>
+					<md-table-cell>
+						<md-button class='md-icon-button md-raised' @click='openAddStudent' id='add-student'>
+							<md-icon>add</md-icon>
+							<md-tooltip md-direction='right'>Show another student</md-tooltip>
+						</md-button>
+					</md-table-cell>
+					<md-table-cell v-for='day in WEEK_DAYS' :key='day'></md-table-cell> <!-- for border along last student row-->
 				</md-table-row>
 			</md-table-body>
 		</md-table>
 
-		<md-button class='md-raised' @click='loadAdvisees'>Show advisees</md-button>
+		<md-dialog ref='addStudent' md-open-from='#add-student' md-close-to='#add-student'>
+			<md-dialog-title>Show another student</md-dialog-title>
+			<md-dialog-content>
+				<md-input-container>
+					<label>Student name</label>
+					<md-autocomplete
+						v-model='newStudentName'
+						:fetch='getStudents'
+						:debounce='500'
+						:min-chars='3'
+						query-param='nameSearch'
+						@selected='selectStudent'
+					>
+					</md-autocomplete>
+				</md-input-container>
+			</md-dialog-content>
+			<md-dialog-actions>
+				<md-button class='md-accent' @click='addStudent'>Add</md-button>
+			</md-dialog-actions>
+		</md-dialog>
 	</div>
 </template>
 
@@ -83,10 +107,23 @@
 </style>
 
 <script lang='ts'>
+	import Vue from 'vue'
 	import Component from 'vue-class-component'
-	import {AdviseeAssignmentRequest, AdviseeAssignment, AdviseeDay, AdviseeWeek, AssignedStudent} from '../../api'
+	import {
+		AdviseeAssignmentRequest,
+		AdviseeAssignment,
+		AdviseeDay,
+		AdviseeWeek,
+		MatchingStudent,
+		StudentQuery
+	} from '../../api'
 	import apiFetch from '../api-fetch'
 	import WeekManager from './WeekManager.vue'
+
+	interface Dialog extends Vue {
+		open(): void
+		close(): void
+	}
 
 	@Component({
 		watch: {
@@ -96,11 +133,14 @@
 	export default class AdvisorView extends WeekManager {
 		loading = false
 
-		students: AssignedStudent[] = []
+		students: MatchingStudent[] = []
 		//Map of students to maps of days to assignments and warnings for that day
-		weekAssignments = new WeakMap<AssignedStudent, Map<number, AdviseeDay>>()
+		weekAssignments = new WeakMap<MatchingStudent, Map<number, AdviseeDay>>()
 		//Map of students to their current load tokens
-		loadTokens = new WeakMap<AssignedStudent, object>()
+		loadTokens = new WeakMap<MatchingStudent, object>()
+
+		newStudent: MatchingStudent | null = null
+		newStudentName = '' //use newGroup for read
 
 		mounted() {
 			this.loadAdvisees()
@@ -109,15 +149,49 @@
 			this.loading = true
 			apiFetch({
 				url: '/advisor/advisees',
-				handler: (students: AssignedStudent[]) => {
+				handler: (students: MatchingStudent[]) => {
 					this.loading = false
 					this.addStudents(students)
 				},
 				router: this.$router
 			})
 		}
-		addStudents(students: AssignedStudent[]) {
-			const newStudents: AssignedStudent[] = []
+		openAddStudent() {
+			this.newStudentName = ''
+			this.newStudent = null
+			;(this.$refs.addStudent as Dialog).open()
+		}
+		getStudents(query: StudentQuery) {
+		return new Promise<(MatchingStudent & {name: string})[]>((resolve, _) => { //currently no capability for catching errors from apiFetch()
+				apiFetch({
+					url: '/search-students',
+					data: query,
+					handler: (students: MatchingStudent[]) => {
+						resolve(students.map(({id, firstName, lastName}) => ({
+							id,
+							firstName,
+							lastName,
+							name: firstName + ' ' + lastName
+						})))
+					},
+					router: this.$router
+				})
+			})
+		}
+		selectStudent(student: MatchingStudent) {
+			this.newStudent = student
+		}
+		addStudent() {
+			if (this.newStudent === null) {
+				alert('Please select a valid student')
+				return
+			}
+
+			this.addStudents([this.newStudent])
+			;(this.$refs.addStudent as Dialog).close()
+		}
+		addStudents(students: MatchingStudent[]) {
+			const newStudents: MatchingStudent[] = []
 			for (const student of students) {
 				if (!this.students.find(({id}) => id === student.id)) {
 					newStudents.push(student)
@@ -136,7 +210,7 @@
 		removeStudent(index: number) {
 			this.students.splice(index, 1)
 		}
-		loadAssignments(students: AssignedStudent[]) {
+		loadAssignments(students: MatchingStudent[]) {
 			this.loading = true
 			Promise.all(students.map(student => {
 				this.weekAssignments.delete(student)
@@ -171,14 +245,14 @@
 		reloadAssignments() {
 			this.loadAssignments(this.students)
 		}
-		getAssignments(student: AssignedStudent, day: number): AdviseeAssignment[] {
+		getAssignments(student: MatchingStudent, day: number): AdviseeAssignment[] {
 			const studentAssignments = this.weekAssignments.get(student)
 			if (!studentAssignments) return []
 			const dayAssignments = studentAssignments.get(day)
 			if (!dayAssignments) return []
 			return dayAssignments.assignments
 		}
-		getWarning(student: AssignedStudent, day: number): string | undefined {
+		getWarning(student: MatchingStudent, day: number): string | undefined {
 			const studentAssignments = this.weekAssignments.get(student)
 			if (!studentAssignments) return undefined
 			const dayAssignments = studentAssignments.get(day)

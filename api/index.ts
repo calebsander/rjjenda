@@ -11,6 +11,13 @@ export interface UserInfo {
 	name: string
 }
 
+//Used for admin page & advisor page
+export interface MatchingStudent {
+	id: string
+	firstName: string
+	lastName: string
+}
+
 //Assignments view
 export interface AssignmentGroup {
 	editPrivileges: boolean
@@ -110,11 +117,6 @@ interface AssignmentCourse {
 export type CourseList = AssignmentCourse[]
 
 //Advisor view
-export interface AssignedStudent {
-	id: string
-	firstName: string
-	lastName: string
-}
 export interface AdviseeAssignmentRequest {
 	id: string
 	year: number
@@ -200,11 +202,6 @@ export interface NewGroupName {
 }
 
 export interface NewGroup {
-	name: string
-}
-
-export interface GroupStudent {
-	id: string
 	name: string
 }
 

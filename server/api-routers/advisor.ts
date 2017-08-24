@@ -1,6 +1,6 @@
 import * as bodyParser from 'body-parser'
 import * as express from 'express'
-import {AssignedStudent, AdviseeAssignment, AdviseeAssignmentRequest, AdviseeDay, AdviseeWeek} from '../../api'
+import {AdviseeAssignment, AdviseeAssignmentRequest, AdviseeDay, AdviseeWeek, MatchingStudent} from '../../api'
 import {success, error} from '../api-respond'
 import {restrictToTeacher} from '../api-restrict'
 import {getInfo} from '../limit-check'
@@ -18,7 +18,7 @@ router.get('/advisees', (req, res) => {
 		order: ['lastName']
 	})
 		.then(students => {
-			const response: AssignedStudent[] = students.map(
+			const response: MatchingStudent[] = students.map(
 				({id, firstName, lastName}) => ({id, firstName, lastName})
 			)
 			success(res, response)
