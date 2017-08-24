@@ -55,7 +55,7 @@
 									</md-button>
 								</md-list-item>
 							</md-list>
-							<span class='center no-visitors' v-if='getAssignments(group, day).some(({visitors}) => !visitors)'>
+							<span class='center no-visitors' v-if='teacher && getAssignments(group, day).some(({visitors}) => !visitors)'>
 								No visitors
 							</span>
 							<md-layout>
@@ -68,7 +68,7 @@
 								>
 									{{ info.students.length }}
 								</md-button>
-								<md-button class='md-icon-button md-raised assignment-add' :class='{unprivileged: !group.editPrivileges}' @click='openAddAssignment'>
+								<md-button v-if='teacher && group.editPrivileges' class='md-icon-button md-raised assignment-add' @click='openAddAssignment'>
 									<md-icon>assignment</md-icon>
 								</md-button>
 							</md-layout>
@@ -562,7 +562,7 @@
 	.no-visitors
 		margin-bottom: 3px
 		font-weight: bold
-	.md-table-cell:not(:hover) .assignment-add, .assignment-add.unprivileged
+	.md-table-cell:not(:hover) .assignment-add
 		opacity: 0
 
 	.subhead
