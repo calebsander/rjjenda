@@ -13,6 +13,7 @@ import {
 	GroupWarnings,
 	InfoListRequest,
 	LimitViolation,
+	NoVisitorsRequest,
 	StudentWarning,
 	GroupQuery
 } from '../../api'
@@ -450,6 +451,56 @@ router.delete('/:id',
 				return assignment.destroy()
 			})
 			.then(() => success(res))
+			.catch(err => error(res, err))
+	}
+)
+router.post('/no-visitors',
+	restrictToTeacher,
+	bodyParser.json(),
+	(req, res) => {
+		const teacherId = (req.user as TeacherInstance).id
+		const {year, month, date, days} = req.body as NoVisitorsRequest
+		const startDate = new ExtendedDate(year, month, date)
+		const endDate = startDate.addDays(days).date
+		Assignment.findAll({
+			attributes: [],
+			where: {
+				due: {
+					$gte: startDate.date,
+					$lt: endDate
+				},
+				visitors: false
+			},
+			include: [{
+				model: Group,
+				attributes: ['id', 'name'],
+				include: [{
+					model: Section,
+					attributes: ['number', 'teacherId'],
+					include: [{
+						model: Course,
+						attributes: ['name']
+					}]
+				}]
+			}]
+		})
+			.then(assignments => {
+				const groups = new Map<number, AssignmentGroup>() //map of group ids to group infos
+				for (const assignment of assignments) {
+					const {group} = assignment
+					const id = group.id!
+					if (groups.has(id)) continue
+
+					const {section} = group
+					groups.set(id, {
+						editPrivileges: section ? section.teacherId === teacherId : true,
+						id,
+						name: section ? sectionGroupName(section) : group.name!
+					})
+				}
+				const response: AssignmentGroup[] = Array.from(groups.values())
+				success(res, response)
+			})
 			.catch(err => error(res, err))
 	}
 )

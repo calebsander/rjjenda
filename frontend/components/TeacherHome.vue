@@ -6,6 +6,11 @@
 			<md-button class='md-raised' @click='selectTeacher'>Show another teacher's sections</md-button>
 			<md-button class='md-raised' @click='selectCourse'>Show all sections for a course</md-button>
 		</div>
+		<div v-if='admissions'>
+			<md-button class='md-raised' @click='admissionsView'>
+				Show assignments this week preventing visitors
+			</md-button>
+		</div>
 
 		<teacher-selector ref='teacherSelector' @save='loadTeacher' :teachers='teachers'></teacher-selector>
 		<md-dialog ref='courseSelector'>
@@ -31,7 +36,7 @@
 <script lang='ts'>
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
-	import {AssignmentGroup, CourseList, TeachersList} from '../../api'
+	import {AssignmentGroup, CourseList, NoVisitorsRequest, TeachersList} from '../../api'
 	import apiFetch from '../api-fetch'
 	import AssignmentsView from './AssignmentsView.vue'
 	import TeacherSelector from './TeacherSelector.vue'
@@ -51,7 +56,9 @@
 		teachers: TeachersList = []
 		selectedCourse: string = ''
 		courses: CourseList = []
+
 		admin = false
+		admissions = false
 
 		mounted() {
 			apiFetch({
@@ -68,6 +75,11 @@
 			apiFetch({
 				url: '/is/admin',
 				handler: (admin: boolean) => this.admin = admin,
+				router: this.$router
+			})
+			apiFetch({
+				url: '/is/admissions',
+				handler: (admissions: boolean) => this.admissions = admissions,
 				router: this.$router
 			})
 		}
@@ -121,6 +133,19 @@
 			(this.$refs.courseSelector as Dialog).close()
 			apiFetch({
 				url: '/assignments/course-sections/' + this.selectedCourse,
+				handler: (groups: AssignmentGroup[]) => this.loadGroups(groups),
+				router: this.$router
+			})
+		}
+		admissionsView() {
+			const assignmentsView = this.$refs.assignments as AssignmentsView
+			const data: NoVisitorsRequest = {
+				...assignmentsView.mondayDate.toYMD(),
+				days: assignmentsView.WEEK_DAYS
+			}
+			apiFetch({
+				url: '/assignments/no-visitors',
+				data,
 				handler: (groups: AssignmentGroup[]) => this.loadGroups(groups),
 				router: this.$router
 			})

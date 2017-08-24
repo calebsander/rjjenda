@@ -20,5 +20,20 @@ router.get('/admin',
 			.catch(err => error(res, err))
 	}
 )
+router.get('/admissions',
+	restrictToTeacher,
+	(req, res) => {
+		const {id} = req.user as TeacherInstance
+		Teacher.findOne({
+			attributes: ['admissions'],
+			where: {id}
+		})
+			.then(teacher => {
+				if (teacher === null) throw new Error('No such teacher: ' + id)
+				success(res, teacher.admissions)
+			})
+			.catch(err => error(res, err))
+	}
+)
 
 export default router

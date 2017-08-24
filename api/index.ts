@@ -63,6 +63,13 @@ interface AssignmentResponse {
 }
 export type Assignments = AssignmentResponse[]
 
+export interface NoVisitorsRequest {
+	year: number
+	month: number
+	date: number
+	days: number
+}
+
 export interface InfoListRequest {
 	groupIds: number[]
 	year: number
