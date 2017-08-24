@@ -43,7 +43,11 @@
 					<md-table-cell v-for='day in WEEK_DAYS' :key='day' @mouseover.native='hoverCell(group, day)'>
 						<md-layout md-column :md-gutter='8'>
 							<md-list class='md-dense assignment-list' v-if='getAssignments(group, day).length'>
-								<md-list-item v-for='assignment in getAssignments(group, day)' :key='assignment.id'>
+								<md-list-item
+									v-for='assignment in getAssignments(group, day)'
+									:key='assignment.id'
+									@click.native='editAssignment(assignment, group)'
+								>
 									<span class='assignment-name' :title='assignment.name'>{{ assignment.name }}</span>
 									<md-chip v-if='!assignment.weight'>minor</md-chip>
 									<md-button
@@ -153,17 +157,28 @@
 				<md-button class='md-accent' @click='checkAssignment'>Add</md-button>
 			</md-dialog-actions>
 			<md-dialog-actions v-else>
-				<md-button class='md-accent' @click='cancelAddAssignment'>Cancel</md-button>
+				<md-button class='md-primary' @click='cancelAddAssignment'>Cancel</md-button>
 				<md-button class='md-accent' @click='addAssignment'>Add anyway</md-button>
 			</md-dialog-actions>
 		</md-dialog>
 
-		<md-dialog-alert
-			ref='checkAssignment'
-			md-title='Limit violations'
-			:md-content-html='checkContent'
-		>
-		</md-dialog-alert>
+		<md-dialog ref='editAssignment'>
+			<md-dialog-title v-if='editingAssignment'>
+				Editing {{ editingAssignment.name }}
+			</md-dialog-title>
+			<md-dialog-content>
+				<md-input-container>
+					<label>New name</label>
+					<md-input v-model='editAssignmentName'></md-input>
+				</md-input-container>
+				<md-switch v-model='editAssignmentVisitors'>Visitors allowed?</md-switch>
+			</md-dialog-content>
+			<md-dialog-actions>
+				<md-button class='md-accent' @click='saveEdit'>Save</md-button>
+				<md-button class='md-primary' @click='cancelEdit'>Cancel</md-button>
+			</md-dialog-actions>
+		</md-dialog>
+
 		<md-dialog ref='warningDetail' id='warning-detail'>
 			<div v-if='selectedWarning'> <!--avoid rendering errors if no warning yet selected-->
 				<md-dialog-title>
@@ -204,6 +219,7 @@
 		AssignmentListRequest,
 		Assignments,
 		CheckAssignment,
+		EditAssignment,
 		GroupWarnings,
 		InfoListRequest,
 		LimitViolation,
@@ -277,7 +293,9 @@
 		newAssignmentViolations: LimitViolation[] = []
 		otherSections: OtherSectionSelected[] = []
 
-		checkContent = ' ' //errors are thrown if this is empty
+		editingAssignment: Assignment | null = null
+		editAssignmentName = ''
+		editAssignmentVisitors = false
 
 		selectedWarning: InfoLevel | null = null
 
@@ -362,6 +380,44 @@
 					this.loadAssignmentsForGroups(
 						this.groups.filter(({id}) => groupIdSet.has(id))
 					)
+				},
+				router: this.$router
+			})
+		}
+		editAssignment(assignment: Assignment, group: AssignmentGroup) {
+			if (!group.editPrivileges) return
+
+			this.editingAssignment = assignment
+			this.editAssignmentName = assignment.name
+			this.editAssignmentVisitors = assignment.visitors
+			;(this.$refs.editAssignment as Dialog).open()
+		}
+		cancelEdit() {
+			(this.$refs.editAssignment as Dialog).close()
+		}
+		saveEdit() {
+			const name = this.editAssignmentName
+			if (!name) {
+				alert('Please enter a name for the assignment')
+				return
+			}
+
+			const assignment = this.editingAssignment!
+			const visitors = this.editAssignmentVisitors
+			const data: EditAssignment = {
+				id: assignment.id,
+				name,
+				visitors
+			}
+			this.loading = true
+			apiFetch({
+				url: '/assignments/edit',
+				data,
+				handler: () => {
+					this.loading = false
+					;(this.$refs.editAssignment as Dialog).close()
+					assignment.name = name
+					assignment.visitors = visitors
 				},
 				router: this.$router
 			})

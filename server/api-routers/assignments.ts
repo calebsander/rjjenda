@@ -9,6 +9,7 @@ import {
 	CheckAssignment,
 	CourseList,
 	DayGroupWarnings,
+	EditAssignment,
 	GroupWarningIndices,
 	GroupWarnings,
 	InfoListRequest,
@@ -342,6 +343,37 @@ router.post('/new',
 					)
 				}
 				return Promise.all(creationPromises)
+			})
+			.then(() => success(res))
+			.catch(err => error(res, err))
+	}
+)
+router.post('/edit',
+	restrictToTeacher,
+	bodyParser.json(),
+	(req, res) => {
+		const teacher: TeacherInstance = req.user
+		const {id, name, visitors} = req.body as EditAssignment
+		Assignment.findOne({
+			attributes: ['id'],
+			where: {id},
+			include: [{
+				model: Group,
+				attributes: ['id'],
+				include: [{
+					model: Section,
+					attributes: ['teacherId']
+				}]
+			}]
+		})
+			.then(assignment => {
+				if (assignment === null) throw new Error('No assignment with id: ' + String(id))
+				const {group} = assignment
+				if (group.section && group.section.teacherId !== teacher.id) throw new Error('Edit privileges not granted')
+
+				assignment.name = name
+				assignment.visitors = visitors
+				return assignment.save()
 			})
 			.then(() => success(res))
 			.catch(err => error(res, err))

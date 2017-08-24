@@ -51,6 +51,12 @@ export interface AddAssignment {
 	visitors: boolean
 }
 
+export interface EditAssignment {
+	id: number
+	name: string
+	visitors: boolean
+}
+
 export interface AssignmentListRequest {
 	groupId: number
 	year: number
