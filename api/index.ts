@@ -22,9 +22,14 @@ export interface GroupQuery {
 	nameSearch: string
 }
 
+export interface OtherSection {
+	groupId: number
+	number: number
+}
+
 export interface CheckAssignment {
 	due: string //ISO string
-	groupId: number
+	groupIds: number[] //assumed that these groups do not have any students in common
 	major: boolean
 }
 export interface LimitViolation {
@@ -40,7 +45,7 @@ export interface AtFaultViolation extends LimitViolation {
 
 export interface AddAssignment {
 	due: string //ISO string
-	groupId: number
+	groupIds: number[] //assumed that these groups do not have any students in common
 	major: boolean
 	name: string
 	visitors: boolean

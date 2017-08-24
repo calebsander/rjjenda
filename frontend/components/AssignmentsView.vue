@@ -120,6 +120,12 @@
 				<p v-if='hoveredGroup'><strong>Date: </strong>{{ getDay(hoveredDay).toShortDate() }}</p>
 				<md-switch v-model='newAssignmentMajor'>Major assignment?</md-switch>
 				<md-switch v-model='newAssignmentVisitors'>Visitors allowed?</md-switch>
+				<div v-if='otherSections.length'>
+					<b>Add assignment to other sections?</b><br>
+					<md-checkbox v-for='section in otherSections' :key='section.groupId' v-model='section.selected'>
+						Section {{ section.number }}
+					</md-checkbox>
+				</div>
 			</md-dialog-content>
 			<md-dialog-content v-else>
 				<h4>Adding this assignment would cause some students' workloads to exceed the recommended limits.</h4>
@@ -201,6 +207,7 @@
 		GroupWarnings,
 		InfoListRequest,
 		LimitViolation,
+		OtherSection,
 		GroupQuery
 	} from '../../api'
 	import WeekManager from './WeekManager.vue'
@@ -220,6 +227,9 @@
 		color: string
 		students: StudentInfo[]
 		weight: number
+	}
+	interface OtherSectionSelected extends OtherSection {
+		selected: boolean
 	}
 
 	interface Dialog extends Vue {
@@ -265,6 +275,7 @@
 		newAssignmentMajor = true
 		newAssignmentVisitors = false
 		newAssignmentViolations: LimitViolation[] = []
+		otherSections: OtherSectionSelected[] = []
 
 		checkContent = ' ' //errors are thrown if this is empty
 
@@ -284,15 +295,31 @@
 			this.newAssignmentMajor = true
 			this.newAssignmentVisitors = false
 			this.newAssignmentViolations = []
+			this.otherSections = []
+			apiFetch({
+				url: '/assignments/other-sections/' + String(this.hoveredGroup!.id),
+				handler: (otherSections: OtherSection[]) => {
+					this.otherSections = otherSections.map(section => ({...section, selected: true}))
+				},
+				router: this.$router
+			})
 			;(this.$refs.addAssignment as Dialog).open()
 		}
 		get due(): string {
 			return this.getDay(this.hoveredDay).toUTC().date.toISOString()
 		}
+		get groupIds(): number[] {
+			return [
+				this.hoveredGroup!.id,
+				...this.otherSections
+					.filter(({selected}) => selected)
+					.map(({groupId}) => groupId)
+			]
+		}
 		checkAssignment() {
 			const data: CheckAssignment = {
 				due: this.due,
-				groupId: this.hoveredGroup!.id,
+				groupIds: this.groupIds,
 				major: this.newAssignmentMajor
 			}
 			this.loading = true
@@ -317,10 +344,10 @@
 				return
 			}
 
-			const group = this.hoveredGroup!
+			const {groupIds} = this
 			const data: AddAssignment = {
 				due: this.due,
-				groupId: group.id,
+				groupIds,
 				major: this.newAssignmentMajor,
 				name,
 				visitors: this.newAssignmentVisitors
@@ -331,7 +358,10 @@
 				data,
 				handler: () => {
 					(this.$refs.addAssignment as Dialog).close()
-					this.loadAssignmentsForGroups([group])
+					const groupIdSet = new Set(groupIds)
+					this.loadAssignmentsForGroups(
+						this.groups.filter(({id}) => groupIdSet.has(id))
+					)
 				},
 				router: this.$router
 			})

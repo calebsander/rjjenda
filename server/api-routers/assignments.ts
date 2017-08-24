@@ -14,6 +14,7 @@ import {
 	InfoListRequest,
 	LimitViolation,
 	NoVisitorsRequest,
+	OtherSection,
 	StudentWarning,
 	GroupQuery
 } from '../../api'
@@ -247,7 +248,7 @@ router.post('/search-groups',
 					for (const section of course.sections) {
 						section.course = course
 						response.push({
-							id: section.group.id as number,
+							id: section.group.id!,
 							name: sectionGroupName(section),
 							editPrivileges: section.teacherId === teacherId
 						})
@@ -286,14 +287,22 @@ router.post('/check-limit',
 	restrictToTeacher,
 	bodyParser.json(),
 	(req, res) => {
-		const {due, groupId, major} = req.body as CheckAssignment
+		const {due, groupIds, major} = req.body as CheckAssignment
 		let violationsPromise: Promise<LimitViolation[]>
 		if (major) {
-			violationsPromise = checkAddition(
-				new ExtendedDate(due).fromUTC(),
-				getWeight(major),
-				groupId
-			)
+			violationsPromise = Promise.all(groupIds.map(groupId =>
+				checkAddition(
+					new ExtendedDate(due).fromUTC(),
+					getWeight(major),
+					groupId
+				)
+			))
+				.then(groupViolations => Promise.resolve(
+					groupViolations.reduce((violations, groupViolations) =>
+						violations.concat(groupViolations),
+						[]
+					)
+				))
 		}
 		else violationsPromise = Promise.resolve([])
 		violationsPromise
@@ -306,26 +315,33 @@ router.post('/new',
 	bodyParser.json(),
 	(req, res) => {
 		const teacher: TeacherInstance = req.user
-		const {due, groupId, major, name, visitors} = req.body as AddAssignment
-		Group.findOne({
-			attributes: [],
-			where: {id: groupId},
+		const {due, groupIds, major, name, visitors} = req.body as AddAssignment
+		Group.findAll({
+			attributes: ['id'],
+			where: {
+				id: {$in: groupIds}
+			},
 			include: [{
 				model: Section,
 				attributes: ['teacherId']
 			}]
 		})
-			.then(group => {
-				if (group === null) throw new Error('No group with id: ' + String(groupId))
-				if (group.section && group.section.teacherId !== teacher.id) throw new Error('Edit privileges not granted')
+			.then(groups => {
+				const creationPromises: PromiseLike<any>[] = []
+				for (const group of groups) {
+					if (group.section && group.section.teacherId !== teacher.id) throw new Error('Edit privileges not granted')
 
-				return Assignment.create({
-					due: new ExtendedDate(due).fromUTC().date,
-					groupId,
-					name,
-					visitors,
-					weight: getWeight(major)
-				})
+					creationPromises.push(
+						Assignment.create({
+							due: new ExtendedDate(due).fromUTC().date,
+							groupId: group.id!,
+							name,
+							visitors,
+							weight: getWeight(major)
+						})
+					)
+				}
+				return Promise.all(creationPromises)
 			})
 			.then(() => success(res))
 			.catch(err => error(res, err))
@@ -501,6 +517,52 @@ router.post('/no-visitors',
 				const response: AssignmentGroup[] = Array.from(groups.values())
 				success(res, response)
 			})
+			.catch(err => error(res, err))
+	}
+)
+router.get('/other-sections/:groupId',
+	restrictToTeacher,
+	(req, res) => {
+		const teacherId = (req.user as TeacherInstance).id
+		const groupId = Number(req.params.groupId)
+		Group.findOne({
+			attributes: [],
+			where: {id: groupId},
+			include: [{
+				model: Section,
+				attributes: ['courseId', 'number']
+			}]
+		})
+			.then(group => {
+				if (group === null) throw new Error('No group with id: ' + String(groupId))
+				const {section} = group
+				if (section === null) return Promise.resolve([])
+
+				return Section.findAll({
+					attributes: ['number'],
+					where: {
+						courseId: section.courseId!,
+						number: {$ne: section.number!},
+						teacherId
+					},
+					include: [{
+						model: Group,
+						attributes: ['id']
+					}],
+					order: ['number']
+				})
+					.then(sections => {
+						const response: OtherSection[] = []
+						for (const section of sections) {
+							response.push({
+								groupId: section.group.id!,
+								number: section.number!
+							})
+						}
+						return Promise.resolve(response)
+					})
+			})
+			.then((response: OtherSection[]) => success(res, response))
 			.catch(err => error(res, err))
 	}
 )
