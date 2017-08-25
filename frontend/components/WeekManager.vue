@@ -49,7 +49,7 @@
 	.hide-button
 		min-width: 70px !important
 
-	.md-button
+	.assignment-grid .md-button
 		margin-left: 0
 	.assignment-grid .md-table-cell
 		max-width: 0
