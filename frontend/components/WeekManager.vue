@@ -49,7 +49,7 @@
 	.hide-button
 		min-width: 70px !important
 
-	.md-button
+	.assignment-grid .md-button
 		margin-left: 0
 	.assignment-grid .md-table-cell
 		max-width: 0
@@ -75,4 +75,7 @@
 	.assignments-row .md-table-cell.name-cell
 		vertical-align: middle
 		line-height: 1.2em
+	
+	#app .assignments-row .md-table-cell > div
+		padding: 6px
 </style>

@@ -58,13 +58,12 @@
 					</md-table-cell>
 				</md-table-row>
 				<md-table-row>
-					<md-table-cell>
+					<md-table-cell colspan="6">
 						<md-button class='md-icon-button md-raised' @click='openAddStudent' id='add-student'>
 							<md-icon>add</md-icon>
 							<md-tooltip md-direction='right'>Show another student</md-tooltip>
 						</md-button>
 					</md-table-cell>
-					<md-table-cell v-for='day in WEEK_DAYS' :key='day'></md-table-cell> <!-- for border along last student row-->
 				</md-table-row>
 			</md-table-body>
 		</md-table>
