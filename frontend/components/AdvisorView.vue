@@ -58,7 +58,7 @@
 					</md-table-cell>
 				</md-table-row>
 				<md-table-row>
-					<md-table-cell colspan="6">
+					<md-table-cell :colspan='1 + WEEK_DAYS'>
 						<md-button class='md-icon-button md-raised' @click='openAddStudent' id='add-student'>
 							<md-icon>add</md-icon>
 							<md-tooltip md-direction='right'>Show another student</md-tooltip>

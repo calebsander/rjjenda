@@ -81,7 +81,7 @@
 					</md-table-cell>
 				</md-table-row>
 				<md-table-row v-if='teacher'>
-					<md-table-cell colspan='6'>
+					<md-table-cell :colspan='1 + WEEK_DAYS'>
 						<md-button class='md-icon-button md-raised' @click='openAddGroup' id='add-group'>
 							<md-icon>add</md-icon>
 							<md-tooltip md-direction='right'>Show another group</md-tooltip>
