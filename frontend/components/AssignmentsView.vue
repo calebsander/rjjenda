@@ -53,7 +53,7 @@
 									<md-button
 										class='md-icon-button md-list-action'
 										v-if='group.editPrivileges'
-										@click='deleteAssignment(group, day, assignment)'
+										@click.stop='deleteAssignment(group, day, assignment)'
 									>
 										<md-icon>delete</md-icon>
 									</md-button>
