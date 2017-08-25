@@ -47,6 +47,7 @@
 									v-for='assignment in getAssignments(group, day)'
 									:key='assignment.id'
 									@click.native='editAssignment(assignment, group)'
+									:class='{clickable: group.editPrivileges}'
 								>
 									<span class='assignment-name' :title='assignment.name'>{{ assignment.name }}</span>
 									<md-chip v-if='!assignment.weight'>minor</md-chip>
@@ -650,7 +651,8 @@
 		font-weight: bold
 	.md-table-cell:not(:hover) .assignment-add
 		opacity: 0
-
+	.clickable
+		cursor: pointer
 	.subhead
 		opacity: .54
 		font-size: 14px
