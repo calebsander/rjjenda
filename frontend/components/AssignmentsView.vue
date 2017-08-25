@@ -64,13 +64,13 @@
 							</span>
 							<md-layout>
 								<md-button
-									v-for='info in getInfos(group, day)'
-									:key='info.color'
+									v-for='warning in getWarnings(group, day)'
+									:key='warning.color'
 									class='md-icon-button md-raised'
-									:style='{background: info.color, color: "white"}'
-									@click='showWarning(info)'
+									:style='{background: warning.color, color: "white"}'
+									@click='showWarning(warning)'
 								>
-									{{ info.students.length }}
+									{{ warning.students.length }}
 								</md-button>
 								<md-button v-if='teacher && group.editPrivileges' class='md-icon-button md-raised assignment-add' @click='openAddAssignment'>
 									<md-icon>assignment</md-icon>
@@ -221,7 +221,7 @@
 		CheckAssignment,
 		EditAssignment,
 		GroupWarnings,
-		InfoListRequest,
+		WarningListRequest,
 		LimitViolation,
 		OtherSection,
 		GroupQuery
@@ -235,13 +235,13 @@
 		weight: number
 		updated: Date
 	}
-	interface StudentInfo {
+	interface StudentWarning {
 		student: string
 		assignments: string[]
 	}
-	interface InfoLevel {
+	interface WarningLevel {
 		color: string
-		students: StudentInfo[]
+		students: StudentWarning[]
 		weight: number
 	}
 	interface OtherSectionSelected extends OtherSection {
@@ -274,8 +274,8 @@
 		allStudentsGroup: AssignmentGroup | null = null
 		//Map of groups to maps of days to lists of assignments
 		weekAssignments = new WeakMap<AssignmentGroup, Map<number, Assignment[]>>()
-		//Map of groups to maps of days to lists of infos
-		weekInfos = new WeakMap<AssignmentGroup, Map<number, InfoLevel[]>>()
+		//Map of groups to maps of days to lists of warnings
+		weekWarnings = new WeakMap<AssignmentGroup, Map<number, WarningLevel[]>>()
 		//Map of groups to current load tokens for their assigments
 		assignmentLoadTokens = new WeakMap<AssignmentGroup, object>()
 		//Current load token for warnings
@@ -297,7 +297,7 @@
 		editAssignmentName = ''
 		editAssignmentVisitors = false
 
-		selectedWarning: InfoLevel | null = null
+		selectedWarning: WarningLevel | null = null
 
 		hoverCell(group: AssignmentGroup, day: number) {
 			this.hoveredGroup = group
@@ -430,7 +430,7 @@
 				handler: () => {
 					const dayAssignments = this.getAssignments(group, day)
 					dayAssignments.splice(dayAssignments.indexOf(assignment), 1)
-					this.loadInfos().then(() => this.loading = false)
+					this.loadWarnings().then(() => this.loading = false)
 				},
 				router: this.$router
 			})
@@ -481,8 +481,8 @@
 		reloadAssignments() {
 			this.loadAssignmentsForGroups(this.groups)
 		}
-		loadInfos(): Promise<void> {
-			//Students shouldn't see infos
+		loadWarnings(): Promise<void> {
+			//Students shouldn't see warnings
 			if (!this.teacher) return Promise.resolve()
 
 			const loadToken = {}
@@ -492,14 +492,14 @@
 				//If we are reloading for one, need to reload for all
 				//since changing an assignment for one group can affect students in others
 				const groups = this.groups
-				for (const group of groups) this.weekInfos.delete(group)
-				const data: InfoListRequest = {
+				for (const group of groups) this.weekWarnings.delete(group)
+				const data: WarningListRequest = {
 					groupIds: groups.filter(group => group !== this.allStudentsGroup).map(({id}) => id),
 					...this.mondayDate.toYMD(),
 					days: this.WEEK_DAYS
 				}
 				apiFetch({
-					url: '/assignments/infos',
+					url: '/assignments/warnings',
 					data,
 					handler: (groupWarnings: GroupWarnings) => {
 						if (loadToken !== this.warningLoadToken) {
@@ -508,28 +508,28 @@
 						}
 
 						for (let day = 0; day < groupWarnings.length; day++) {
-							const {groups: affectedGroups, infos} = groupWarnings[day]
+							const {groups: affectedGroups, warnings} = groupWarnings[day]
 							for (const group of groups) {
-								let groupInfos = this.weekInfos.get(group)
-								if (!groupInfos) {
-									groupInfos = new Map()
-									this.weekInfos.set(group, groupInfos)
+								let groupWarnings = this.weekWarnings.get(group)
+								if (!groupWarnings) {
+									groupWarnings = new Map()
+									this.weekWarnings.set(group, groupWarnings)
 								}
-								const groupDayLevels: {[color: string]: InfoLevel} = {}
-								for (const infoIndex of affectedGroups[group.id] || []) {
-									const info = infos[infoIndex]
-									const {color, weight} = info
+								const groupDayLevels: {[color: string]: WarningLevel} = {}
+								for (const warningIndex of affectedGroups[group.id] || []) {
+									const warning = warnings[warningIndex]
+									const {color, weight} = warning
 									let level = groupDayLevels[color]
 									if (!level) {
 										level = {color, students: [], weight}
 										groupDayLevels[color] = level
 									}
-									level.students.push(info)
+									level.students.push(warning)
 								}
-								const levels: InfoLevel[] = []
+								const levels: WarningLevel[] = []
 								for (const color in groupDayLevels) levels.push(groupDayLevels[color])
 								levels.sort((level1, level2) => level1.weight - level2.weight)
-								groupInfos.set(day + 1, levels)
+								groupWarnings.set(day + 1, levels)
 							}
 						}
 						resolve()
@@ -581,7 +581,7 @@
 					})
 				)
 			}))
-			Promise.all([loadAssignments, this.loadInfos()])
+			Promise.all([loadAssignments, this.loadWarnings()])
 				.then(() => this.loading = false)
 				.catch(err => {
 					if (err) throw err //if err is undefined, just means that a newer request was sent that overrode this one
@@ -592,17 +592,17 @@
 			if (!groupAssignments) return []
 			return groupAssignments.get(day) || []
 		}
-		getInfos(group: AssignmentGroup, day: number): InfoLevel[] {
-			const groupInfos = this.weekInfos.get(group)
-			if (!groupInfos) return []
-			return groupInfos.get(day) || []
+		getWarnings(group: AssignmentGroup, day: number): WarningLevel[] {
+			const groupWarnings = this.weekWarnings.get(group)
+			if (!groupWarnings) return []
+			return groupWarnings.get(day) || []
 		}
 		getMailtoLink(violation: LimitViolation) {
 			let link = 'mailto:' + violation.studentEmail
 			if (violation.advisorEmail) link += ',' + violation.advisorEmail
 			return link
 		}
-		showWarning(warning: InfoLevel) {
+		showWarning(warning: WarningLevel) {
 			this.selectedWarning = warning
 			;(this.$refs.warningDetail as Dialog).open()
 		}

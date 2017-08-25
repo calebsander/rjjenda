@@ -3,7 +3,7 @@ import * as express from 'express'
 import {AdviseeAssignment, AdviseeAssignmentRequest, AdviseeDay, AdviseeWeek, MatchingStudent} from '../../api'
 import {success, error} from '../api-respond'
 import {restrictToTeacher} from '../api-restrict'
-import {getInfo} from '../limit-check'
+import {getWarning} from '../limit-check'
 import {Assignment, Course, Group, Section, Student, Teacher} from '../models'
 import {TeacherInstance} from '../models/teacher'
 import ExtendedDate from '../../util/extended-date'
@@ -85,11 +85,11 @@ router.post('/assignments',
 				}
 				return Promise.resolve(assignments)
 			})
-			const warningRequest: Promise<string | undefined> = getInfo(extendedDay, [id])
-				.then(infos => {
-					const infoMatched = infos.get(id)
-					if (!infoMatched) return Promise.resolve(undefined)
-					return Promise.resolve(infoMatched.color)
+			const warningRequest: Promise<string | undefined> = getWarning(extendedDay, [id])
+				.then(warnings => {
+					const warningMatched = warnings.get(id)
+					if (!warningMatched) return Promise.resolve(undefined)
+					return Promise.resolve(warningMatched.color)
 				})
 			dayPromises.push(
 				Promise.all([assignmentsRequest, warningRequest])

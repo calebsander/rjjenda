@@ -12,7 +12,7 @@ import {
 	EditAssignment,
 	GroupWarningIndices,
 	GroupWarnings,
-	InfoListRequest,
+	WarningListRequest,
 	LimitViolation,
 	NoVisitorsRequest,
 	OtherSection,
@@ -21,7 +21,7 @@ import {
 } from '../../api'
 import {error, success} from '../api-respond'
 import {restrictToLoggedIn, restrictToStudent, restrictToTeacher} from '../api-restrict'
-import {checkAddition, getInfo} from '../limit-check'
+import {checkAddition, getWarning} from '../limit-check'
 import {Assignment, Course, GradeGroup, Group, Section, Student, Teacher} from '../models'
 import {CourseAttributes} from '../models/course'
 import {GroupAttributes} from '../models/group'
@@ -411,11 +411,11 @@ router.post('/list',
 			.catch(err => error(res, err))
 	}
 )
-router.post('/infos',
+router.post('/warnings',
 	restrictToTeacher,
 	bodyParser.json(),
 	(req, res) => {
-		const {groupIds, year, month, date, days} = req.body as InfoListRequest
+		const {groupIds, year, month, date, days} = req.body as WarningListRequest
 		const startDate = new ExtendedDate(year, month, date)
 		Group.findAll({
 			attributes: ['id'],
@@ -445,28 +445,28 @@ router.post('/infos',
 				const studentIdArray = Array.from(studentIds)
 				const dayPromises: Promise<DayGroupWarnings>[] = []
 				for (let day = 0; day < days; day++) {
-					dayPromises[day] = getInfo(startDate.addDays(day), studentIdArray)
-						.then(studentInfoMap => {
+					dayPromises[day] = getWarning(startDate.addDays(day), studentIdArray)
+						.then(studentWarningMap => {
 							const groups: GroupWarningIndices = {}
-							const infos: StudentWarning[] = []
-							for (const [studentId, infoMatched] of studentInfoMap) {
-								const infoIndex = infos.length
-								infos.push({
-									assignments: infoMatched.assignments,
-									color: infoMatched.color,
-									student: infoMatched.studentName,
-									weight: infoMatched.weight
+							const warnings: StudentWarning[] = []
+							for (const [studentId, warningMatched] of studentWarningMap) {
+								const warningIndex = warnings.length
+								warnings.push({
+									assignments: warningMatched.assignments,
+									color: warningMatched.color,
+									student: warningMatched.studentName,
+									weight: warningMatched.weight
 								})
 								for (const groupId of memberships.get(studentId)!) {
-									let groupInfoIndices = groups[groupId]
-									if (!groupInfoIndices) {
-										groupInfoIndices = []
-										groups[groupId] = groupInfoIndices
+									let groupWarningIndices = groups[groupId]
+									if (!groupWarningIndices) {
+										groupWarningIndices = []
+										groups[groupId] = groupWarningIndices
 									}
-									groupInfoIndices.push(infoIndex)
+									groupWarningIndices.push(warningIndex)
 								}
 							}
-							return Promise.resolve({groups, infos})
+							return Promise.resolve({groups, warnings})
 						})
 				}
 				return Promise.all(dayPromises)

@@ -1,5 +1,5 @@
 import {AtFaultViolation, LimitViolation} from '../../api'
-import {Assignment, Course, Limit, GradeGroup, Group, Info, Section, Student, Teacher} from '../models'
+import {Assignment, Course, Limit, GradeGroup, Group, Section, Student, Teacher, Warning} from '../models'
 import {AssignmentInstance} from '../models/assignment'
 import {StudentInstance} from '../models/student'
 import ExtendedDate from '../../util/extended-date'
@@ -240,14 +240,14 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 	)
 }
 
-export interface InfoMatched {
+export interface WarningMatched {
 	assignments: string[]
 	color: string
 	studentId: string
 	studentName: string
 	weight: number
 }
-export function getInfo(day: ExtendedDate, studentIds: string[]): Promise<Map<string, InfoMatched>> {
+export function getWarning(day: ExtendedDate, studentIds: string[]): Promise<Map<string, WarningMatched>> {
 	const studentsAndGroups = Student.findAll({
 		attributes: ['id', 'firstName', 'lastName'],
 		where: {
@@ -277,7 +277,7 @@ export function getInfo(day: ExtendedDate, studentIds: string[]): Promise<Map<st
 		.then(students =>
 			Promise.resolve(students.map(getStudentGroupsInfo))
 		)
-	const studentInfoMapPromise = studentsAndGroups.then(students => {
+	const studentWarningMapPromise = studentsAndGroups.then(students => {
 		const groupNames = new Map<number, string>() //map of ids to group names
 		for (const student of students) {
 			for (const group of student.groups) groupNames.set(group.id, group.name)
@@ -294,47 +294,47 @@ export function getInfo(day: ExtendedDate, studentIds: string[]): Promise<Map<st
 			}
 		})
 		return allAssignments.then(assignments => {
-			const studentInfoPromises: PromiseLike<InfoMatched | null>[] = []
+			const studentWarningPromises: PromiseLike<WarningMatched | null>[] = []
 			for (const student of students) {
 				const groups = new Set(student.groups.map(({id}) => id))
 				const studentAssignments = assignments.filter(assignment => groups.has(assignment.groupId))
 				const weightSum = studentAssignments.reduce((sum, {weight}) => sum + weight, 0)
-				const noInfoMatched = Promise.resolve(null)
-				let studentInfoPromise: PromiseLike<InfoMatched | null>
+				const noWarningMatched = Promise.resolve(null)
+				let studentWarningPromise: PromiseLike<WarningMatched | null>
 				if (weightSum) {
-					studentInfoPromise = Info.findAll({
+					studentWarningPromise = Warning.findAll({
 						attributes: ['color', 'assignmentWeight'],
 						where: {
 							assignmentWeight: {$lte: weightSum}
 						}
 					})
-						.then(infos => {
-							if (!infos.length) return noInfoMatched
-							const greatestInfoIndex = argmax(infos.map(info => info.assignmentWeight))
-							const greatestInfo = infos[greatestInfoIndex]
-							return Promise.resolve<InfoMatched>({
+						.then(warnings => {
+							if (!warnings.length) return noWarningMatched
+							const greatestWarningIndex = argmax(warnings.map(warning => warning.assignmentWeight))
+							const greatestWarning = warnings[greatestWarningIndex]
+							return Promise.resolve<WarningMatched>({
 								assignments: studentAssignments.map(assignmentName(groupNames)),
-								color: greatestInfo.color,
+								color: greatestWarning.color,
 								studentId: student.id,
 								studentName: student.name,
-								weight: greatestInfo.assignmentWeight
+								weight: greatestWarning.assignmentWeight
 							})
 						})
 				}
-				else studentInfoPromise = noInfoMatched
-				studentInfoPromises.push(studentInfoPromise)
+				else studentWarningPromise = noWarningMatched
+				studentWarningPromises.push(studentWarningPromise)
 			}
-			return Promise.all(studentInfoPromises)
-				.then(studentInfos => {
-					const studentInfoMap = new Map<string, InfoMatched>() //map of student ids to infos
-					for (const studentInfo of studentInfos) {
-						if (!studentInfo) continue
+			return Promise.all(studentWarningPromises)
+				.then(studentWarnings => {
+					const studentWarningMap = new Map<string, WarningMatched>() //map of student ids to warnings
+					for (const studentWarning of studentWarnings) {
+						if (!studentWarning) continue
 
-						studentInfoMap.set(studentInfo.studentId, studentInfo)
+						studentWarningMap.set(studentWarning.studentId, studentWarning)
 					}
-					return Promise.resolve(studentInfoMap)
+					return Promise.resolve(studentWarningMap)
 				})
 		})
 	})
-	return Promise.resolve(studentInfoMapPromise)
+	return Promise.resolve(studentWarningMapPromise)
 }

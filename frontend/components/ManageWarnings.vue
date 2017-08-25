@@ -2,11 +2,11 @@
 	<div>
 		<md-table-card>
 			<md-toolbar>
-				<h1 class='md-title'>Assignment weight infos</h1>
+				<h1 class='md-title'>Assignment weight warnings</h1>
 				<md-spinner md-indeterminate class='md-warn' v-if='loading'></md-spinner>
-				<md-button class='md-raised md-icon-button' @click='newInfo' id='new-info'>
+				<md-button class='md-raised md-icon-button' @click='newWarning' id='new-warning'>
 					<md-icon>add</md-icon>
-					<md-tooltip md-direction='left'>Create a new info</md-tooltip>
+					<md-tooltip md-direction='left'>Create a new warning</md-tooltip>
 				</md-button>
 			</md-toolbar>
 			<md-table>
@@ -18,13 +18,13 @@
 					</md-table-row>
 				</md-table-header>
 				<md-table-body>
-					<md-table-row v-for='info in infos' :key='info.id'>
-						<md-table-cell>{{ info.weight }}</md-table-cell>
-						<md-table-cell :style='{background: info.color, color: "white"}'>
-							{{ info.color }}
+					<md-table-row v-for='warning in warnings' :key='warning.id'>
+						<md-table-cell>{{ warning.weight }}</md-table-cell>
+						<md-table-cell :style='{background: warning.color, color: "white"}'>
+							{{ warning.color }}
 						</md-table-cell>
 						<md-table-cell>
-							<md-button class='md-icon-button md-raised' @click='deleteInfo(info)'>
+							<md-button class='md-icon-button md-raised' @click='deleteWarning(warning)'>
 								<md-icon>delete</md-icon>
 							</md-button>
 						</md-table-cell>
@@ -33,8 +33,8 @@
 			</md-table>
 		</md-table-card>
 
-		<md-dialog ref='newInfo' md-open-from='#new-info' md-close-to='#new-info'>
-			<md-dialog-title>New assignment info</md-dialog-title>
+		<md-dialog ref='newWarning' md-open-from='#new-warning' md-close-to='#new-warning'>
+			<md-dialog-title>New assignment warning</md-dialog-title>
 			<md-dialog-content>
 				<md-input-container>
 					<label>Total assignment weight</label>
@@ -58,7 +58,7 @@
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
 	import {Slider} from 'vue-color'
-	import {Info, NewInfo} from '../../api'
+	import {Warning, NewWarning} from '../../api'
 	import apiFetch from '../api-fetch'
 
 	interface Dialog extends Vue {
@@ -78,30 +78,30 @@
 			'slider-picker': Slider
 		}
 	})
-	export default class ManageInfos extends Vue {
+	export default class ManageWarnings extends Vue {
 		loading = true
-		infos: Info[] = []
+		warnings: Warning[] = []
 
 		newWeight = 1
 		newColor = RED
 
 		mounted() {
-			this.loadInfos()
+			this.loadWarnings()
 		}
-		loadInfos() {
+		loadWarnings() {
 			apiFetch({
-				url: '/admin/infos',
-				handler: (infos: Info[]) => {
+				url: '/admin/warnings',
+				handler: (warnings: Warning[]) => {
 					this.loading = false
-					this.infos = infos
+					this.warnings = warnings
 				},
 				router: this.$router
 			})
 		}
-		newInfo() {
+		newWarning() {
 			this.newWeight = 1
 			this.newColor = RED
-			;(this.$refs.newInfo as Dialog).open()
+			;(this.$refs.newWarning as Dialog).open()
 		}
 		create() {
 			if (this.newWeight <= 0) {
@@ -109,33 +109,33 @@
 				return
 			}
 
-			const data: NewInfo = {
+			const data: NewWarning = {
 				color: this.newColor.hex,
 				weight: this.newWeight
 			}
 			this.loading = true
 			apiFetch({
-				url: '/admin/info',
+				url: '/admin/warning',
 				data,
 				handler: () => {
-					(this.$refs.newInfo as Dialog).close()
-					this.loadInfos()
+					(this.$refs.newWarning as Dialog).close()
+					this.loadWarnings()
 				},
 				router: this.$router
 			})
 		}
 		cancelCreation() {
-			(this.$refs.newInfo as Dialog).close()
+			(this.$refs.newWarning as Dialog).close()
 		}
-		deleteInfo(info: Info) {
+		deleteWarning(warning: Warning) {
 			this.loading = true
 			apiFetch({
-				url: '/admin/info/' + String(info.id),
+				url: '/admin/warning/' + String(warning.id),
 				method: 'DELETE',
 				handler: () => {
 					this.loading = false
-					const infoIndex = this.infos.indexOf(info)
-					this.infos.splice(infoIndex, 1)
+					const warningIndex = this.warnings.indexOf(warning)
+					this.warnings.splice(warningIndex, 1)
 				},
 				router: this.$router
 			})

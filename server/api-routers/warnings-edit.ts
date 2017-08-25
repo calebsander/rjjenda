@@ -1,17 +1,17 @@
 import * as bodyParser from 'body-parser'
 import * as express from 'express'
-import {Infos, NewInfo} from '../../api'
+import {Warnings, NewWarning} from '../../api'
 import {success, error} from '../api-respond'
-import {Info} from '../models'
+import {Warning} from '../models'
 
 const router = express.Router()
-router.get('/infos', (_, res) =>
-	Info.findAll({
+router.get('/warnings', (_, res) =>
+	Warning.findAll({
 		attributes: ['id', 'assignmentWeight', 'color'],
 		order: ['assignmentWeight']
 	})
-		.then(infos => {
-			const response: Infos = infos.map(({id, assignmentWeight, color}) => ({
+		.then(warnings => {
+			const response: Warnings = warnings.map(({id, assignmentWeight, color}) => ({
 				id,
 				weight: assignmentWeight,
 				color
@@ -21,12 +21,12 @@ router.get('/infos', (_, res) =>
 		.catch(err => error(res, err))
 )
 const HEX_COLOR = /^#[0-9A-F]{6}$/
-router.post('/info',
+router.post('/warning',
 	bodyParser.json(),
 	(req, res) => {
-		const {color, weight} = req.body as NewInfo
+		const {color, weight} = req.body as NewWarning
 		if (!HEX_COLOR.test(color)) error(res, new Error('Not a hex color: ' + color))
-		Info.create({
+		Warning.create({
 			assignmentWeight: weight,
 			color
 		})
@@ -34,9 +34,9 @@ router.post('/info',
 			.catch(err => error(res, err))
 	}
 )
-router.delete('/info/:id', (req, res) => {
+router.delete('/warning/:id', (req, res) => {
 	const id = Number(req.params.id)
-	Info.destroy({
+	Warning.destroy({
 		where: {id}
 	})
 		.then(() => success(res))

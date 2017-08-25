@@ -88,7 +88,7 @@ export interface NoVisitorsRequest {
 	days: number
 }
 
-export interface InfoListRequest {
+export interface WarningListRequest {
 	groupIds: number[]
 	year: number
 	month: number
@@ -105,8 +105,8 @@ export interface GroupWarningIndices {
 	[groupId: number]: number[] | undefined
 }
 export interface DayGroupWarnings {
-	groups: GroupWarningIndices //indices into infos
-	infos: StudentWarning[]
+	groups: GroupWarningIndices //indices into warnings
+	warnings: StudentWarning[]
 }
 export type GroupWarnings = DayGroupWarnings[]
 
@@ -237,13 +237,13 @@ export interface NewLimit {
 	weight: number
 }
 
-export interface Info {
+export interface Warning {
 	id: number
 	color: string //#abcdef
 	weight: number
 }
-export type Infos = Info[]
-export interface NewInfo {
+export type Warnings = Warning[]
+export interface NewWarning {
 	color: string //#abcdef
 	weight: number
 }
