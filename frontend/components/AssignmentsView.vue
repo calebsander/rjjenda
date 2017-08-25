@@ -75,7 +75,7 @@
 					</md-table-cell>
 				</md-table-row>
 				<md-table-row v-if='teacher'>
-					<md-table-cell colspan='6'>
+					<md-table-cell :colspan='1 + WEEK_DAYS'>
 						<md-button class='md-icon-button md-raised' @click='openAddGroup' id='add-group'>
 							<md-icon>add</md-icon>
 							<md-tooltip md-direction='right'>Show another group</md-tooltip>
@@ -98,6 +98,7 @@
 						:min-chars='3'
 						query-param='nameSearch'
 						@selected='selectGroup'
+						ref='groupName'
 					>
 					</md-autocomplete>
 				</md-input-container>
@@ -112,7 +113,7 @@
 			<md-dialog-content v-if='newAssignmentViolations.length === 0'>
 				<md-input-container>
 					<label>Name</label>
-					<md-input v-model='newAssignmentName' required></md-input>
+					<md-input v-model='newAssignmentName' required ref='assignmentName'></md-input>
 				</md-input-container>
 				<p v-if='hoveredGroup'><strong>Section: </strong>{{ hoveredGroup.name }}</p>
 				<p v-if='hoveredGroup'><strong>Date: </strong>{{ getDay(hoveredDay).toShortDate() }}</p>
@@ -163,7 +164,7 @@
 			<md-dialog-content>
 				<md-input-container>
 					<label>New name</label>
-					<md-input v-model='editAssignmentName'></md-input>
+					<md-input v-model='editAssignmentName' ref='editAssignmentName'></md-input>
 				</md-input-container>
 				<md-switch v-model='editAssignmentVisitors'>Visitors allowed?</md-switch>
 			</md-dialog-content>
@@ -316,6 +317,7 @@
 				router: this.$router
 			})
 			;(this.$refs.addAssignment as Dialog).open()
+			setTimeout(() => (this.$refs.assignmentName as Vue).$el.focus(), 0)
 		}
 		get due(): string {
 			return this.getDay(this.hoveredDay).toUTC().date.toISOString()
@@ -385,6 +387,7 @@
 			this.editAssignmentName = assignment.name
 			this.editAssignmentVisitors = assignment.visitors
 			;(this.$refs.editAssignment as Dialog).open()
+			setTimeout(() => (this.$refs.editAssignmentName as Vue).$el.focus(), 0)
 		}
 		cancelEdit() {
 			(this.$refs.editAssignment as Dialog).close()
@@ -433,6 +436,9 @@
 		openAddGroup() {
 			this.newGroupName = ''
 			;(this.$refs.addGroup as Dialog).open()
+			setTimeout(() => {
+				(this.$refs.groupName as Vue).$el.querySelector('input')!.focus() //have to select child of autocomplete container
+			}, 0)
 		}
 		getGroups(query: GroupQuery) {
 			return new Promise<AssignmentGroup[]>((resolve, _) => { //currently no capability for catching errors from apiFetch()

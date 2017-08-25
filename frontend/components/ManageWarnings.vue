@@ -38,7 +38,7 @@
 			<md-dialog-content>
 				<md-input-container>
 					<label>Total assignment weight</label>
-					<md-input v-model='newWeight' type='number' required></md-input>
+					<md-input v-model='newWeight' type='number' required ref='weight'></md-input>
 				</md-input-container>
 				<md-input-container>
 					<label>Color</label>
@@ -102,6 +102,7 @@
 			this.newWeight = 1
 			this.newColor = RED
 			;(this.$refs.newWarning as Dialog).open()
+			setTimeout(() => (this.$refs.weight as Vue).$el.focus(), 0)
 		}
 		create() {
 			if (this.newWeight <= 0) {

@@ -73,7 +73,7 @@
 				<md-dialog-content>
 					<md-input-container>
 						<label>{{ editAttribute }}</label>
-						<md-input v-model='editValue'></md-input>
+						<md-input v-model='editValue' required ref='editValue'></md-input>
 					</md-input-container>
 				</md-dialog-content>
 				<md-dialog-actions>
@@ -88,7 +88,7 @@
 			<md-dialog-content>
 				<md-input-container>
 					<label>ID (must start with "T")</label>
-					<md-input v-model='newId' required></md-input>
+					<md-input v-model='newId' required ref='newId'></md-input>
 				</md-input-container>
 				<md-input-container>
 					<label>First name</label>
@@ -200,6 +200,7 @@
 			this.editAttribute = attribute
 			this.editValue = teacher[attribute]
 			;(this.$refs.editor as Dialog).open()
+			setTimeout(() => (this.$refs.editValue as Vue).$el.focus(), 0)
 		}
 		cancel() {
 			(this.$refs.editor as Dialog).close()
@@ -251,6 +252,7 @@
 			this.newAdmin = false
 			this.newAdmissions = false
 			;(this.$refs.newTeacher as Dialog).open()
+			setTimeout(() => (this.$refs.newId as Vue).$el.focus(), 0)
 		}
 		updateUsername() { //automatically generate username
 			if (this.newFirstName && this.newLastName) {

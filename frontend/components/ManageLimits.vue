@@ -36,7 +36,7 @@
 			<md-dialog-content>
 				<md-input-container>
 					<label>Consecutive days</label>
-					<md-input v-model='newDays' type='number' required></md-input>
+					<md-input v-model='newDays' type='number' required ref='days'></md-input>
 				</md-input-container>
 				<md-input-container>
 					<label>Total assignment weight</label>
@@ -89,6 +89,7 @@
 			this.newDays = 1
 			this.newWeight = 3
 			;(this.$refs.newLimit as Dialog).open()
+			setTimeout(() => (this.$refs.days as Vue).$el.focus(), 0)
 		}
 		create() {
 			this.newDays = Math.round(this.newDays)

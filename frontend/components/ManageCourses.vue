@@ -55,7 +55,7 @@
 			<md-dialog-content>
 				<md-input-container>
 					<label>Name</label>
-					<md-input v-model='name'></md-input>
+					<md-input v-model='name' required ref='name'></md-input>
 				</md-input-container>
 			</md-dialog-content>
 			<md-dialog-actions>
@@ -74,7 +74,7 @@
 						<md-list-item>
 							<md-input-container>
 								<label>Section number</label>
-								<md-input v-model='newSection' type='number'></md-input>
+								<md-input v-model='newSection' type='number' ref='newSection'></md-input>
 							</md-input-container>
 							<md-button class='md-raised md-icon-button' @click='addSection'>
 								<md-icon>add</md-icon>
@@ -98,7 +98,7 @@
 			<md-dialog-content>
 				<md-input-container>
 					<label>ID (e.g "101")</label>
-					<md-input v-model='newId' required></md-input>
+					<md-input v-model='newId' required ref='newId'></md-input>
 				</md-input-container>
 				<md-input-container>
 					<label>Name</label>
@@ -180,6 +180,7 @@
 			this.editCourse = course
 			this.name = course.name
 			;(this.$refs.editName as Dialog).open()
+			setTimeout(() => (this.$refs.name as Vue).$el.focus(), 0)
 		}
 		saveName() {
 			const course = this.editCourse as Course
@@ -222,6 +223,7 @@
 			this.editCourse = course
 			this.suggestNewSection()
 			;(this.$refs.editSections as Dialog).open()
+			setTimeout(() => (this.$refs.newSection as Vue).$el.focus(), 0)
 		}
 		addSection() {
 			const course = this.editCourse as Course
@@ -264,6 +266,7 @@
 			this.newName = ''
 			this.newSectionCount = 1
 			;(this.$refs.newCourse as Dialog).open()
+			setTimeout(() => (this.$refs.newId as Vue).$el.focus(), 0)
 		}
 		create() {
 			if (!this.newId) {

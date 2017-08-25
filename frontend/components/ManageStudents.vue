@@ -77,7 +77,7 @@
 			<md-dialog-content>
 				<md-input-container>
 					<label>{{ editAttribute }}</label>
-					<md-input v-model='editValue'></md-input>
+					<md-input v-model='editValue' required ref='editValue'></md-input>
 				</md-input-container>
 			</md-dialog-content>
 			<md-dialog-actions>
@@ -93,7 +93,7 @@
 			<md-dialog-content>
 				<md-input-container>
 					<label>ID (must start with "S")</label>
-					<md-input v-model='newId' required></md-input>
+					<md-input v-model='newId' required ref='newId'></md-input>
 				</md-input-container>
 				<md-input-container>
 					<label>First name</label>
@@ -207,6 +207,7 @@
 			this.editAttribute = attribute
 			this.editValue = String(student[attribute])
 			;(this.$refs.editor as Dialog).open()
+			setTimeout(() => (this.$refs.editValue as Vue).$el.focus(), 0)
 		}
 		cancel() {
 			(this.$refs.editor as Dialog).close()
@@ -232,7 +233,7 @@
 			})
 		}
 		editAdvisor(student: Student) {
-			(this.$refs.teacherSelector as Dialog).open()
+			(this.$refs.teacherSelector as TeacherSelector).open()
 			this.editStudent = student
 		}
 		saveAdvisor(advisorId: string) {
@@ -251,6 +252,7 @@
 			this.newUsername = ''
 			this.newYear = new Date().getFullYear() + 4 //default to assuming incoming freshman
 			;(this.$refs.newStudent as Dialog).open()
+			setTimeout(() => (this.$refs.newId as Vue).$el.focus(), 0)
 		}
 		updateUsername() { //automatically generate username
 			if (this.newFirstName && this.newLastName) {

@@ -69,7 +69,7 @@
 			<md-dialog-content>
 				<md-input-container>
 					<label>Name</label>
-					<md-input v-model='newName'></md-input>
+					<md-input v-model='newName' required ref='editName'></md-input>
 				</md-input-container>
 			</md-dialog-content>
 			<md-dialog-actions>
@@ -85,7 +85,7 @@
 			<md-dialog-content>
 				<md-input-container>
 					<label>Name</label>
-					<md-input required v-model='newGroupName'></md-input>
+					<md-input v-model='newGroupName' required ref='newName'></md-input>
 				</md-input-container>
 			</md-dialog-content>
 			<md-dialog-actions>
@@ -110,6 +110,7 @@
 								:min-chars='3'
 								query-param='nameSearch'
 								@selected='selectStudent'
+								ref='studentName'
 							>
 							</md-autocomplete>
 						</md-input-container>
@@ -207,6 +208,7 @@
 			this.editGroup = group
 			this.newName = group.name
 			;(this.$refs.editor as Dialog).open()
+			setTimeout(() => (this.$refs.editName as Vue).$el.focus(), 0)
 		}
 		cancel() {
 			(this.$refs.editor as Dialog).close()
@@ -230,7 +232,7 @@
 			})
 		}
 		editTeacher(group: Group) {
-			(this.$refs.teacherSelector as Dialog).open()
+			(this.$refs.teacherSelector as TeacherSelector).open()
 			this.editGroup = group
 		}
 		saveTeacher(teacherId: string) {
@@ -250,6 +252,9 @@
 			this.editGroup = group
 			this.resetSelectedStudent()
 			;(this.$refs.selectStudents as Dialog).open()
+			setTimeout(() => {
+				(this.$refs.studentName as Vue).$el.querySelector('input')!.focus() //have to select child of autocomplete container
+			}, 0)
 			this.loading = true
 			apiFetch({
 				url: '/admin/list-members/' + String(group.id),
@@ -263,6 +268,7 @@
 		newGroup() {
 			this.newGroupName = ''
 			;(this.$refs.newGroup as Dialog).open()
+			setTimeout(() => (this.$refs.newName as Vue).$el.focus(), 0)
 		}
 		create() {
 			if (!this.newGroupName) {
