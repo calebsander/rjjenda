@@ -19,3 +19,13 @@ init-scripts/set-admin.js username #provide username of initial admin
 ````
 
 Everything else is easier to accomplish through the admin interface.
+
+## Compiling the server-side TypeScript and starting the server
+````
+npm start
+````
+
+## Building the client-side bundle
+````
+npm run build
+````

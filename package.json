@@ -4,7 +4,7 @@
 	"description": "A student-teacher workload manager",
 	"scripts": {
 		"build": "webpack",
-		"compile": "tsc -p tsconfig.json",
+		"compile": "tsc",
 		"start": "npm run compile && server/start.js",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
