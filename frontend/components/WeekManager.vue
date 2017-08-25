@@ -75,4 +75,7 @@
 	.assignments-row .md-table-cell.name-cell
 		vertical-align: middle
 		line-height: 1.2em
+	
+	#app .assignments-row .md-table-cell > div
+		padding: 6px
 </style>

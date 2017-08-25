@@ -665,6 +665,4 @@
 		min-width: 65%
 	#warning-detail .md-dialog
 		overflow-y: auto
-	#app .assignments-row .md-table-cell > div
-		padding: 6px
 </style>
