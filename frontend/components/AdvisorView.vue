@@ -12,13 +12,7 @@
 				Next week
 				<md-icon class='up-a-bit'>chevron_right</md-icon>
 			</md-button>
-			<md-spinner
-				md-indeterminate
-				:md-size='40'
-				class='md-warn'
-				:style='{visibility: loading ? "visible" : "hidden"}'
-			>
-			</md-spinner>
+			<md-spinner md-indeterminate :md-size='40' class='md-warn' v-if='loading'></md-spinner>
 		</md-toolbar>
 		<md-table class='assignment-grid'>
 			<md-table-header>

@@ -76,6 +76,10 @@
 		vertical-align: middle
 		line-height: 1.2em
 	
+	.week-toolbar .md-spinner
+		position: absolute
+		right: 40px
+		
 	#app .assignments-row .md-table-cell > div
 		padding: 6px
 </style>
