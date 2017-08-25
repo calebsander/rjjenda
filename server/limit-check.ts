@@ -1,13 +1,13 @@
-import {AtFaultViolation, LimitViolation} from '../../api'
-import {Assignment, Course, Limit, GradeGroup, Group, Section, Student, Teacher, Warning} from '../models'
-import {AssignmentInstance} from '../models/assignment'
-import {StudentInstance} from '../models/student'
-import ExtendedDate from '../../util/extended-date'
+import {AtFaultViolation, LimitViolation} from '../api'
+import {Assignment, Course, Limit, GradeGroup, Group, Section, Student, Teacher, Warning} from './models'
+import {AssignmentInstance} from './models/assignment'
+import {StudentInstance} from './models/student'
+import ExtendedDate from '../util/extended-date'
 
 interface Settings {
 	emailDomain: string
 }
-const {emailDomain}: Settings = require('../../settings.json')
+const {emailDomain}: Settings = require('../settings.json')
 function getEmail(username: string) {
 	return username + '@' + emailDomain
 }
