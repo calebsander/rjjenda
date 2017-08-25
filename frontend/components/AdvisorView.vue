@@ -81,6 +81,7 @@
 						:min-chars='3'
 						query-param='nameSearch'
 						@selected='selectStudent'
+						ref='studentName'
 					>
 					</md-autocomplete>
 				</md-input-container>
@@ -160,6 +161,9 @@
 			this.newStudentName = ''
 			this.newStudent = null
 			;(this.$refs.addStudent as Dialog).open()
+			setTimeout(() => {
+				(this.$refs.studentName as Vue).$el.querySelector('input')!.focus() //have to select child of autocomplete container
+			}, 0)
 		}
 		getStudents(query: StudentQuery) {
 		return new Promise<(MatchingStudent & {name: string})[]>((resolve, _) => { //currently no capability for catching errors from apiFetch()
