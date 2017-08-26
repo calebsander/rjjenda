@@ -37,20 +37,24 @@ function getStudentGroupsInfo({id, firstName, lastName, groups, username, adviso
 		advisorEmail: advisor ? getEmail(advisor.username) : undefined
 	}
 }
-function assignmentName(groupNames: Map<number, string>): (assignment: AssignmentInstance) => string {
-	return({name, groupId}: AssignmentInstance): string => {
-		return name + ' (' + groupNames.get(groupId)! + ')'
+function assignmentName(groupNames: Map<number, string>, includeDate: boolean): (assignment: AssignmentInstance) => string {
+	return({name, groupId, due}: AssignmentInstance): string => {
+		let dateString: string
+		if (includeDate) {
+			const [, m, d] = due.split('-')
+			dateString = ' on ' + m + '/' + d
+		}
+		else dateString = ''
+		return name + ' (' + groupNames.get(groupId)! + ')' + dateString
 	}
 }
 
 export function checkAddition(day: ExtendedDate, newWeight: number, groupId: number): Promise<LimitViolation[]> {
 	return checkRange(day, day, newWeight, groupId)
-		.then(violations => Promise.resolve(
-			//Keep only the necessary fields
-			violations.map(({days, student, assignments, studentEmail, advisorEmail}) =>
-					({days, student, assignments, studentEmail, advisorEmail})
-			)
-		))
+		.then(violations => {
+			for (const violation of violations) delete violation.fault
+			return violations
+		})
 }
 export function getAllViolations(): Promise<AtFaultViolation[]> {
 	const minAssignmentDay = Assignment.min('due', {
@@ -197,7 +201,8 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 								for (let windowStartDay = -dayRange; windowStartDay <= assignmentsRange; windowStartDay++) {
 									const extendedWindowStart = start.addDays(windowStartDay)
 									const windowStartYYYYMMDD = extendedWindowStart.toYYYYMMDD()
-									const windowEndYYYYMMDD = extendedWindowStart.addDays(dayRange).toYYYYMMDD()
+									const extendedWindowEnd = extendedWindowStart.addDays(dayRange)
+									const windowEndYYYYMMDD = extendedWindowEnd.toYYYYMMDD()
 									const assignmentsInRange: AssignmentInstance[] = []
 									for (let day = extendedWindowStart; day.toYYYYMMDD() <= windowEndYYYYMMDD; day = day.addDays(1)) {
 										assignmentsInRange.push(...(dayAssignments.get(day.toYYYYMMDD()) || []))
@@ -223,8 +228,10 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 										const faultGroupName = groupNames.get(lastUpdated)!
 										violations.push({
 											days: limit.days,
+											start: extendedWindowStart.toShortDate(),
+											end: extendedWindowEnd.toShortDate(),
 											student: student.name,
-											assignments: assignmentsInRange.map(assignmentName(groupNames)),
+											assignments: assignmentsInRange.map(assignmentName(groupNames, limit.days > 1)),
 											fault: faultGroupName,
 											studentEmail: student.email!,
 											advisorEmail: student.advisorEmail
@@ -313,7 +320,7 @@ export function getWarning(day: ExtendedDate, studentIds: string[]): Promise<Map
 							const greatestWarningIndex = argmax(warnings.map(warning => warning.assignmentWeight))
 							const greatestWarning = warnings[greatestWarningIndex]
 							return Promise.resolve<WarningMatched>({
-								assignments: studentAssignments.map(assignmentName(groupNames)),
+								assignments: studentAssignments.map(assignmentName(groupNames, false)),
 								color: greatestWarning.color,
 								studentId: student.id,
 								studentName: student.name,

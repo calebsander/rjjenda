@@ -41,6 +41,8 @@ export interface CheckAssignment {
 }
 export interface LimitViolation {
 	days: number
+	start: string //M/D
+	end: string //M/D
 	student: string
 	assignments: string[]
 	studentEmail: string
