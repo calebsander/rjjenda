@@ -49,4 +49,9 @@ export default class ExtendedDate {
 		localDate.setHours(date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds(), date.getUTCMilliseconds())
 		return new ExtendedDate(localDate)
 	}
+	//Sets hours, minutes, seconds, and milliseconds to 0 in local timezone
+	toDayStart(): ExtendedDate {
+		const {date} = this
+		return new ExtendedDate(date.getFullYear(), date.getMonth(), date.getDate())
+	}
 }

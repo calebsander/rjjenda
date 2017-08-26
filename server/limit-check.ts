@@ -79,7 +79,7 @@ export function getAllViolations(): Promise<AtFaultViolation[]> {
 		})
 	return Promise.all([minAssignmentDay, maxAssignmentDay, allStudentsGroupId])
 		.then(([start, end, groupId]) => {
-			const now = new ExtendedDate
+			const now = new ExtendedDate().toDayStart()
 			let boundedStart: ExtendedDate
 			if (now.toYYYYMMDD() > start.toYYYYMMDD()) boundedStart = now
 			else boundedStart = start
