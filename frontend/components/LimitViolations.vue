@@ -13,7 +13,7 @@
 						<md-table-head>Days in window</md-table-head>
 						<md-table-head>Student</md-table-head>
 						<md-table-head>Assignments</md-table-head>
-						<md-table-head>Group at fault</md-table-head>
+						<md-table-head>Group that added last assignment</md-table-head>
 					</md-table-row>
 				</md-table-header>
 				<md-table-body>
