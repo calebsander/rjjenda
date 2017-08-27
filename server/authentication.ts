@@ -89,7 +89,7 @@ passport.use(new GoogleStrategy({
 			return
 		}
 	}
-	done(new Error('Not a ' + emailDomain + ' email address'))
+	done(null)
 }))
 
 export default passport

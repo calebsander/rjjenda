@@ -25,6 +25,7 @@ import AdminView from './components/AdminView.vue'
 import AdvisorView from './components/AdvisorView.vue'
 import CheckLoggedIn from './components/CheckLoggedIn.vue'
 import Login from './components/Login.vue'
+import LoginFailed from './components/LoginFailed.vue'
 import Logout from './components/Logout.vue'
 import StudentHome from './components/StudentHome.vue'
 import StudentView from './components/StudentView.vue'
@@ -67,6 +68,7 @@ Vue.material.registerTheme('default', {
 const routes = [
 	{path: '/', component: CheckLoggedIn},
 	{path: '/login', component: Login},
+	{path: '/login-failed', component: LoginFailed},
 	{path: '/student', component: StudentView, children: [
 		{path: '', redirect: 'home'},
 		{path: 'home', component: StudentHome}
