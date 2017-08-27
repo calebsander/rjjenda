@@ -1,6 +1,9 @@
 <template>
 	<div>
 		<assignments-view ref='assignments' teacher></assignments-view>
+		<md-button class='md-raised' @click='showMyViolations'>
+			Show limit violations caused by my assignments
+		</md-button>
 		<div v-if='admin'>
 			<md-button class='md-raised' @click='loadMyGroups'>Show my sections</md-button>
 			<md-button class='md-raised' @click='selectTeacher'>Show another teacher's sections</md-button>
@@ -30,16 +33,25 @@
 				<md-button class='md-primary' @click='cancelCourse'>Cancel</md-button>
 			</md-dialog-actions>
 		</md-dialog>
+
+		<md-dialog ref='violations'>
+			<md-dialog-title>Limit violations caused by my assignments</md-dialog-title>
+			<md-dialog-content>
+				<md-spinner v-if='!violations' md-indeterminate class='md-warn'></md-spinner>
+				<violations-table :violations='violations'></violations-table>
+			</md-dialog-content>
+		</md-dialog>
 	</div>
 </template>
 
 <script lang='ts'>
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
-	import {AssignmentGroup, CourseList, NoVisitorsRequest, TeachersList} from '../../api'
+	import {AssignmentGroup, AtFaultViolation, CourseList, NoVisitorsRequest, TeachersList} from '../../api'
 	import apiFetch from '../api-fetch'
 	import AssignmentsView from './AssignmentsView.vue'
 	import TeacherSelector from './TeacherSelector.vue'
+	import ViolationsTable from './ViolationsTable.vue'
 
 	interface Dialog extends Vue {
 		close(): void
@@ -49,7 +61,8 @@
 	@Component({
 		components: {
 			'assignments-view': AssignmentsView,
-			'teacher-selector': TeacherSelector
+			'teacher-selector': TeacherSelector,
+			'violations-table': ViolationsTable
 		}
 	})
 	export default class TeacherHome extends Vue {
@@ -59,6 +72,8 @@
 
 		admin = false
 		admissions = false
+
+		violations: AtFaultViolation[] | null = null
 
 		mounted() {
 			apiFetch({
@@ -147,6 +162,15 @@
 				url: '/assignments/no-visitors',
 				data,
 				handler: (groups: AssignmentGroup[]) => this.loadGroups(groups),
+				router: this.$router
+			})
+		}
+		showMyViolations() {
+			this.violations = null
+			;(this.$refs.violations as Dialog).open()
+			apiFetch({
+				url: '/assignments/my-violations',
+				handler: (violations: AtFaultViolation[]) => this.violations = violations,
 				router: this.$router
 			})
 		}

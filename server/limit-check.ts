@@ -57,6 +57,40 @@ export function checkAddition(day: ExtendedDate, newWeight: number, groupId: num
 		})
 }
 export function getAllViolations(): Promise<AtFaultViolation[]> {
+	return Promise.resolve(
+		GradeGroup.findOne({
+			attributes: ['groupId'],
+			where: {year: null}
+		})
+			.then(allStudentsGroup => {
+				if (allStudentsGroup === null) throw new Error('No all-school group')
+				return violationsForGroup(allStudentsGroup.groupId!)
+			})
+	)
+}
+export function violationsForTeacher(teacherId: string): Promise<AtFaultViolation[]> {
+	return Promise.resolve(
+		Section.findAll({
+			attributes: [],
+			where: {teacherId},
+			include: [{
+				model: Group,
+				attributes: ['id']
+			}]
+		})
+			.then(sections => {
+				const groupIds = sections.map(section => section.group.id!)
+				return Promise.all(groupIds.map(violationsForGroup))
+			})
+			.then(groupsViolations => {
+				const violations: AtFaultViolation[] = []
+				for (const groupViolations of groupsViolations) violations.push(...groupViolations)
+				sortViolationsByDate(violations)
+				return Promise.resolve(violations)
+			})
+	)
+}
+function violationsForGroup(groupId: number): Promise<AtFaultViolation[]> {
 	const minAssignmentDay = Assignment.min('due', {
 		where: {
 			weight: {$gt: 0}
@@ -73,16 +107,8 @@ export function getAllViolations(): Promise<AtFaultViolation[]> {
 		.then((date: string) => {
 			return Promise.resolve(new ExtendedDate(date).fromUTC())
 		})
-	const allStudentsGroupId = GradeGroup.findOne({
-		attributes: ['groupId'],
-		where: {year: null}
-	})
-		.then(allStudentsGroup => {
-			if (allStudentsGroup === null) throw new Error('No all-school group')
-			return Promise.resolve(allStudentsGroup.groupId!)
-		})
-	return Promise.all([minAssignmentDay, maxAssignmentDay, allStudentsGroupId])
-		.then(([start, end, groupId]) => {
+	return Promise.all([minAssignmentDay, maxAssignmentDay])
+		.then(([start, end]) => {
 			const now = new ExtendedDate().toDayStart()
 			let boundedStart: ExtendedDate
 			if (now.toYYYYMMDD() > start.toYYYYMMDD()) boundedStart = now
@@ -101,6 +127,14 @@ function argmax(arr: number[]): number {
 		}
 	}
 	return maxIndex
+}
+function sortViolationsByDate(violations: AtFaultViolation[]): void {
+	violations.sort((violation1, violation2) => {
+		const [m1, d1] = violation1.start.split('/')
+		const [m2, d2] = violation2.start.split('/')
+		if (m1 !== m2) return Number(m1) - Number(m2)
+		return Number(d1) - Number(d2)
+	})
 }
 /**
  * Gets all violations of limits that would result
@@ -240,6 +274,7 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 								}
 							}
 						}
+						sortViolationsByDate(violations)
 						return Promise.resolve(violations)
 					})
 				})

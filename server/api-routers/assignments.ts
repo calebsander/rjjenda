@@ -6,6 +6,7 @@ import {
 	AssignmentGroup,
 	AssignmentListRequest,
 	Assignments,
+	AtFaultViolation,
 	CheckAssignment,
 	CourseList,
 	DayGroupWarnings,
@@ -21,7 +22,7 @@ import {
 } from '../../api'
 import {error, success} from '../api-respond'
 import {restrictToLoggedIn, restrictToStudent, restrictToTeacher} from '../api-restrict'
-import {checkAddition, getWarning} from '../limit-check'
+import {checkAddition, getWarning, violationsForTeacher} from '../limit-check'
 import {Assignment, Course, GradeGroup, Group, Section, Student, Teacher} from '../models'
 import {CourseAttributes} from '../models/course'
 import {GroupAttributes} from '../models/group'
@@ -595,6 +596,15 @@ router.get('/other-sections/:groupId',
 					})
 			})
 			.then((response: OtherSection[]) => success(res, response))
+			.catch(err => error(res, err))
+	}
+)
+router.get('/my-violations',
+	restrictToTeacher,
+	(req, res) => {
+		const teacherId = (req.user as TeacherInstance).id
+		violationsForTeacher(teacherId)
+			.then((response: AtFaultViolation[]) => success(res, response))
 			.catch(err => error(res, err))
 	}
 )
