@@ -27,6 +27,18 @@
 				</md-table-row>
 			</md-table-header>
 			<md-table-body>
+				<md-table-row class='assignments-row'>
+					<md-table-cell class='name-cell'>
+						<i>Events</i>
+					</md-table-cell>
+					<md-table-cell v-for='day in WEEK_DAYS' :key='day'>
+						<md-list class='md-dense assignment-list' v-if='getEvents(day).length'>
+							<md-list-item v-for='event in getEvents(day)' :key='event'>
+								{{ event }}
+							</md-list-item>
+						</md-list>
+					</md-table-cell>
+				</md-table-row>
 				<md-table-row v-for='(student, index) in students' :key='student.id' class='assignments-row'>
 					<md-table-cell class='name-cell'>
 						{{ student.firstName }} {{ student.lastName }}
@@ -138,6 +150,7 @@
 
 		mounted() {
 			this.loadAdvisees()
+			this.loadEvents()
 		}
 		loadAdvisees() {
 			this.loading = true
@@ -241,6 +254,7 @@
 		}
 		reloadAssignments() {
 			this.loadAssignments(this.students)
+			this.loadEvents()
 		}
 		getAssignments(student: MatchingStudent, day: number): AdviseeAssignment[] {
 			const studentAssignments = this.weekAssignments.get(student)

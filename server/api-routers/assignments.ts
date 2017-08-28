@@ -23,7 +23,7 @@ import {
 import {error, success} from '../api-respond'
 import {restrictToLoggedIn, restrictToStudent, restrictToTeacher} from '../api-restrict'
 import {checkAddition, getWarning, violationsForTeacher} from '../limit-check'
-import {Assignment, Course, GradeGroup, Group, Section, Student, Teacher} from '../models'
+import {Assignment, Course, Group, Section, Student, Teacher} from '../models'
 import {CourseAttributes} from '../models/course'
 import {GroupAttributes} from '../models/group'
 import {SectionAttributes} from '../models/section'
@@ -260,26 +260,6 @@ router.post('/search-groups',
 			})
 			.catch(err => error(res, err))
 	}
-)
-router.get('/all-school', (_, res) =>
-	GradeGroup.findOne({
-		attributes: [],
-		where: {year: null},
-		include: [{
-			model: Group,
-			attributes: ['id', 'name']
-		}]
-	})
-		.then(gradeGroup => {
-			if (gradeGroup === null) throw new Error('No all-school group')
-			const response: AssignmentGroup = {
-				editPrivileges: true,
-				id: gradeGroup.group.id!,
-				name: gradeGroup.group.name!
-			}
-			success(res, response)
-		})
-		.catch(err => error(res, err))
 )
 function getWeight(major: boolean) {
 	if (major) return 1

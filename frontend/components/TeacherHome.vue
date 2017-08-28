@@ -82,12 +82,6 @@
 				router: this.$router
 			})
 			apiFetch({
-				url: '/assignments/all-school',
-				handler: (group: AssignmentGroup) =>
-					(this.$refs.assignments as AssignmentsView).setAllStudentsGroup(group),
-				router: this.$router
-			})
-			apiFetch({
 				url: '/is/admin',
 				handler: (admin: boolean) => this.admin = admin,
 				router: this.$router

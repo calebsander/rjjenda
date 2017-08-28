@@ -3,6 +3,7 @@ import adminRouter from './admin'
 import assignmentsRouter from './assignments'
 import advisorRouter from './advisor'
 import authenticationRouter from './authentication'
+import eventsRouter from './events'
 import isRouter from './is'
 import listTeachersRouter from './list-teachers'
 import loggedInRouter from './logged-in'
@@ -16,6 +17,7 @@ router.use('/admin', adminRouter)
 router.use('/assignments', assignmentsRouter)
 router.use('/advisor', advisorRouter)
 router.use('/auth', authenticationRouter)
+router.use('/events', eventsRouter)
 router.use('/is', isRouter)
 router.use('/logged-in', loggedInRouter)
 router.use('/logout', logoutRouter)

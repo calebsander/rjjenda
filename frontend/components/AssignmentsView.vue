@@ -27,10 +27,22 @@
 				</md-table-row>
 			</md-table-header>
 			<md-table-body>
+				<md-table-row class='assignments-row'>
+					<md-table-cell class='name-cell'>
+						<i>Events</i>
+					</md-table-cell>
+					<md-table-cell v-for='day in WEEK_DAYS' :key='day'>
+						<md-list class='md-dense assignment-list' v-if='getEvents(day).length'>
+							<md-list-item v-for='event in getEvents(day)' :key='event'>
+								{{ event }}
+							</md-list-item>
+						</md-list>
+					</md-table-cell>
+				</md-table-row>
 				<md-table-row v-for='(group, index) in groups' :key='group.id' class='assignments-row'>
 					<md-table-cell class='name-cell'>
 						{{ group.name }}
-						<span v-if='teacher && !(allStudentsGroup && group.id === allStudentsGroup.id)'>
+						<span v-if='teacher'>
 							(<a href='#' @click='removeGroup(index)'>hide</a>)
 						</span>
 					</md-table-cell>
@@ -74,9 +86,9 @@
 						</md-layout>
 					</md-table-cell>
 				</md-table-row>
-				<md-table-row v-if='teacher'>
+				<md-table-row>
 					<md-table-cell :colspan='1 + WEEK_DAYS'>
-						<md-button class='md-icon-button md-raised' @click='openAddGroup' id='add-group'>
+						<md-button v-if='teacher' class='md-icon-button md-raised' @click='openAddGroup' id='add-group'>
 							<md-icon>add</md-icon>
 							<md-tooltip md-direction='right'>Show another group</md-tooltip>
 						</md-button>
@@ -266,7 +278,6 @@
 		loading = false
 
 		groups: AssignmentGroup[] = []
-		allStudentsGroup: AssignmentGroup | null = null
 		//Map of groups to maps of days to lists of assignments
 		weekAssignments = new WeakMap<AssignmentGroup, Map<number, Assignment[]>>()
 		//Map of groups to maps of days to lists of warnings
@@ -472,12 +483,6 @@
 				router: this.$router
 			})
 		}
-		addAllStudentsGroup() {
-			if (this.groups.find(({id}) => id === this.allStudentsGroup!.id)) return
-
-			this.groups.unshift(this.allStudentsGroup!)
-			this.loadAssignmentsForGroups([this.allStudentsGroup!])
-		}
 		reloadAssignments() {
 			this.loadAssignmentsForGroups(this.groups)
 		}
@@ -494,7 +499,7 @@
 				const groups = this.groups
 				for (const group of groups) this.weekWarnings.delete(group)
 				const data: WarningListRequest = {
-					groupIds: groups.filter(group => group !== this.allStudentsGroup).map(({id}) => id),
+					groupIds: groups.map(({id}) => id),
 					...this.mondayDate.toYMD(),
 					days: this.WEEK_DAYS
 				}
@@ -581,7 +586,7 @@
 					})
 				)
 			}))
-			Promise.all([loadAssignments, this.loadWarnings()])
+			Promise.all([loadAssignments, this.loadWarnings(), this.loadEvents()])
 				.then(() => this.loading = false)
 				.catch(err => {
 					if (err) throw err //if err is undefined, just means that a newer request was sent that overrode this one
@@ -621,21 +626,12 @@
 					})
 				}
 			}
-			if (this.allStudentsGroup !== null) this.addAllStudentsGroup()
 			this.groups.sort((group1, group2) => {
-				if (this.allStudentsGroup) {
-					if (group1.id === this.allStudentsGroup.id) return -1
-					if (group2.id === this.allStudentsGroup.id) return 1
-				}
 				if (group1.name < group2.name) return -1
 				if (group1.name > group2.name) return 1
 				return 0
 			})
 			this.loadAssignmentsForGroups(this.groups)
-		}
-		setAllStudentsGroup(group: AssignmentGroup) {
-			this.allStudentsGroup = group
-			if (this.groups.length) this.addAllStudentsGroup()
 		}
 	}
 </script>

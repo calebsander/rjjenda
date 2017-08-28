@@ -66,12 +66,21 @@ export interface EditAssignment {
 	visitors: boolean
 }
 
-export interface AssignmentListRequest {
-	groupId: number
+interface WeekRequest {
 	year: number
 	month: number //JavaScript-style (i.e. 0 to 11)
 	date: number
 	days: number
+}
+
+export type EventsRequest = WeekRequest
+export interface EventResponse {
+	day: number //index (starting at 1) in the date window
+	name: string
+}
+
+export interface AssignmentListRequest extends WeekRequest {
+	groupId: number
 }
 interface AssignmentResponse {
 	day: number //index (starting at 1) in the date window
@@ -83,19 +92,10 @@ interface AssignmentResponse {
 }
 export type Assignments = AssignmentResponse[]
 
-export interface NoVisitorsRequest {
-	year: number
-	month: number
-	date: number
-	days: number
-}
+export type NoVisitorsRequest = WeekRequest
 
-export interface WarningListRequest {
+export interface WarningListRequest extends WeekRequest {
 	groupIds: number[]
-	year: number
-	month: number
-	date: number
-	days: number
 }
 export interface StudentWarning {
 	assignments: string[]
@@ -119,12 +119,8 @@ interface AssignmentCourse {
 export type CourseList = AssignmentCourse[]
 
 //Advisor view
-export interface AdviseeAssignmentRequest {
+export interface AdviseeAssignmentRequest extends WeekRequest {
 	id: string
-	year: number
-	month: number
-	date: number
-	days: number
 }
 export interface AdviseeAssignment {
 	course: string
