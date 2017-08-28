@@ -1,6 +1,7 @@
 import {AtFaultViolation, LimitViolation} from '../api'
 import {Assignment, Course, Limit, GradeGroup, Group, Section, Student, Teacher, Warning} from './models'
 import {AssignmentInstance} from './models/assignment'
+import {TeacherInstance} from './models/teacher'
 import {StudentInstance} from './models/student'
 import ExtendedDate from '../util/extended-date'
 
@@ -24,13 +25,16 @@ interface StudentGroupsInfo {
 	advisorEmail?: string
 	groups: GroupInfo[]
 }
+function teacherSuffix(teacher: TeacherInstance) {
+	return ' - ' + teacher.lastName
+}
 function getStudentGroupsInfo({id, firstName, lastName, groups, username, advisor}: StudentInstance): StudentGroupsInfo {
 	return {
 		id,
 		name: firstName + ' ' + lastName,
 		groups: groups.map(({id, name, section}) => ({
 			id: id!,
-			name: section ? section.course.name + ' - ' + section.teacher!.lastName : (name || ''),
+			name: section ? section.course.name + teacherSuffix(section.teacher!) : (name || ''),
 			teacher: section && section.teacher && section.teacher.lastName
 		})),
 		email: username ? getEmail(username) : undefined,
@@ -64,33 +68,53 @@ export function getAllViolations(): Promise<AtFaultViolation[]> {
 		})
 			.then(allStudentsGroup => {
 				if (allStudentsGroup === null) throw new Error('No all-school group')
-				return violationsForGroup(allStudentsGroup.groupId!)
+				return violationsForStudentsInGroup(allStudentsGroup.groupId!)
 			})
 	)
 }
 export function violationsForTeacher(teacherId: string): Promise<AtFaultViolation[]> {
-	return Promise.resolve(
-		Section.findAll({
-			attributes: [],
-			where: {teacherId},
-			include: [{
-				model: Group,
-				attributes: ['id']
-			}]
+	const violations = Section.findAll({
+		attributes: [],
+		where: {teacherId},
+		include: [{
+			model: Group,
+			attributes: ['id']
+		}]
+	})
+		.then(sections => {
+			const groupIds = sections.map(section => section.group.id!)
+			return Promise.all(groupIds.map(violationsForStudentsInGroup))
 		})
-			.then(sections => {
-				const groupIds = sections.map(section => section.group.id!)
-				return Promise.all(groupIds.map(violationsForGroup))
-			})
-			.then(groupsViolations => {
-				const violations: AtFaultViolation[] = []
-				for (const groupViolations of groupsViolations) violations.push(...groupViolations)
-				sortViolationsByDate(violations)
-				return Promise.resolve(violations)
-			})
-	)
+	const teacher = Teacher.findOne({
+		attributes: ['lastName'],
+		where: {id: teacherId}
+	})
+	return Promise.all([violations, teacher])
+		.then(([groupsViolations, teacher]) => {
+			if (teacher === null) throw new Error('No teacher with id: ' + teacherId)
+
+			const teacherNameSearch = teacherSuffix(teacher)
+			const violations: AtFaultViolation[] = []
+			const addedViolationIds = new Set<string>()
+			for (const groupViolations of groupsViolations) {
+				violations.push(...groupViolations.filter(violation => {
+					//We need to check that we don't include the same violation twice,
+					//which could happen if two of the assignments come from different classes
+					//both taught by the teacher
+					const violationId = violation.student + ',' + violation.start + ',' + violation.end
+					const alreadyAdded = addedViolationIds.has(violationId)
+					if (alreadyAdded) return false
+					else {
+						addedViolationIds.add(violationId)
+						return violation.assignments.some(assignment => assignment.includes(teacherNameSearch))
+					}
+				}))
+			}
+			sortViolationsByDate(violations)
+			return Promise.resolve(violations)
+		})
 }
-function violationsForGroup(groupId: number): Promise<AtFaultViolation[]> {
+function violationsForStudentsInGroup(groupId: number): Promise<AtFaultViolation[]> {
 	const minAssignmentDay = Assignment.min('due', {
 		where: {
 			weight: {$gt: 0}
@@ -130,10 +154,13 @@ function argmax(arr: number[]): number {
 }
 function sortViolationsByDate(violations: AtFaultViolation[]): void {
 	violations.sort((violation1, violation2) => {
-		const [m1, d1] = violation1.start.split('/')
-		const [m2, d2] = violation2.start.split('/')
-		if (m1 !== m2) return Number(m1) - Number(m2)
-		return Number(d1) - Number(d2)
+		for (const date of ['start', 'end'] as ('start' | 'end')[]) {
+			const [m1, d1] = violation1[date].split('/')
+			const [m2, d2] = violation2[date].split('/')
+			if (m1 !== m2) return Number(m1) - Number(m2)
+			if (d1 !== d2) return Number(d1) - Number(d2)
+		}
+		return 0
 	})
 }
 /**
