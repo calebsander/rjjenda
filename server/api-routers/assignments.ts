@@ -369,23 +369,23 @@ router.post('/list',
 		const extendedStartDate = new ExtendedDate(startDate)
 		const endDate = extendedStartDate.addDays(days) //exclusive
 		Assignment.findAll({
-			attributes: ['id', 'due', 'name', 'visitors', 'weight', 'updatedAt'],
+			attributes: ['id', 'due', 'name', 'visitors', 'weight'],
 			where: {
 				groupId,
 				due: {
 					$gte: startDate,
 					$lt: endDate.date
 				}
-			}
+			},
+			order: ['createdAt']
 		})
 			.then(assignments => {
 				const response: Assignments = assignments.map(assignment => ({
 					day: new ExtendedDate(assignment.due).daysSince(extendedStartDate.toUTC()) + 1,
-					id: assignment.id as number,
+					id: assignment.id!,
 					name: assignment.name,
 					visitors: assignment.visitors,
-					weight: assignment.weight,
-					updated: assignment.updatedAt.toISOString()
+					weight: assignment.weight
 				}))
 				success(res, response)
 			})

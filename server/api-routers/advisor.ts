@@ -56,7 +56,7 @@ router.post('/assignments',
 						},
 						{
 							model: Assignment,
-							attributes: ['name', 'weight'],
+							attributes: ['name', 'weight', 'createdAt'],
 							where: {due: extendedDay.date}
 						}
 					]
@@ -65,6 +65,7 @@ router.post('/assignments',
 			const assignmentsRequest = studentRequest.then(student => {
 				if (student === null) throw new Error('No student with id: ' + id)
 				const assignments: AdviseeAssignment[] = []
+				const createdAtDates = new Map<AdviseeAssignment, number>() //date in epoch time
 				for (const group of student.groups) {
 					let course: string
 					let teacher: string | undefined
@@ -75,14 +76,19 @@ router.post('/assignments',
 					}
 					else course = group.name!
 					for (const assignment of group.assignments!) {
-						assignments.push({
+						const assignmentResponse = {
 							course,
 							name: assignment.name,
 							teacher,
 							weight: assignment.weight
-						})
+						}
+						assignments.push(assignmentResponse)
+						createdAtDates.set(assignmentResponse, assignment.createdAt.getTime())
 					}
 				}
+				assignments.sort((assignment1, assignment2) => {
+					return createdAtDates.get(assignment1)! - createdAtDates.get(assignment2)!
+				})
 				return Promise.resolve(assignments)
 			})
 			const warningRequest: Promise<string | undefined> = getWarning(extendedDay, [id])

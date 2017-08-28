@@ -87,7 +87,6 @@ interface AssignmentResponse {
 	id: number
 	name: string
 	visitors: boolean
-	updated: string //ISO string
 	weight: number
 }
 export type Assignments = AssignmentResponse[]

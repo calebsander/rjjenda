@@ -11,7 +11,7 @@ export interface AssignmentAttributes {
 }
 
 export interface AssignmentInstance extends Instance<AssignmentAttributes>, AssignmentAttributes {
+	createdAt: Date
 	due: string
 	group: GroupInstance
-	updatedAt: Date
 }

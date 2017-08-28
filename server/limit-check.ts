@@ -228,7 +228,7 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 						}
 					}
 					const allAssignments = Assignment.findAll({
-						attributes: ['due', 'groupId', 'name', 'weight', 'updatedAt'],
+						attributes: ['due', 'groupId', 'name', 'weight', 'createdAt'],
 						order: ['createdAt'],
 						where: {
 							groupId: {
@@ -282,11 +282,11 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 										.reduce((a, b) => a + b, 0)
 										+ newWeight
 									if (weightSum >= limit.assignmentWeight) {
-										const assignmentUpdatedTimes = assignmentsInRange.map(
-											({updatedAt}) => updatedAt.getTime()
+										const assignmentCreationTimes = assignmentsInRange.map(
+											({createdAt}) => createdAt.getTime()
 										)
-										const lastUpdated = assignmentsInRange[argmax(assignmentUpdatedTimes)].groupId
-										const faultGroupName = groupNames.get(lastUpdated)!
+										const lastCreated = assignmentsInRange[argmax(assignmentCreationTimes)].groupId
+										const faultGroupName = groupNames.get(lastCreated)!
 										violations.push({
 											days: limit.days,
 											start: extendedWindowStart.toShortDate(),

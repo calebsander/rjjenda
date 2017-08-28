@@ -240,7 +240,6 @@
 		name: string
 		visitors: boolean
 		weight: number
-		updated: Date
 	}
 	interface StudentWarning {
 		student: string
@@ -575,7 +574,6 @@
 									id: assignment.id,
 									name: assignment.name,
 									visitors: assignment.visitors,
-									updated: new Date(assignment.updated),
 									weight: assignment.weight
 								})
 							}
