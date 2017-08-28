@@ -129,8 +129,8 @@
 				</md-input-container>
 				<p v-if='hoveredGroup'><strong>Section: </strong>{{ hoveredGroup.name }}</p>
 				<p v-if='hoveredGroup'><strong>Date: </strong>{{ getDay(hoveredDay).toShortDate() }}</p>
-				<md-switch v-model='newAssignmentMajor'>Major assignment?</md-switch>
-				<md-switch v-model='newAssignmentVisitors'>Visitors allowed?</md-switch>
+				<md-checkbox v-model='newAssignmentMajor'>Major assignment?</md-checkbox>
+				<md-checkbox v-model='newAssignmentVisitors'>Visitors allowed?</md-checkbox>
 				<div v-if='otherSections.length'>
 					<b>Add assignment to other sections?</b><br>
 					<md-checkbox v-for='section in otherSections' :key='section.groupId' v-model='section.selected'>
@@ -178,7 +178,7 @@
 					<label>New name</label>
 					<md-input v-model='editAssignmentName' ref='editAssignmentName'></md-input>
 				</md-input-container>
-				<md-switch v-model='editAssignmentVisitors'>Visitors allowed?</md-switch>
+				<md-checkbox v-model='editAssignmentVisitors'>Visitors allowed?</md-checkbox>
 			</md-dialog-content>
 			<md-dialog-actions>
 				<md-button class='md-accent' @click='saveEdit'>Save</md-button>
