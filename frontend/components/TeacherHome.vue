@@ -2,7 +2,7 @@
 	<div>
 		<assignments-view ref='assignments' teacher></assignments-view>
 		<md-button class='md-raised' @click='showMyViolations'>
-			Show limit violations caused by my assignments
+			Show guidelines violations triggered by my assignments
 		</md-button>
 		<div v-if='admin'>
 			<md-button class='md-raised' @click='loadMyGroups'>Show my sections</md-button>
@@ -35,7 +35,7 @@
 		</md-dialog>
 
 		<md-dialog ref='violations'>
-			<md-dialog-title>Limit violations caused by my assignments</md-dialog-title>
+			<md-dialog-title>Guideline violations triggered by my assignments</md-dialog-title>
 			<md-dialog-content>
 				<md-spinner v-if='!violations' md-indeterminate class='md-warn'></md-spinner>
 				<violations-table :violations='violations'></violations-table>

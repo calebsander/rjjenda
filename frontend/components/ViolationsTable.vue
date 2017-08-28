@@ -2,7 +2,7 @@
 	<md-table v-if='violations'>
 		<md-table-header>
 			<md-table-row>
-				<md-table-head>Window</md-table-head>
+				<md-table-head>Date</md-table-head>
 				<md-table-head>Student</md-table-head>
 				<md-table-head>Assignments</md-table-head>
 				<md-table-head>Group that added last assignment</md-table-head>
@@ -46,6 +46,7 @@
 		getMailtoLink(violation: AtFaultViolation) {
 			let link = 'mailto:' + violation.studentEmail
 			if (violation.advisorEmail) link += ',' + violation.advisorEmail
+			link += '?cc=abudding@commschool.org'
 			return link
 		}
 	}

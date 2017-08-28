@@ -139,7 +139,10 @@
 				</div>
 			</md-dialog-content>
 			<md-dialog-content v-else>
-				<h4>Adding this assignment would cause some students' workloads to exceed the recommended limits.</h4>
+				<h4>Adding this assignment would cause some students' workloads to exceed the recommended limits.<br>
+				If you choose to add this assignment anyway, please contact affected students and their advisors with a plan for
+				spreading out the student's workload (e.g. by offering an extension).
+				</h4>
 				<p v-for="violation in newAssignmentViolations" :key="violation.student + String(violation.days)">
 					<strong>{{ violation.student }}</strong>
 					would have
@@ -155,9 +158,6 @@
 						</li>
 						<li><em>{{ newAssignmentName }}</em> (your new assignment)</li>
 					</ol>
-				</p>
-				<p>
-					If you choose to add this assignment anyway, please contact affected students and their advisors with a plan for mitigation.
 				</p>
 			</md-dialog-content>
 			<md-dialog-actions v-if='newAssignmentViolations.length === 0'>
@@ -603,6 +603,7 @@
 		getMailtoLink(violation: LimitViolation) {
 			let link = 'mailto:' + violation.studentEmail
 			if (violation.advisorEmail) link += ',' + violation.advisorEmail
+			link += '?cc=abudding@commschool.org'
 			return link
 		}
 		showWarning(warning: WarningLevel) {
@@ -651,6 +652,8 @@
 		font-size: 14px
 		letter-spacing: .01em
 		line-height: 20px
+	.md-checkbox
+		margin-right: 30px
 </style>
 <style lang='sass'>
 	#group-dialog .md-dialog //make the whole dialog box wide (to accommodate long section names)
