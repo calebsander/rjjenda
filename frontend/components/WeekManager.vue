@@ -5,7 +5,9 @@
 	import apiFetch from '../api-fetch'
 	import ExtendedDate from '../../util/extended-date'
 
-	const now = new ExtendedDate
+	const noonToday = new Date
+	noonToday.setHours(12, 0, 0, 0)
+	const now = new ExtendedDate(noonToday)
 	const lastMonday = now.addDays(1 - now.date.getDay())
 
 	const DAYS_PER_WEEK = 7
