@@ -10,13 +10,13 @@ router.get('/limits', (_, res) =>
 		attributes: ['id', 'days', 'assignmentWeight'],
 		order: ['days']
 	})
-		.then(limits => {
-			const response: Limits = limits.map(
-				({id, days, assignmentWeight}) => ({id, days, weight: assignmentWeight})
+		.then(limits =>
+			limits.map(({id, days, assignmentWeight}) =>
+				({id, days, weight: assignmentWeight})
 			)
-			success(res, response)
-		})
-		.catch(err => error(res, err))
+		)
+		.then((response: Limits) => success(res, response))
+		.catch(error(res))
 )
 router.post('/limit',
 	bodyParser.json(),
@@ -27,7 +27,7 @@ router.post('/limit',
 			assignmentWeight: weight
 		})
 			.then(() => success(res))
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 router.delete('/limit/:id', (req, res) => {
@@ -36,7 +36,7 @@ router.delete('/limit/:id', (req, res) => {
 		where: {id}
 	})
 		.then(() => success(res))
-		.catch(err => error(res, err))
+		.catch(error(res))
 })
 
 export default router

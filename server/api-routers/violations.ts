@@ -7,7 +7,7 @@ const router = express.Router()
 router.get('/limit-violations', (_, res) => {
 	getAllViolations()
 		.then((violations: AtFaultViolation[]) => success(res, violations))
-		.catch(err => error(res, err))
+		.catch(error(res))
 })
 
 export default router

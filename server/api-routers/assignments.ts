@@ -61,7 +61,7 @@ function getSections(requestingTeacher: string, where: Sequelize.WhereOptions<Se
 			}))
 			success(res, response)
 		})
-		.catch(err => error(res, err))
+		.catch(error(res))
 }
 
 const router = express.Router()
@@ -95,7 +95,7 @@ router.get('/my-displayed',
 				}))
 				success(res, response)
 			})
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 router.post('/my-displayed/:groupId',
@@ -111,7 +111,7 @@ router.post('/my-displayed/:groupId',
 				return (req.user as TeacherInstance).addGroup(group)
 			})
 			.then(() => success(res))
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 router.delete('/my-displayed/:groupId',
@@ -127,7 +127,7 @@ router.delete('/my-displayed/:groupId',
 				return (req.user as TeacherInstance).removeGroup(group)
 			})
 			.then(() => success(res))
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 router.get('/my-sections',
@@ -153,7 +153,7 @@ router.get('/list-courses',
 				const response: CourseList = courses.map(({id, name}) => ({id, name}))
 				success(res, response)
 			})
-			.catch(err => error(res, err))
+			.catch(error(res))
 )
 router.get('/course-sections/:courseId',
 	restrictToTeacher,
@@ -199,7 +199,7 @@ router.get('/my-classes',
 				})
 				success(res, response)
 			})
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 function containsCaseInsensitive(column: string, search: string) {
@@ -259,38 +259,30 @@ router.post('/search-groups',
 				}
 				success(res, response)
 			})
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
-function getWeight(major: boolean) {
-	if (major) return 1
-	return 0
-}
+const getWeight = (major: boolean) => major ? 1 : 0
 router.post('/check-limit',
 	restrictToTeacher,
 	bodyParser.json(),
 	(req, res) => {
 		const {due, groupIds, major} = req.body as CheckAssignment
-		let violationsPromise: Promise<LimitViolation[]>
-		if (major) {
-			violationsPromise = Promise.all(groupIds.map(groupId =>
-				checkAddition(
-					new ExtendedDate(due).fromUTC(),
-					getWeight(major),
-					groupId
-				)
-			))
-				.then(groupViolations => Promise.resolve(
-					groupViolations.reduce((violations, groupViolations) =>
-						violations.concat(groupViolations),
-						[]
+		const violationsPromise = major
+			? Promise.all(groupIds.map(groupId =>
+					checkAddition(
+						new ExtendedDate(due).fromUTC(),
+						getWeight(major),
+						groupId
 					)
 				))
-		}
-		else violationsPromise = Promise.resolve([])
+					.then(groupViolations =>
+						([] as LimitViolation[]).concat(...groupViolations)
+					)
+			: Promise.resolve([])
 		violationsPromise
 			.then((violations: LimitViolation[]) => success(res, violations))
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 router.post('/new',
@@ -327,7 +319,7 @@ router.post('/new',
 				return Promise.all(creationPromises)
 			})
 			.then(() => success(res))
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 router.post('/edit',
@@ -358,7 +350,7 @@ router.post('/edit',
 				return assignment.save()
 			})
 			.then(() => success(res))
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 router.post('/list',
@@ -380,17 +372,17 @@ router.post('/list',
 			},
 			order: ['createdAt']
 		})
-			.then(assignments => {
-				const response: Assignments = assignments.map(assignment => ({
+			.then(assignments =>
+				assignments.map(assignment => ({
 					day: new ExtendedDate(assignment.due).daysSince(extendedStartDate.toUTC()) + 1,
 					id: assignment.id!,
 					name: assignment.name,
 					visitors: assignment.visitors,
 					weight: assignment.weight
 				}))
-				success(res, response)
-			})
-			.catch(err => error(res, err))
+			)
+			.then((response: Assignments) => success(res, response))
+			.catch(error(res))
 	}
 )
 router.post('/warnings',
@@ -412,19 +404,18 @@ router.post('/warnings',
 			.then(groups => {
 				const studentIds = new Set<string>()
 				const memberships = new Map<string, Set<number>>() //map of student ids to sets of group ids
-				for (const group of groups) {
-					const groupId = group.id!
-					for (const {id: studentId} of group.students!) {
+				for (const {id: groupId, students} of groups) {
+					for (const {id: studentId} of students!) {
 						studentIds.add(studentId)
 						let studentGroups = memberships.get(studentId)
 						if (!studentGroups) {
-							studentGroups = new Set()
+							studentGroups = new Set
 							memberships.set(studentId, studentGroups)
 						}
-						studentGroups.add(groupId)
+						studentGroups.add(groupId!)
 					}
 				}
-				const studentIdArray = Array.from(studentIds)
+				const studentIdArray = [...studentIds]
 				const dayPromises: Promise<DayGroupWarnings>[] = []
 				for (let day = 0; day < days; day++) {
 					dayPromises[day] = getWarning(startDate.addDays(day), studentIdArray)
@@ -448,13 +439,13 @@ router.post('/warnings',
 									groupWarningIndices.push(warningIndex)
 								}
 							}
-							return Promise.resolve({groups, warnings})
+							return {groups, warnings}
 						})
 				}
 				return Promise.all(dayPromises)
 			})
 				.then((response: GroupWarnings) => success(res, response))
-				.catch(err => error(res, err))
+				.catch(error(res))
 	}
 )
 router.delete('/:id',
@@ -481,7 +472,7 @@ router.delete('/:id',
 				return assignment.destroy()
 			})
 			.then(() => success(res))
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 router.post('/no-visitors',
@@ -516,22 +507,21 @@ router.post('/no-visitors',
 		})
 			.then(assignments => {
 				const groups = new Map<number, AssignmentGroup>() //map of group ids to group infos
-				for (const assignment of assignments) {
-					const {group} = assignment
+				for (const {group} of assignments) {
 					const id = group.id!
 					if (groups.has(id)) continue
 
-					const {section} = group
+					const {name, section} = group
 					groups.set(id, {
 						editPrivileges: section ? section.teacherId === teacherId : true,
 						id,
-						name: section ? sectionGroupName(section) : group.name!
+						name: section ? sectionGroupName(section) : name!
 					})
 				}
-				const response: AssignmentGroup[] = Array.from(groups.values())
+				const response: AssignmentGroup[] = [...groups.values()]
 				success(res, response)
 			})
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 router.get('/other-sections/:groupId',
@@ -573,7 +563,7 @@ router.get('/other-sections/:groupId',
 					)
 			})
 			.then((response: OtherSection[]) => success(res, response))
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 router.get('/my-violations',
@@ -582,7 +572,7 @@ router.get('/my-violations',
 		const teacherId = (req.user as TeacherInstance).id
 		violationsForTeacher(teacherId)
 			.then((response: AtFaultViolation[]) => success(res, response))
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 

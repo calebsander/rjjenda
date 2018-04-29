@@ -12,16 +12,14 @@ router.get('/',
 			attributes: ['id', 'firstName', 'lastName'],
 			order: ['lastName']
 		})
-			.then(teachers => {
-				const response: TeachersList = teachers.map(
-					teacher => ({
-						id: teacher.id,
-						name: teacher.firstName + ' ' + teacher.lastName
-					})
-				)
-				success(res, response)
-			})
-			.catch(err => error(res, err))
+			.then(teachers =>
+				teachers.map(teacher => ({
+					id: teacher.id,
+					name: teacher.firstName + ' ' + teacher.lastName
+				}))
+			)
+			.then((response: TeachersList) => success(res, response))
+			.catch(error(res))
 	}
 )
 

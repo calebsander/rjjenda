@@ -17,13 +17,13 @@ router.get('/advisees', (req, res) => {
 		where: {advisorId: teacher.id},
 		order: ['lastName']
 	})
-		.then(students => {
-			const response: MatchingStudent[] = students.map(
-				({id, firstName, lastName}) => ({id, firstName, lastName})
+		.then(students =>
+			students.map(({id, firstName, lastName}) =>
+				({id, firstName, lastName})
 			)
-			success(res, response)
-		})
-		.catch(err => error(res, err))
+		)
+		.then((response: MatchingStudent[]) => success(res, response))
+		.catch(error(res))
 })
 router.post('/assignments',
 	bodyParser.json(),
@@ -89,13 +89,12 @@ router.post('/assignments',
 				assignments.sort((assignment1, assignment2) => {
 					return createdAtDates.get(assignment1)! - createdAtDates.get(assignment2)!
 				})
-				return Promise.resolve(assignments)
+				return assignments
 			})
 			const warningRequest: Promise<string | undefined> = getWarning(extendedDay, [id])
 				.then(warnings => {
 					const warningMatched = warnings.get(id)
-					if (!warningMatched) return Promise.resolve(undefined)
-					return Promise.resolve(warningMatched.color)
+					return warningMatched && warningMatched.color
 				})
 			dayPromises.push(
 				Promise.all([assignmentsRequest, warningRequest])
@@ -104,7 +103,7 @@ router.post('/assignments',
 		}
 		Promise.all(dayPromises)
 			.then((response: AdviseeWeek) => success(res, response))
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 

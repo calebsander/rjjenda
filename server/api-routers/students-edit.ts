@@ -20,20 +20,18 @@ router.get('/students', (_, res) => {
 			['firstName', 'ASC']
 		]
 	})
-		.then(students => {
-			const response: Students = students.map(({id, firstName, lastName, username, year, advisor}) => {
-				return {
-					id,
-					firstName,
-					lastName,
-					username,
-					year,
-					advisor: advisor === null ? '' : advisor.lastName
-				}
-			})
-			success(res, response)
-		})
-		.catch(err => error(res, err))
+		.then(students =>
+			students.map(({id, firstName, lastName, username, year, advisor}) => ({
+				id,
+				firstName,
+				lastName,
+				username,
+				year,
+				advisor: advisor === null ? '' : advisor.lastName
+			}))
+		)
+		.then((response: Students) => success(res, response))
+		.catch(error(res))
 })
 interface IdParams {
 	id: string
@@ -44,7 +42,7 @@ router.delete('/student/:id', (req, res) => {
 		where: {id}
 	})
 		.then(() => success(res))
-		.catch(err => error(res, err))
+		.catch(error(res))
 })
 router.post('/student/:id/update',
 	bodyParser.json(),
@@ -58,8 +56,7 @@ router.post('/student/:id/update',
 			.then(student => {
 				if (student === null) throw new Error('No such student id: ' + id)
 				const oldYear = student.year
-				student.set(attribute, value)
-				return student.save()
+				return student.set(attribute, value).save()
 					.then((): Promise<any> => {
 						if (attribute === 'year') {
 							const newYear = value
@@ -92,9 +89,9 @@ router.post('/student/:id/update',
 											sectionId: null
 										})
 											.then(group => {
-												gradeGroup.set('groupId', group.id!)
-												return gradeGroup.save()
-													.then(() => Promise.resolve(group))
+												return gradeGroup.set('groupId', group.id!)
+													.save()
+													.then(() => group)
 											})
 									}
 									else groupPromise = Promise.resolve(gradeGroup.group)
@@ -106,7 +103,7 @@ router.post('/student/:id/update',
 					})
 			})
 			.then(() => success(res))
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 router.get('/student/set-advisor/:id/:advisorId', (req, res) => {
@@ -117,11 +114,10 @@ router.get('/student/set-advisor/:id/:advisorId', (req, res) => {
 	})
 		.then(student => {
 			if (student === null) throw new Error('No such student id: ' + id)
-			student.set('advisorId', advisorId)
-			return student.save()
+			student.set('advisorId', advisorId).save()
 		})
 		.then(() => success(res))
-		.catch(err => error(res, err))
+		.catch(error(res))
 })
 router.post('/student',
 	bodyParser.json(),
@@ -129,7 +125,7 @@ router.post('/student',
 		const newStudentInfo = req.body as NewStudent
 		importStudents([newStudentInfo], true)
 			.then(() => success(res))
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 

@@ -25,11 +25,9 @@ router.post('/',
 				{[Sequelize.Op.ne]: 0}
 			) as Sequelize.WhereOptions<StudentAttributes>
 		})
-			.then(students => {
-				const response: MatchingStudent[] = toGroupStudents(students)
-				success(res, response)
-			})
-			.catch(err => error(res, err))
+			.then(toGroupStudents)
+			.then((response: MatchingStudent[]) => success(res, response))
+			.catch(error(res))
 	}
 )
 

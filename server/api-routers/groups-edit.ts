@@ -71,7 +71,7 @@ router.get('/groups', (_, res) => {
 			})
 			success(res, response)
 		})
-		.catch(err => error(res, err))
+		.catch(error(res))
 })
 router.post('/group/set-name',
 	bodyParser.json(),
@@ -86,7 +86,7 @@ router.post('/group/set-name',
 				return group.save()
 			})
 			.then(() => success(res))
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 router.get('/group/set-teacher/:groupId/:teacherId', (req, res) => {
@@ -107,7 +107,7 @@ router.get('/group/set-teacher/:groupId/:teacherId', (req, res) => {
 			return section.save()
 		})
 		.then(() => success(res))
-		.catch(err => error(res, err))
+		.catch(error(res))
 })
 router.delete('/group/:id', (req, res) => {
 	const id = Number(req.params.id)
@@ -121,7 +121,7 @@ router.delete('/group/:id', (req, res) => {
 			else return Section.destroy({where: {id: group.sectionId}}) as PromiseLike<any> //will cascade to delete group as well
 		})
 		.then(() => success(res))
-		.catch(err => error(res, err))
+		.catch(error(res))
 })
 router.post('/group',
 	bodyParser.json(),
@@ -132,7 +132,7 @@ router.post('/group',
 			sectionId: null
 		})
 			.then(() => success(res))
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 export function toGroupStudents(students: StudentInstance[]): MatchingStudent[] {
@@ -163,7 +163,7 @@ router.get('/list-members/:id', (req, res) => {
 			const response: MatchingStudent[] = toGroupStudents(students)
 			success(res, response)
 		})
-		.catch(err => error(res, err))
+		.catch(error(res))
 })
 interface GroupAndStudent {
 	group: GroupInstance,
@@ -192,13 +192,13 @@ router.get('/add-member/:id/:studentId', (req, res) => {
 	getGroupAndStudent(req)
 		.then(({group, student}) => group.addStudent(student))
 		.then(() => success(res))
-		.catch(err => error(res, err))
+		.catch(error(res))
 })
 router.delete('/remove-member/:id/:studentId', (req, res) => {
 	getGroupAndStudent(req)
 		.then(({group, student}) => group.removeStudent(student))
 		.then(() => success(res))
-		.catch(err => error(res, err))
+		.catch(error(res))
 })
 
 export default router

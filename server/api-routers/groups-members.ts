@@ -32,10 +32,7 @@ router.post('/upload-members', (req, res) => {
 	const user: UserType = req.user
 	const {id} = user
 	const groupUpload = groupUploads.get(id)
-	if (groupUpload === undefined) {
-		error(res, new Error('No matching group upload'))
-		return
-	}
+	if (groupUpload === undefined) return error(res)(new Error('No matching group upload'))
 	const groupStream = new Readable
 	groupStream._read = () => {}
 	groupStream.push(groupUpload)
@@ -46,7 +43,7 @@ router.post('/upload-members', (req, res) => {
 			const response: SectionsNotFound = {missingSections}
 			success(res, response)
 		})
-		.catch(err => error(res, err))
+		.catch(error(res))
 })
 
 export default router

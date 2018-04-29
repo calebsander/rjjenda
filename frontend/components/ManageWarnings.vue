@@ -74,6 +74,7 @@
 	}
 
 	@Component({
+		name: 'manage-warnings',
 		components: {
 			'slider-picker': Slider
 		}

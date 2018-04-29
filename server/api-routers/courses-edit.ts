@@ -18,8 +18,8 @@ router.get('/courses', (_, res) => {
 			Sequelize.col('sections.number')
 		]
 	})
-		.then(courses => {
-			const response: Courses = courses.map(course => {
+		.then(courses =>
+			courses.map(course => {
 				const id = course.id
 				if (!course.sections) throw new Error('Failed to load sections for course with id: ' + id)
 				return {
@@ -28,9 +28,9 @@ router.get('/courses', (_, res) => {
 					sections: course.sections.map(section => section.number!)
 				}
 			})
-			success(res, response)
-		})
-		.catch(err => error(res, err))
+		)
+		.then((response: Courses) => success(res, response))
+		.catch(error(res))
 })
 router.post('/course/set-name',
 	bodyParser.json(),
@@ -42,11 +42,10 @@ router.post('/course/set-name',
 		})
 			.then(course => {
 				if (course === null) throw new Error('No course with id: ' + id)
-				course.set('name', name)
-				return course.save()
+				return course.set('name', name).save()
 			})
 			.then(() => success(res))
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 router.get('/new-section/:courseId/:number', (req, res) => {
@@ -63,7 +62,7 @@ router.get('/new-section/:courseId/:number', (req, res) => {
 			})
 		)
 		.then(() => success(res))
-		.catch(err => error(res, err))
+		.catch(error(res))
 })
 router.delete('/section/:courseId/:number', (req, res) => {
 	const courseId = req.params.courseId as string
@@ -75,7 +74,7 @@ router.delete('/section/:courseId/:number', (req, res) => {
 		}
 	})
 		.then(() => success(res))
-		.catch(err => error(res, err))
+		.catch(error(res))
 })
 router.post('/course',
 	bodyParser.json(),
@@ -104,7 +103,7 @@ router.post('/course',
 				return Promise.all(sectionPromises)
 			})
 			.then(() => success(res))
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 router.delete('/course/:id', (req, res) => {
@@ -113,7 +112,7 @@ router.delete('/course/:id', (req, res) => {
 		where: {id}
 	})
 		.then(() => success(res))
-		.catch(err => error(res, err))
+		.catch(error(res))
 })
 
 export default router

@@ -7,9 +7,6 @@ import {restrictToLoggedIn} from '../api-restrict'
 import {Event} from '../models'
 import ExtendedDate from '../../util/extended-date'
 
-//No API for creating events as this only needs to be done once per year,
-//and so it is not too much trouble to access the database directly
-
 const router = express.Router()
 router.post('/',
 	restrictToLoggedIn,
@@ -17,25 +14,26 @@ router.post('/',
 	(req, res) => {
 		const {year, month, date, days} = req.body as EventsRequest
 		const startDate = new Date(year, month, date) //midnight of start of day, in this timezone
-		const extendedStartDate = new ExtendedDate(startDate)
-		const endDate = extendedStartDate.addDays(days) //exclusive
+		const extendedStart = new ExtendedDate(startDate)
+		const endDate = extendedStart.addDays(days).date //exclusive
 		Event.findAll({
-			attributes: ['date', 'name'],
+			attributes: ['id', 'start', 'end', 'name'],
 			where: {
-				date: {
-					[Op.gte]: startDate,
-					[Op.lt]: endDate.date
-				}
-			}
+				start: {[Op.lt]: endDate},
+				end: {[Op.gt]: startDate}
+			},
+			order: ['start', 'end']
 		})
-			.then(events => {
-				const response: EventResponse[] = events.map(({date, name}) => ({
-					day: new ExtendedDate(date).daysSince(extendedStartDate.toUTC()) + 1,
+			.then(events =>
+				events.map(({id, start, end, name}) => ({
+					id: id!,
+					start: new ExtendedDate(start).daysSince(extendedStart.toUTC()) + 1,
+					end: new ExtendedDate(end).daysSince(extendedStart.toUTC()) + 1,
 					name
 				}))
-				success(res, response)
-			})
-			.catch(err => error(res, err))
+			)
+			.then((response: EventResponse[]) => success(res, response))
+			.catch(error(res))
 	}
 )
 

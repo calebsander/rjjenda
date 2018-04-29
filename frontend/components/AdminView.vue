@@ -14,6 +14,7 @@
 		<manage-groups class='card' ref='groups' :teachers='teachers' @updateCourses='updateCourses'></manage-groups>
 		<manage-limits class='card'></manage-limits>
 		<manage-warnings class='card'></manage-warnings>
+		<manage-events class='card'></manage-events>
 		<limit-violations class='card'></limit-violations>
 		<view-as class='card'></view-as>
 	</div>
@@ -27,6 +28,7 @@
 	import GroupMemberCSVUpload from './GroupMemberCSVUpload.vue'
 	import LimitViolations from './LimitViolations.vue'
 	import ManageCourses from './ManageCourses.vue'
+	import ManageEvents from './ManageEvents.vue'
 	import ManageGroups from './ManageGroups.vue'
 	import ManageWarnings from './ManageWarnings.vue'
 	import ManageLimits from './ManageLimits.vue'
@@ -40,6 +42,7 @@
 			'group-member-csv-upload': GroupMemberCSVUpload,
 			'limit-violations': LimitViolations,
 			'manage-courses': ManageCourses,
+			'manage-events': ManageEvents,
 			'manage-groups': ManageGroups,
 			'manage-warnings': ManageWarnings,
 			'manage-limits': ManageLimits,

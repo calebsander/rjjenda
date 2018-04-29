@@ -31,7 +31,7 @@
 
 <style lang="sass">
 	body
-		background: darkred
+		background: darkred !important
 	#sign-in
 		display: flex
 	#sign-in > div

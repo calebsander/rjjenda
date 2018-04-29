@@ -20,8 +20,8 @@ router.get('/teachers', (_, res) => {
 			['firstName', 'ASC']
 		]
 	})
-		.then(teachers => {
-			const response: Teachers = teachers.map(teacher => ({
+		.then(teachers =>
+			teachers.map(teacher => ({
 				id: teacher.id,
 				firstName: teacher.firstName,
 				lastName: teacher.lastName,
@@ -29,9 +29,9 @@ router.get('/teachers', (_, res) => {
 				admin: teacher.admin,
 				admissions: teacher.admissions
 			}))
-			success(res, response)
-		})
-		.catch(err => error(res, err))
+		)
+		.then((response: Teachers) => success(res, response))
+		.catch(error(res))
 })
 router.delete('/teacher/:id', (req, res) => {
 	const id = req.params.id as string
@@ -39,7 +39,7 @@ router.delete('/teacher/:id', (req, res) => {
 		where: {id}
 	})
 		.then(() => success(res))
-		.catch(err => error(res, err))
+		.catch(error(res))
 })
 router.post('/teacher/:id/update',
 	bodyParser.json(),
@@ -52,11 +52,10 @@ router.post('/teacher/:id/update',
 		})
 			.then(teacher => {
 				if (teacher === null) throw new Error('No teacher with id: ' + id)
-				teacher.set(attribute, value)
-				return teacher.save()
+				teacher.set(attribute, value).save()
 			})
 			.then(() => success(res))
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 router.post('/teacher/:id/permission',
@@ -70,11 +69,10 @@ router.post('/teacher/:id/permission',
 		})
 			.then(teacher => {
 				if (teacher === null) throw new Error('No teacher with id: ' + id)
-				teacher.set(permission, value)
-				return teacher.save()
+				teacher.set(permission, value).save()
 			})
 			.then(() => success(res))
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 router.post('/teacher',
@@ -82,7 +80,7 @@ router.post('/teacher',
 	(req, res) => {
 		Teacher.create(req.body as NewTeacher)
 			.then(() => success(res))
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 

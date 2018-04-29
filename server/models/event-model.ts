@@ -3,7 +3,11 @@ import {EventAttributes, EventInstance} from './event'
 
 export default (sequelize: Sequelize.Sequelize): Sequelize.Model<EventInstance, EventAttributes> =>
 	sequelize.define<EventInstance, EventAttributes>('event', {
-		date: {
+		start: {
+			type: Sequelize.DATEONLY,
+			allowNull: false
+		},
+		end: {
 			type: Sequelize.DATEONLY,
 			allowNull: false
 		},

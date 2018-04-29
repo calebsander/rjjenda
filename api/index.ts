@@ -75,7 +75,12 @@ interface WeekRequest {
 
 export type EventsRequest = WeekRequest
 export interface EventResponse {
-	day: number //index (starting at 1) in the date window
+	id: number
+	start: number //indices (starting at 1) in the date window; inclusive
+	end: number //exlusive
+	name: string
+}
+export interface NewEvent extends WeekRequest {
 	name: string
 }
 

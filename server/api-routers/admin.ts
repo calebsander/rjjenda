@@ -4,6 +4,7 @@ import {error, success} from '../api-respond'
 import {restrictToAdmin} from '../api-restrict'
 import importUsersFromCSV from '../csv-import/students-and-teachers'
 import coursesEditRouter from './courses-edit'
+import eventsEditRouter from './events-edit'
 import groupsMembersRouter from './groups-members'
 import groupsEditRouter from './groups-edit'
 import warningsEditRouter from './warnings-edit'
@@ -21,12 +22,13 @@ router.post('/upload-users', (req, res) => {
 			const response: WrongDomainEmails = {invalidEmails}
 			success(res, response)
 		})
-		.catch(err => error(res, err))
+		.catch(error(res))
 })
 router.use(groupsMembersRouter)
 router.use(studentsEditRouter)
 router.use(groupsEditRouter)
 router.use(coursesEditRouter)
+router.use(eventsEditRouter)
 router.use(teachersEditRouter)
 router.use(limitsEditRouter)
 router.use(warningsEditRouter)

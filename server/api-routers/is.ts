@@ -17,7 +17,7 @@ router.get('/admin',
 				if (teacher === null) throw new Error('No such teacher: ' + id)
 				success(res, teacher.admin)
 			})
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 router.get('/admissions',
@@ -32,7 +32,7 @@ router.get('/admissions',
 				if (teacher === null) throw new Error('No such teacher: ' + id)
 				success(res, teacher.admissions)
 			})
-			.catch(err => error(res, err))
+			.catch(error(res))
 	}
 )
 

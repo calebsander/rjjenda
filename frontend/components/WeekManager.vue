@@ -60,13 +60,15 @@
 					url: '/events',
 					data,
 					handler: (events: EventResponse[]) => {
-						if (loadToken !== this.eventLoadToken) {
-							reject()
-							return
-						}
+						if (loadToken !== this.eventLoadToken) return reject()
 
 						for (let day = 1; day <= this.WEEK_DAYS; day++) this.weekEvents.set(day, [])
-						for (const event of events) this.weekEvents.get(event.day)!.push(event.name)
+						for (const {start, end, name} of events) {
+							for (let day = start; day < end; day++) {
+								const eventDay = this.weekEvents.get(day)
+								if (eventDay) eventDay.push(name)
+							}
+						}
 						resolve()
 					},
 					router: this.$router
