@@ -1,8 +1,8 @@
 import * as Sequelize from 'sequelize'
 import {CourseAttributes, CourseInstance} from './course'
-import {AssociableModel, addAssociations} from './index'
+import {addAssociations} from './index'
 
-export default (sequelize: Sequelize.Sequelize): AssociableModel<CourseInstance, CourseAttributes> =>
+export default (sequelize: Sequelize.Sequelize): Sequelize.Model<CourseInstance, CourseAttributes> =>
 	addAssociations(
 		sequelize.define<CourseInstance, CourseAttributes>('course', {
 			id: {

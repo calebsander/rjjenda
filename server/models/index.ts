@@ -19,28 +19,24 @@ import LimitModel from './limit-model'
 import WarningModel from './warning-model'
 import GradeGroupModel from './grade-group-model'
 import EventModel from './event-model'
-const env: string = process.env.NODE_ENV || 'development'
+const env = process.env.NODE_ENV || 'development'
 const config = require('../../config/config')[env]
 
 type AssociateFunction = (models: SequelizeModels) => void
-interface Associable {
-	associate?: AssociateFunction
-}
-export type AssociableModel<I, A> = Sequelize.Model<I, A> & Associable
 export interface SequelizeModels {
-	Student: AssociableModel<StudentInstance, StudentAttributes>
-	Teacher: AssociableModel<TeacherInstance, TeacherAttributes>
-	Course: AssociableModel<CourseInstance, CourseAttributes>
-	Section: AssociableModel<SectionInstance, SectionAttributes>
-	GradeGroup: AssociableModel<GradeGroupInstance, GradeGroupAttributes>
-	Group: AssociableModel<GroupInstance, GroupAttributes>
-	Assignment: AssociableModel<AssignmentInstance, AssignmentAttributes>
-	Limit: AssociableModel<LimitInstance, LimitAttributes>
-	Warning: AssociableModel<WarningInstance, WarningAttributes>
-	Event: AssociableModel<EventInstance, EventAttributes>
-	[modelName: string]: Associable
+	Student: Sequelize.Model<StudentInstance, StudentAttributes>
+	Teacher: Sequelize.Model<TeacherInstance, TeacherAttributes>
+	Course: Sequelize.Model<CourseInstance, CourseAttributes>
+	Section: Sequelize.Model<SectionInstance, SectionAttributes>
+	GradeGroup: Sequelize.Model<GradeGroupInstance, GradeGroupAttributes>
+	Group: Sequelize.Model<GroupInstance, GroupAttributes>
+	Assignment: Sequelize.Model<AssignmentInstance, AssignmentAttributes>
+	Limit: Sequelize.Model<LimitInstance, LimitAttributes>
+	Warning: Sequelize.Model<WarningInstance, WarningAttributes>
+	Event: Sequelize.Model<EventInstance, EventAttributes>
+	[modelName: string]: Sequelize.Model<any, any>
 }
-export function addAssociations<I, A>(model: Sequelize.Model<I, A>, associate: AssociateFunction): AssociableModel<I, A> {
+export function addAssociations<I, A>(model: Sequelize.Model<I, A>, associate: AssociateFunction): Sequelize.Model<I, A> {
 	return Object.assign(model, {associate})
 }
 

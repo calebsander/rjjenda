@@ -25,7 +25,6 @@ import {restrictToLoggedIn, restrictToStudent, restrictToTeacher} from '../api-r
 import {checkAddition, getWarning, violationsForTeacher} from '../limit-check'
 import {Assignment, Course, Group, Section, Student, Teacher} from '../models'
 import {CourseAttributes} from '../models/course'
-import {GroupAttributes} from '../models/group'
 import {SectionAttributes} from '../models/section'
 import {StudentInstance} from '../models/student'
 import {TeacherInstance} from '../models/teacher'
@@ -206,7 +205,7 @@ router.get('/my-classes',
 function containsCaseInsensitive(column: string, search: string) {
 	return Sequelize.where(
 		Sequelize.fn('strpos', Sequelize.fn('lower', Sequelize.col(column)), search.toLowerCase()),
-		{$ne: 0}
+		{[Sequelize.Op.ne]: 0}
 	)
 }
 router.post('/search-groups',
@@ -229,10 +228,12 @@ router.post('/search-groups',
 			order: ['name']
 		})
 		const findExtraGroups = Group.findAll({
-			where: Sequelize.and(
-				{sectionId: null},
-				containsCaseInsensitive('name', nameSearch)
-			) as Sequelize.WhereOptions<GroupAttributes>,
+			where: {
+				[Sequelize.Op.and]: [
+					{sectionId: null},
+					containsCaseInsensitive('name', nameSearch)
+				]
+			},
 			attributes: ['id', 'name']
 		})
 		Promise.all([findSectionGroups, findExtraGroups])
@@ -301,7 +302,7 @@ router.post('/new',
 		Group.findAll({
 			attributes: ['id'],
 			where: {
-				id: {$in: groupIds}
+				id: {[Sequelize.Op.in]: groupIds}
 			},
 			include: [{
 				model: Section,
@@ -373,8 +374,8 @@ router.post('/list',
 			where: {
 				groupId,
 				due: {
-					$gte: startDate,
-					$lt: endDate.date
+					[Sequelize.Op.gte]: startDate,
+					[Sequelize.Op.lt]: endDate.date
 				}
 			},
 			order: ['createdAt']
@@ -401,7 +402,7 @@ router.post('/warnings',
 		Group.findAll({
 			attributes: ['id'],
 			where: {
-				id: {$in: groupIds}
+				id: {[Sequelize.Op.in]: groupIds}
 			},
 			include: [{
 				model: Student,
@@ -495,8 +496,8 @@ router.post('/no-visitors',
 			attributes: [],
 			where: {
 				due: {
-					$gte: startDate.date,
-					$lt: endDate
+					[Sequelize.Op.gte]: startDate.date,
+					[Sequelize.Op.lt]: endDate
 				},
 				visitors: false
 			},
@@ -555,7 +556,7 @@ router.get('/other-sections/:groupId',
 					attributes: ['number'],
 					where: {
 						courseId: section.courseId!,
-						number: {$ne: section.number!},
+						number: {[Sequelize.Op.ne]: section.number!},
 						teacherId
 					},
 					include: [{
@@ -564,16 +565,12 @@ router.get('/other-sections/:groupId',
 					}],
 					order: ['number']
 				})
-					.then(sections => {
-						const response: OtherSection[] = []
-						for (const section of sections) {
-							response.push({
-								groupId: section.group.id!,
-								number: section.number!
-							})
-						}
-						return Promise.resolve(response)
-					})
+					.then(sections =>
+						sections.map(({group, number}) => ({
+							groupId: group.id!,
+							number: number!
+						}))
+					)
 			})
 			.then((response: OtherSection[]) => success(res, response))
 			.catch(err => error(res, err))

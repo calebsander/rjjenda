@@ -1,8 +1,8 @@
 import * as Sequelize from 'sequelize'
 import {AssignmentAttributes, AssignmentInstance} from './assignment'
-import {AssociableModel, addAssociations} from './index'
+import {addAssociations} from './index'
 
-export default (sequelize: Sequelize.Sequelize): AssociableModel<AssignmentInstance, AssignmentAttributes> =>
+export default (sequelize: Sequelize.Sequelize): Sequelize.Model<AssignmentInstance, AssignmentAttributes> =>
 	addAssociations(
 		sequelize.define<AssignmentInstance, AssignmentAttributes>('assignment', {
 			weight: {

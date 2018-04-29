@@ -22,7 +22,7 @@ router.post('/',
 			attributes: ['id', 'firstName', 'lastName'],
 			where: Sequelize.where(
 				Sequelize.fn('strpos', FULL_NAME, nameSearch.toLowerCase()),
-				{$ne: 0}
+				{[Sequelize.Op.ne]: 0}
 			) as Sequelize.WhereOptions<StudentAttributes>
 		})
 			.then(students => {

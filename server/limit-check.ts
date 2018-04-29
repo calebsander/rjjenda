@@ -1,3 +1,4 @@
+import {Op} from 'sequelize'
 import {AtFaultViolation, LimitViolation} from '../api'
 import {Assignment, Course, Limit, GradeGroup, Group, Section, Student, Teacher, Warning} from './models'
 import {AssignmentInstance} from './models/assignment'
@@ -42,7 +43,7 @@ function getStudentGroupsInfo({id, firstName, lastName, groups, username, adviso
 	}
 }
 function assignmentName(groupNames: Map<number, string>, includeDate: boolean): (assignment: AssignmentInstance) => string {
-	return({name, groupId, due}: AssignmentInstance): string => {
+	return ({name, groupId, due}: AssignmentInstance): string => {
 		let dateString: string
 		if (includeDate) {
 			const [, m, d] = due.split('-')
@@ -117,7 +118,7 @@ export function violationsForTeacher(teacherId: string): Promise<AtFaultViolatio
 function violationsForStudentsInGroup(groupId: number): Promise<AtFaultViolation[]> {
 	const minAssignmentDay = Assignment.min('due', {
 		where: {
-			weight: {$gt: 0}
+			weight: {[Op.gt]: 0}
 		}
 	})
 		.then((date: string) => {
@@ -125,7 +126,7 @@ function violationsForStudentsInGroup(groupId: number): Promise<AtFaultViolation
 		})
 	const maxAssignmentDay = Assignment.max('due', {
 		where: {
-			weight: {$gt: 0}
+			weight: {[Op.gt]: 0}
 		}
 	})
 		.then((date: string) => {
@@ -232,13 +233,13 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 						order: ['createdAt'],
 						where: {
 							groupId: {
-								$in: Array.from(groupNames.keys())
+								[Op.in]: Array.from(groupNames.keys())
 							},
 							due: {
-								$gt: start.addDays(-maxDays).date,
-								$lt: end.addDays(+maxDays).date
+								[Op.gt]: start.addDays(-maxDays).date,
+								[Op.lt]: end.addDays(+maxDays).date
 							},
-							weight: {$gt: 0}
+							weight: {[Op.gt]: 0}
 						}
 					})
 					return allAssignments.then(assignments => {
@@ -320,7 +321,7 @@ export function getWarning(day: ExtendedDate, studentIds: string[]): Promise<Map
 	const studentsAndGroups = Student.findAll({
 		attributes: ['id', 'firstName', 'lastName'],
 		where: {
-			id: {$in: studentIds}
+			id: {[Op.in]: studentIds}
 		},
 		include: [{
 			model: Group,
@@ -356,10 +357,10 @@ export function getWarning(day: ExtendedDate, studentIds: string[]): Promise<Map
 			order: ['createdAt'],
 			where: {
 				groupId: {
-					$in: Array.from(groupNames.keys())
+					[Op.in]: Array.from(groupNames.keys())
 				},
 				due: day.date,
-				weight: {$gt: 0}
+				weight: {[Op.gt]: 0}
 			}
 		})
 		return allAssignments.then(assignments => {
@@ -374,7 +375,7 @@ export function getWarning(day: ExtendedDate, studentIds: string[]): Promise<Map
 					studentWarningPromise = Warning.findAll({
 						attributes: ['color', 'assignmentWeight'],
 						where: {
-							assignmentWeight: {$lte: weightSum}
+							assignmentWeight: {[Op.lte]: weightSum}
 						}
 					})
 						.then(warnings => {

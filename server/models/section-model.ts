@@ -1,8 +1,8 @@
 import * as Sequelize from 'sequelize'
 import {SectionAttributes, SectionInstance} from './section'
-import {AssociableModel, addAssociations} from './index'
+import {addAssociations} from './index'
 
-export default (sequelize: Sequelize.Sequelize): AssociableModel<SectionInstance, SectionAttributes> =>
+export default (sequelize: Sequelize.Sequelize): Sequelize.Model<SectionInstance, SectionAttributes> =>
 	addAssociations(
 		sequelize.define<SectionInstance, SectionAttributes>('section', {
 			number: {

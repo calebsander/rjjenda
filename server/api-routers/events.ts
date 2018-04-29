@@ -1,5 +1,6 @@
 import * as bodyParser from 'body-parser'
 import * as express from 'express'
+import {Op} from 'sequelize'
 import {EventResponse, EventsRequest} from '../../api'
 import {success, error} from '../api-respond'
 import {restrictToLoggedIn} from '../api-restrict'
@@ -22,8 +23,8 @@ router.post('/',
 			attributes: ['date', 'name'],
 			where: {
 				date: {
-					$gte: startDate,
-					$lt: endDate.date
+					[Op.gte]: startDate,
+					[Op.lt]: endDate.date
 				}
 			}
 		})
