@@ -25,7 +25,8 @@ router.post('/warning',
 	bodyParser.json(),
 	(req, res) => {
 		const {color, weight} = req.body as NewWarning
-		if (!HEX_COLOR.test(color)) error(res, new Error('Not a hex color: ' + color))
+		if (!HEX_COLOR.test(color)) return error(res, new Error('Not a hex color: ' + color))
+
 		Warning.create({
 			assignmentWeight: weight,
 			color
