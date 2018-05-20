@@ -2,6 +2,7 @@
 	<div>
 		<user-csv-upload class='card'></user-csv-upload>
 		<group-member-csv-upload class='card'></group-member-csv-upload>
+		<meeting-time-csv-upload class='card'></meeting-time-csv-upload>
 		<manage-students class='card' ref='students' @updateGroups='updateGroups' :teachers='teachers'></manage-students>
 		<manage-teachers
 			class='card'
@@ -34,6 +35,7 @@
 	import ManageLimits from './ManageLimits.vue'
 	import ManageStudents from './ManageStudents.vue'
 	import ManageTeachers from './ManageTeachers.vue'
+	import MeetingTimeCSVUpload from './MeetingTimeCSVUpload.vue'
 	import UserCSVUpload from './UserCSVUpload.vue'
 	import ViewAs from './ViewAs.vue'
 
@@ -48,6 +50,7 @@
 			'manage-limits': ManageLimits,
 			'manage-students': ManageStudents,
 			'manage-teachers': ManageTeachers,
+			'meeting-time-csv-upload': MeetingTimeCSVUpload,
 			'user-csv-upload': UserCSVUpload,
 			'view-as': ViewAs
 		}

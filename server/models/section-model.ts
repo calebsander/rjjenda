@@ -8,6 +8,10 @@ export default (sequelize: Sequelize.Sequelize): Sequelize.Model<SectionInstance
 			number: {
 				type: Sequelize.INTEGER,
 				allowNull: false
+			},
+			periods: {
+				type: Sequelize.STRING,
+				allowNull: true
 			}
 		}),
 		({Section, Course, Teacher, Group}) => {

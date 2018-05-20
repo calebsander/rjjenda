@@ -7,6 +7,7 @@ export interface SectionAttributes {
 	id?: number //arbitrary
 	courseId?: string
 	number?: number //e.g. 2
+	periods?: string | null //e.g. 'M2, Tu5, W3, Th1'
 	teacherId?: string
 }
 

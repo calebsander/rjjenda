@@ -1,7 +1,8 @@
 import * as express from 'express'
-import {WrongDomainEmails} from '../../api'
+import {SectionsNotFound, WrongDomainEmails} from '../../api'
 import {error, success} from '../api-respond'
 import {restrictToAdmin} from '../api-restrict'
+import importMeetingTimes from '../csv-import/meeting-times'
 import importUsersFromCSV from '../csv-import/students-and-teachers'
 import coursesEditRouter from './courses-edit'
 import eventsEditRouter from './events-edit'
@@ -16,6 +17,14 @@ import violationsRouter from './violations'
 
 const router = express.Router()
 router.use(restrictToAdmin)
+router.post('/upload-meeting-times', (req, res) => {
+	importMeetingTimes(req)
+		.then(missingSections => {
+			const response: SectionsNotFound = {missingSections}
+			success(res, response)
+		})
+		.catch(error(res))
+})
 router.post('/upload-users', (req, res) => {
 	importUsersFromCSV(req)
 		.then(invalidEmails => {
