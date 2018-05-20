@@ -9,7 +9,7 @@ interface MeetingTimes extends RowObject {
 }
 
 const TIME_MATCH = /D0(\d)P0(\d)/g
-const DAY_ABBREVIATIONS = [
+export const DAY_ABBREVIATIONS = [
 	'', //no day 0
 	'M',
 	'Tu',
@@ -41,7 +41,7 @@ export default (csvStream: Readable): Promise<string[]> =>
 							)
 						}
 						return section
-							.set('periods', meetingTimeStrings.join(' '))
+							.set('periods', meetingTimeStrings.join(', '))
 							.save()
 							.then(_ => undefined)
 					})

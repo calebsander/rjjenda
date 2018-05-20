@@ -122,6 +122,17 @@ interface AssignmentCourse {
 }
 export type CourseList = AssignmentCourse[]
 
+export interface NoVisitorsGroup {
+	name: string //e.g. 'English 12 - section 1'
+	periods: string //e.g. 'M2, Tu5, W3, Th1'; '' if unknown
+}
+interface NoVisitorsDay {
+	groups: NoVisitorsGroup[] //sorted by meeting time; groups with unknown meeting times first
+}
+export interface NoVisitorsResponse {
+	days: NoVisitorsDay[] //index 0 is Monday, etc.
+}
+
 //Advisor view
 export interface AdviseeAssignmentRequest extends WeekRequest {
 	id: string

@@ -11,8 +11,36 @@
 		</div>
 		<div v-if='admissions'>
 			<md-button class='md-raised' @click='admissionsView'>
-				Show assignments this week preventing visitors
+				Show sections this week not accepting visitors
 			</md-button>
+
+			<md-dialog ref='noVisitors'>
+				<md-dialog-title>
+					Sections this week not accepting visitors
+				</md-dialog-title>
+				<md-dialog-content>
+					<div v-if='noVisitorsDays && noVisitorsDays.length'>
+						<md-list>
+							<md-list-item v-for='(day, index) in noVisitorsDays' :key='index'>
+								<div class='md-list-text-container'>
+									<strong>{{ day.day }}</strong>
+									<ul>
+										<li v-for='group in day.groups' :key='group.name'>
+											{{ group.name }}
+											<span v-if='group.periods'>
+												({{ group.periods }})
+											</span>
+										</li>
+									</ul>
+								</div>
+							</md-list-item>
+						</md-list>
+					</div>
+					<div v-else>
+						No assignments are preventing visitors this week
+					</div>
+				</md-dialog-content>
+			</md-dialog>
 		</div>
 
 		<teacher-selector ref='teacherSelector' @save='loadTeacher' :teachers='teachers'></teacher-selector>
@@ -47,7 +75,15 @@
 <script lang='ts'>
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
-	import {AssignmentGroup, AtFaultViolation, CourseList, NoVisitorsRequest, TeachersList} from '../../api'
+	import {
+		AssignmentGroup,
+		AtFaultViolation,
+		CourseList,
+		NoVisitorsGroup,
+		NoVisitorsRequest,
+		NoVisitorsResponse,
+		TeachersList
+	} from '../../api'
 	import apiFetch from '../api-fetch'
 	import AssignmentsView from './AssignmentsView.vue'
 	import TeacherSelector from './TeacherSelector.vue'
@@ -56,6 +92,11 @@
 	interface Dialog extends Vue {
 		close(): void
 		open(): void
+	}
+
+	interface NoVisitorsDayGroups {
+		day: string //e.g. Monday
+		groups: NoVisitorsGroup[]
 	}
 
 	@Component({
@@ -74,6 +115,7 @@
 		admissions = false
 
 		violations: AtFaultViolation[] | null = null
+		noVisitorsDays: NoVisitorsDayGroups[] | null = null
 
 		mounted() {
 			apiFetch({
@@ -155,7 +197,15 @@
 			apiFetch({
 				url: '/assignments/no-visitors',
 				data,
-				handler: (groups: AssignmentGroup[]) => this.loadGroups(groups),
+				handler: ({days}: NoVisitorsResponse) => {
+					this.noVisitorsDays = days
+						.map(({groups}, day) => ({
+							day: assignmentsView.getDayName(day + 1),
+							groups
+						}))
+						.filter(({groups}) => groups.length)
+					;(this.$refs.noVisitors as Dialog).open()
+				},
 				router: this.$router
 			})
 		}

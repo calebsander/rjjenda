@@ -16,12 +16,14 @@ import {
 	WarningListRequest,
 	LimitViolation,
 	NoVisitorsRequest,
+	NoVisitorsResponse,
 	OtherSection,
 	StudentWarning,
 	GroupQuery
 } from '../../api'
 import {error, success} from '../api-respond'
 import {restrictToLoggedIn, restrictToStudent, restrictToTeacher} from '../api-restrict'
+import {DAY_ABBREVIATIONS} from '../csv-import/meeting-times'
 import {checkAddition, getWarning, violationsForTeacher} from '../limit-check'
 import {Assignment, Course, Group, Section, Student, Teacher} from '../models'
 import {CourseAttributes} from '../models/course'
@@ -63,6 +65,25 @@ function getSections(requestingTeacher: string, where: Sequelize.WhereOptions<Se
 		})
 		.catch(error(res))
 }
+
+//Gets the period number of a section with the given period string on a given day.
+//Returns 0 if section does not meet on that day.
+function getPeriod(date: Date, periods: string | undefined): number {
+	if (!periods) return 0 //place unknown periods at the start
+	const abbreviation = DAY_ABBREVIATIONS[date.getDay()]
+	if (!abbreviation) throw new Error('Assignment not on M-F?')
+	let periodStart = periods.indexOf(abbreviation)
+	if (periodStart === -1) return 0 //unknown period
+	periodStart += abbreviation.length //index of start of period number
+	let periodEnd = periods.indexOf(',', periodStart)
+	if (periodEnd === -1) periodEnd = periods.length
+	return Number(periods.substring(periodStart, periodEnd))
+}
+//Comparison function for strings
+const sortStrings = (s1: string, s2: string): number =>
+	(s1 < s2) ? -1 :
+	(s1 > s2) ? +1 :
+	             0
 
 const router = express.Router()
 router.get('/my-displayed',
@@ -479,12 +500,11 @@ router.post('/no-visitors',
 	restrictToTeacher,
 	bodyParser.json(),
 	(req, res) => {
-		const teacherId = (req.user as TeacherInstance).id
 		const {year, month, date, days} = req.body as NoVisitorsRequest
 		const startDate = new ExtendedDate(year, month, date)
 		const endDate = startDate.addDays(days).date
 		Assignment.findAll({
-			attributes: [],
+			attributes: ['due'],
 			where: {
 				due: {
 					[Sequelize.Op.gte]: startDate.date,
@@ -497,7 +517,7 @@ router.post('/no-visitors',
 				attributes: ['id', 'name'],
 				include: [{
 					model: Section,
-					attributes: ['number', 'teacherId'],
+					attributes: ['number', 'periods'],
 					include: [{
 						model: Course,
 						attributes: ['name']
@@ -506,19 +526,35 @@ router.post('/no-visitors',
 			}]
 		})
 			.then(assignments => {
-				const groups = new Map<number, AssignmentGroup>() //map of group ids to group infos
-				for (const {group} of assignments) {
-					const id = group.id!
-					if (groups.has(id)) continue
-
+				const groupPeriods = new Map<string, string>() //map of group names to group period strings
+				const daysGroups: Set<string>[] = new Array(days) //set of group names with assignments on a given day
+					.fill(0 as any).map(_ => new Set)
+				for (const {due, group} of assignments) {
+					const day = ExtendedDate.fromYYYYMMDD(due).daysSince(startDate)
 					const {name, section} = group
-					groups.set(id, {
-						editPrivileges: section ? section.teacherId === teacherId : true,
-						id,
-						name: section ? sectionGroupName(section) : name!
+					const groupName = section ? sectionGroupName(section) : name!
+					if (!groupPeriods.has(groupName) && section) {
+						const {periods} = section
+						if (periods) groupPeriods.set(groupName, periods)
+					}
+					daysGroups[day].add(groupName) //ensure no group is listed twice on the same day
+				}
+				const response: NoVisitorsResponse = {
+					days: daysGroups.map((groups, day) => {
+						const {date} = startDate.addDays(day)
+						return {
+							groups: [...groups]
+								.sort((group1, group2) => //sort by period, then group name
+									(getPeriod(date, groupPeriods.get(group1)) - getPeriod(date, groupPeriods.get(group2))) ||
+									sortStrings(group1, group2)
+								)
+								.map(group => ({
+									name: group,
+									periods: groupPeriods.get(group) || ''
+								}))
+						}
 					})
 				}
-				const response: AssignmentGroup[] = [...groups.values()]
 				success(res, response)
 			})
 			.catch(error(res))

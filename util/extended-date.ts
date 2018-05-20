@@ -54,4 +54,8 @@ export default class ExtendedDate {
 		const {date} = this
 		return new ExtendedDate(date.getFullYear(), date.getMonth(), date.getDate())
 	}
+	static fromYYYYMMDD(ymd: string): ExtendedDate {
+		const [year, month, day] = ymd.split('-').map(Number)
+		return new ExtendedDate(year, month - 1, day)
+	}
 }

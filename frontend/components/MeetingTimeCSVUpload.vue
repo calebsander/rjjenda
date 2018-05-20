@@ -20,7 +20,6 @@
 			ref='importWarnings'
 			md-title='Import warnings'
 			:md-content-html='alertContent'
-			@close='refreshPage'
 		>
 		</md-dialog-alert>
 	</div>
@@ -64,16 +63,12 @@
 								missingSections.join('<br>')
 							;(this.$refs.importWarnings as Dialog).open()
 						}
-						else this.refreshPage() //reloads so student and teacher tables refresh
 					},
 					router: this.$router
 				})
 			}
 			fileReader.readAsArrayBuffer(this.file as File)
 			this.loading = true
-		}
-		refreshPage() {
-			location.reload()
 		}
 	}
 </script>
