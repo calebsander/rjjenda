@@ -34,7 +34,8 @@
 			this.mondayDate = this.mondayDate.addDays(-DAYS_PER_WEEK)
 		}
 		today() {
-			this.mondayDate = lastMonday
+			//Don't trigger watch events if date is not actually changing
+			if (!this.mondayDate.equals(lastMonday)) this.mondayDate = lastMonday
 		}
 		nextWeek() {
 			this.mondayDate = this.mondayDate.addDays(DAYS_PER_WEEK)

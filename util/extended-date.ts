@@ -2,8 +2,7 @@ const MILLIS_PER_DAY = 86400000
 
 function pad(num: number, digits: number) {
 	const str = String(num)
-	if (str.length >= digits) return str
-	return '0'.repeat(digits - str.length) + str
+	return '0'.repeat(Math.max(digits - str.length, 0)) + str
 }
 export default class ExtendedDate {
 	readonly date: Date
@@ -57,5 +56,8 @@ export default class ExtendedDate {
 	static fromYYYYMMDD(ymd: string): ExtendedDate {
 		const [year, month, day] = ymd.split('-').map(Number)
 		return new ExtendedDate(year, month - 1, day)
+	}
+	equals(other: ExtendedDate): boolean {
+		return this.date.getTime() === other.date.getTime()
 	}
 }
