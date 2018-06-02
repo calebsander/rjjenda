@@ -9,8 +9,8 @@
 					<md-tooltip md-direction='left'>Create a new event</md-tooltip>
 				</md-button>
 			</md-toolbar>
-			<date-input v-model='searchStart' label='From'></date-input>
-			<date-input v-model='searchEnd' label='To'></date-input>
+			<date-input v-model='searchStart' label='From' class='date-input'></date-input>
+			<date-input v-model='searchEnd' label='To' class='date-input'></date-input>
 			<md-button class='md-raised' @click='loadEvents'>Load events</md-button>
 			<md-table>
 				<md-table-header>
@@ -180,3 +180,9 @@
 		}
 	}
 </script>
+
+<style lang='sass' scoped>
+	.date-input
+		margin-left: 10px
+		width: calc(100% - 20px)
+</style>
