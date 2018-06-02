@@ -97,6 +97,12 @@
 			</md-table-body>
 		</md-table>
 
+		<div v-if='teacher' id='zero-weight'>
+			<md-checkbox v-model='showZeroWeightDots'>
+				Show students with minor assignments
+			</md-checkbox>
+		</div>
+
 		<md-dialog ref='addGroup' id='group-dialog' md-open-from='#add-group' md-close-to='#add-group'>
 			<md-dialog-title>Show another group</md-dialog-title>
 			<md-dialog-content>
@@ -303,6 +309,8 @@
 		editAssignmentVisitors = false
 
 		selectedWarning: WarningLevel | null = null
+		//Whether to show dots for zero-weight warnings
+		showZeroWeightDots = false
 
 		hoverCell(group: AssignmentGroup, day: number) {
 			this.hoveredGroup = group
@@ -598,7 +606,10 @@
 		getWarnings(group: AssignmentGroup, day: number): WarningLevel[] {
 			const groupWarnings = this.weekWarnings.get(group)
 			if (!groupWarnings) return []
-			return groupWarnings.get(day) || []
+			const dayWarnings = groupWarnings.get(day)
+			return dayWarnings
+				? dayWarnings.filter(({weight}) => weight || this.showZeroWeightDots)
+				: []
 		}
 		getMailtoLink(violation: LimitViolation) {
 			let link = 'mailto:' + violation.studentEmail
@@ -654,6 +665,8 @@
 		line-height: 20px
 	.md-checkbox
 		margin-right: 30px
+	#zero-weight
+		margin-left: 6px
 </style>
 <style lang='sass'>
 	#group-dialog .md-dialog //make the whole dialog box wide (to accommodate long section names)
