@@ -106,8 +106,8 @@
 			setTimeout(() => (this.$refs.weight as Vue).$el.focus(), 0)
 		}
 		create() {
-			if (this.newWeight <= 0) {
-				alert('Please enter a positive assignment weight')
+			if (this.newWeight < 0) {
+				alert('Please enter a nonnegative assignment weight')
 				return
 			}
 

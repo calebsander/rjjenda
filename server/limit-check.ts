@@ -43,14 +43,17 @@ function getStudentGroupsInfo({id, firstName, lastName, groups, username, adviso
 	}
 }
 function assignmentName(groupNames: Map<number, string>, includeDate: boolean): (assignment: AssignmentInstance) => string {
-	return ({name, groupId, due}: AssignmentInstance): string => {
+	return ({name, groupId, due, weight}: AssignmentInstance): string => {
 		let dateString: string
 		if (includeDate) {
 			const [, m, d] = due.split('-')
 			dateString = ' on ' + m + '/' + d
 		}
 		else dateString = ''
-		return name + ' (' + groupNames.get(groupId)! + ')' + dateString
+		return name +
+			' (' + groupNames.get(groupId)! + ')' +
+			dateString +
+			(weight ? '' : ' - minor')
 	}
 }
 
@@ -359,39 +362,36 @@ export function getWarning(day: ExtendedDate, studentIds: string[]): Promise<Map
 				groupId: {
 					[Op.in]: Array.from(groupNames.keys())
 				},
-				due: day.date,
-				weight: {[Op.gt]: 0}
+				due: day.date
 			}
 		})
 		return allAssignments.then(assignments => {
 			const studentWarningPromises: PromiseLike<WarningMatched | null>[] = []
 			for (const student of students) {
-				const groups = new Set(student.groups.map(({id}) => id))
-				const studentAssignments = assignments.filter(assignment => groups.has(assignment.groupId))
+				const studentGroups = new Set(student.groups.map(({id}) => id))
+				const studentAssignments = assignments.filter(({groupId}) => studentGroups.has(groupId))
 				const weightSum = studentAssignments.reduce((sum, {weight}) => sum + weight, 0)
 				const noWarningMatched = Promise.resolve(null)
-				let studentWarningPromise: PromiseLike<WarningMatched | null>
-				if (weightSum) {
-					studentWarningPromise = Warning.findAll({
-						attributes: ['color', 'assignmentWeight'],
-						where: {
-							assignmentWeight: {[Op.lte]: weightSum}
-						}
-					})
-						.then(warnings => {
-							if (!warnings.length) return noWarningMatched
-							const greatestWarningIndex = argmax(warnings.map(warning => warning.assignmentWeight))
-							const greatestWarning = warnings[greatestWarningIndex]
-							return Promise.resolve<WarningMatched>({
-								assignments: studentAssignments.map(assignmentName(groupNames, false)),
-								color: greatestWarning.color,
-								studentId: student.id,
-								studentName: student.name,
-								weight: greatestWarning.assignmentWeight
-							})
+				const studentWarningPromise = studentAssignments.length
+					? Warning.findOne({
+							attributes: ['color', 'assignmentWeight'],
+							where: {
+								assignmentWeight: {[Op.lte]: weightSum}
+							},
+							order: [['assignmentWeight', 'DESC']]
 						})
-				}
-				else studentWarningPromise = noWarningMatched
+							.then(warning =>
+								warning
+									? Promise.resolve<WarningMatched>({
+											assignments: studentAssignments.map(assignmentName(groupNames, false)),
+											color: warning.color,
+											studentId: student.id,
+											studentName: student.name,
+											weight: warning.assignmentWeight
+										})
+									: noWarningMatched
+							)
+					: noWarningMatched
 				studentWarningPromises.push(studentWarningPromise)
 			}
 			return Promise.all(studentWarningPromises)
