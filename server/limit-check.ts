@@ -1,9 +1,11 @@
 import {Op} from 'sequelize'
 import {AtFaultViolation, LimitViolation} from '../api'
-import {Assignment, Course, Limit, GradeGroup, Group, Section, Student, Teacher, Warning} from './models'
+import {Assignment, Course, Limit, GradeGroup, Group, Section, Student, Teacher} from './models'
 import {AssignmentInstance} from './models/assignment'
 import {TeacherInstance} from './models/teacher'
 import {StudentInstance} from './models/student'
+import {WarningInstance} from './models/warning'
+import {getWarnings} from './models/warning-model'
 import ExtendedDate from '../util/extended-date'
 
 interface Settings {
@@ -371,27 +373,24 @@ export function getWarning(day: ExtendedDate, studentIds: string[]): Promise<Map
 				const studentGroups = new Set(student.groups.map(({id}) => id))
 				const studentAssignments = assignments.filter(({groupId}) => studentGroups.has(groupId))
 				const weightSum = studentAssignments.reduce((sum, {weight}) => sum + weight, 0)
-				const noWarningMatched = Promise.resolve(null)
 				const studentWarningPromise = studentAssignments.length
-					? Warning.findOne({
-							attributes: ['color', 'assignmentWeight'],
-							where: {
-								assignmentWeight: {[Op.lte]: weightSum}
-							},
-							order: [['assignmentWeight', 'DESC']]
+					? getWarnings().then(warnings => {
+							let maxWarning: WarningInstance | undefined
+							for (const warning of warnings) {
+								if (warning.assignmentWeight > weightSum) break
+								maxWarning = warning
+							}
+							return maxWarning
+								? {
+										assignments: studentAssignments.map(assignmentName(groupNames, false)),
+										color: maxWarning.color,
+										studentId: student.id,
+										studentName: student.name,
+										weight: maxWarning.assignmentWeight
+									}
+								: null
 						})
-							.then(warning =>
-								warning
-									? Promise.resolve<WarningMatched>({
-											assignments: studentAssignments.map(assignmentName(groupNames, false)),
-											color: warning.color,
-											studentId: student.id,
-											studentName: student.name,
-											weight: warning.assignmentWeight
-										})
-									: noWarningMatched
-							)
-					: noWarningMatched
+					: Promise.resolve(null)
 				studentWarningPromises.push(studentWarningPromise)
 			}
 			return Promise.all(studentWarningPromises)

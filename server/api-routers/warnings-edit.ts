@@ -3,13 +3,12 @@ import * as express from 'express'
 import {Warnings, NewWarning} from '../../api'
 import {success, error} from '../api-respond'
 import {Warning} from '../models'
+import {WarningInstance} from '../models/warning'
+import {getWarnings} from '../models/warning-model'
 
 const router = express.Router()
 router.get('/warnings', (_, res) =>
-	Warning.findAll({
-		attributes: ['id', 'assignmentWeight', 'color'],
-		order: ['assignmentWeight']
-	})
+	(getWarnings() as Promise<WarningInstance[]>)
 		.then(warnings =>
 			warnings.map(({id, assignmentWeight, color}) =>
 				({id, weight: assignmentWeight, color})
