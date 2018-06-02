@@ -8,7 +8,7 @@ export default class ExtendedDate {
 	readonly date: Date
 
 	constructor(...args: any[]) {
-		this.date = new Date(...args)
+		this.date = new (Date as any)(...args)
 	}
 
 	addDays(days: number): ExtendedDate {

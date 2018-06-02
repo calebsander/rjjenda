@@ -41,7 +41,7 @@
 		props: ['violations']
 	})
 	export default class ViolationsTable extends Vue {
-		violations: AtFaultViolation[] | null
+		violations!: AtFaultViolation[] | null
 
 		getMailtoLink(violation: AtFaultViolation) {
 			let link = 'mailto:' + violation.studentEmail

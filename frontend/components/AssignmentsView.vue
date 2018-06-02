@@ -278,7 +278,7 @@
 		}
 	})
 	export default class AssignmentsView extends WeekManager {
-		teacher: boolean //property of component
+		teacher!: boolean //property of component
 
 		loading = false
 

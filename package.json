@@ -43,14 +43,14 @@
 		"sass-loader": "^6.0.6",
 		"sequelize": "^4.37.6",
 		"ts-loader": "^2.3.1",
-		"typescript": "~2.4.2",
-		"vue": "~2.4.4",
-		"vue-class-component": "^5.0.2",
+		"typescript": "^2.9.1",
+		"vue": "^2.5.16",
+		"vue-class-component": "^6.2.0",
 		"vue-color": "^2.3.2",
 		"vue-loader": "^13.0.2",
 		"vue-material": "^0.8.1",
-		"vue-router": "^2.8.1",
-		"vue-template-compiler": "~2.4.4",
+		"vue-router": "^3.0.1",
+		"vue-template-compiler": "^2.5.16",
 		"webpack": "^3.3.0"
 	}
 }

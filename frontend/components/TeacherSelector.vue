@@ -34,7 +34,7 @@
 	})
 	export default class TeacherSelector extends Vue {
 		selectedId = ''
-		teachers: TeachersList | null
+		teachers!: TeachersList | null
 
 		get teachersOrDefault(): TeachersList {
 			return this.teachers || [{id: '', name: ''}]

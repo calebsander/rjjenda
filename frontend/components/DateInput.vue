@@ -27,7 +27,7 @@
 		}
 	})
 	export default class DateInput extends Vue {
-		value: Date
+		value!: Date
 		year: number | string = 2000 //given random values so they are defined
 		month: number | string = 1 //human-readable (1-12)
 		date: number | string = 1
