@@ -55,7 +55,7 @@ router.get('/groups', (_, res) => {
 						name:
 							section ? sectionGroupName(section) : (group.name || ''),
 						teacher: section && section.teacher && section.teacher.lastName,
-						studentCount: Number(group.get('studentCount'))
+						studentCount: Number(group.get('studentCount' as keyof GroupAttributes))
 					}))
 				})
 			)

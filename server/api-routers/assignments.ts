@@ -186,7 +186,7 @@ router.get('/course-sections/:courseId',
 router.get('/my-classes',
 	restrictToStudent,
 	(req, res) => {
-		const student: StudentInstance = req.user
+		const student: StudentInstance = req.user as StudentInstance
 		const {id} = student
 		Student.findOne({
 			attributes: [],
@@ -310,7 +310,7 @@ router.post('/new',
 	restrictToTeacher,
 	bodyParser.json(),
 	(req, res) => {
-		const teacher: TeacherInstance = req.user
+		const teacher: TeacherInstance = req.user as TeacherInstance
 		const {due, groupIds, major, name, visitors} = req.body as AddAssignment
 		Group.findAll({
 			attributes: ['id'],
@@ -347,7 +347,7 @@ router.post('/edit',
 	restrictToTeacher,
 	bodyParser.json(),
 	(req, res) => {
-		const teacher: TeacherInstance = req.user
+		const teacher: TeacherInstance = req.user as TeacherInstance
 		const {id, name, visitors} = req.body as EditAssignment
 		Assignment.findOne({
 			attributes: ['id'],
@@ -472,7 +472,7 @@ router.post('/warnings',
 router.delete('/:id',
 	restrictToTeacher,
 	(req, res) => {
-		const teacher: TeacherInstance = req.user
+		const teacher: TeacherInstance = req.user as TeacherInstance
 		const id = Number(req.params.id)
 		Assignment.findOne({
 			attributes: ['id'],

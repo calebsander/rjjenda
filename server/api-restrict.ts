@@ -11,7 +11,7 @@ export function restrictToLoggedIn(req: Request, res: Response, next: NextFuncti
 function restrictToUserType(type: 'student' | 'teacher') {
 	return (req: Request, res: Response, next: NextFunction) =>
 		restrictToLoggedIn(req, res, () => {
-			const user: UserType = req.user
+			const user: UserType = req.user as UserType
 			const savedUser = new SavedUserType(user.id)
 			if (savedUser.type === type) next()
 			else error(res)(new Error('Need to be a ' + type))
@@ -21,10 +21,10 @@ export const restrictToStudent = restrictToUserType('student')
 export const restrictToTeacher = restrictToUserType('teacher')
 export function restrictToAdmin(req: Request, res: Response, next: NextFunction) {
 	restrictToTeacher(req, res, () => {
-		const user: TeacherInstance = req.user
+		const user: TeacherInstance = req.user as TeacherInstance
 		user.reload({attributes: ['admin']})
 			.then(user => {
-				if (user.get('admin')) next()
+				if ((user as any as TeacherInstance).admin) next()
 				else error(res)(new Error('Need to be an administrator'))
 			})
 			.catch(error(res))

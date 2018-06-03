@@ -7,7 +7,7 @@ const router = express.Router()
 router.get('/', (req, res) => {
 	let response: LoggedIn
 	if (req.isAuthenticated()) {
-		const user: UserType = req.user
+		const user: UserType = req.user as UserType
 		const savedUser = new SavedUserType(user.id)
 		response = {loggedIn: true, type: savedUser.type}
 	}

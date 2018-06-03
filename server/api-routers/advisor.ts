@@ -11,7 +11,7 @@ import ExtendedDate from '../../util/extended-date'
 const router = express.Router()
 router.use(restrictToTeacher)
 router.get('/advisees', (req, res) => {
-	const teacher: TeacherInstance = req.user
+	const teacher: TeacherInstance = req.user as TeacherInstance
 	Student.findAll({
 		attributes: ['id', 'firstName', 'lastName'],
 		where: {advisorId: teacher.id},

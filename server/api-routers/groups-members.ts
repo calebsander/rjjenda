@@ -17,7 +17,7 @@ const router = express.Router()
 router.post('/upload-groups',
 	bodyParser.text(),
 	(req, res) => {
-		const user: UserType = req.user
+		const user: UserType = req.user as UserType
 		const {id} = user
 		const {body} = req as StringBody
 		groupUploads.set(id, body)
@@ -29,7 +29,7 @@ router.post('/upload-groups',
 	}
 )
 router.post('/upload-members', (req, res) => {
-	const user: UserType = req.user
+	const user: UserType = req.user as UserType
 	const {id} = user
 	const groupUpload = groupUploads.get(id)
 	if (groupUpload === undefined) return error(res)(new Error('No matching group upload'))
