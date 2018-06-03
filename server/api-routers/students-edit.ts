@@ -88,11 +88,11 @@ router.post('/student/:id/update',
 											name: 'Class of ' + String(newYear),
 											sectionId: null
 										})
-											.then(group => {
-												return gradeGroup.set('groupId', group.id!)
+											.then(group =>
+												gradeGroup.set('groupId', group.id!)
 													.save()
 													.then(() => group)
-											})
+											)
 									}
 									else groupPromise = Promise.resolve(gradeGroup.group)
 									return groupPromise.then(group => group.addStudent(student))

@@ -387,7 +387,7 @@ export function getWarning(day: ExtendedDate, studentIds: string[]): Promise<Map
 										studentId: student.id,
 										studentName: student.name,
 										weight: maxWarning.assignmentWeight
-									}
+								  }
 								: null
 						})
 					: Promise.resolve(null)

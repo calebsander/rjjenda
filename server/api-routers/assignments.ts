@@ -211,13 +211,9 @@ router.get('/my-classes',
 					id: group.id!,
 					name: group.section ? sectionGroupName(group.section) : group.name!
 				}))
-				response.sort((group1, group2) => {
-					const name1 = group1.name.toLowerCase()
-					const name2 = group2.name.toLowerCase()
-					if (name1 < name2) return -1
-					else if (name1 > name2) return 1
-					else return 0
-				})
+				response.sort((group1, group2) =>
+					sortStrings(group1.name.toLowerCase(), group2.name.toLowerCase())
+				)
 				success(res, response)
 			})
 			.catch(error(res))
