@@ -186,6 +186,8 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 			attributes: ['days', 'assignmentWeight']
 		})
 			.then(limits => {
+				if (!limits.length) return []
+
 				const maxDays = Math.max(...limits.map(({days}) => days))
 				const studentsAndOtherGroups = Group.findOne({
 					attributes: [],
