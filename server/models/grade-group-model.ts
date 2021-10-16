@@ -1,10 +1,10 @@
 import * as Sequelize from 'sequelize'
-import {GradeGroupAttributes, GradeGroupInstance} from './grade-group'
+import {GradeGroupAttributes, GradeGroupModel} from './grade-group'
 import {addAssociations} from './index'
 
-export default (sequelize: Sequelize.Sequelize): Sequelize.Model<GradeGroupInstance, GradeGroupAttributes> =>
+export default (sequelize: Sequelize.Sequelize): Sequelize.ModelCtor<GradeGroupModel> =>
 	addAssociations(
-		sequelize.define<GradeGroupInstance, GradeGroupAttributes>('grade_group', {
+		sequelize.define<GradeGroupModel, GradeGroupAttributes>('grade_group', {
 			year: { //not used as primary key so that it can be null
 				type: Sequelize.INTEGER,
 				unique: true

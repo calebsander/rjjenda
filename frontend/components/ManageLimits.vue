@@ -89,7 +89,10 @@
 			this.newDays = 1
 			this.newWeight = 3
 			;(this.$refs.newLimit as Dialog).open()
-			setTimeout(() => (this.$refs.days as Vue).$el.focus(), 0)
+			setTimeout(() => {
+				const element = (this.$refs.days as Vue).$el
+				;(element as HTMLElement).focus()
+			}, 0)
 		}
 		create() {
 			this.newDays = Math.round(this.newDays)

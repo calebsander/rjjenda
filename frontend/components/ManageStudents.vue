@@ -125,7 +125,7 @@
 	import Component from 'vue-class-component'
 	import TeacherSelector from './TeacherSelector.vue'
 	import apiFetch from '../api-fetch'
-	import {NewStudent, Student, Students, StudentUpdate} from '../../api'
+	import {NewStudent, Student, Students, StudentUpdate, StudentUpdateAttribute} from '../../api'
 	import {UPDATE_GROUPS} from '../admin-update-events'
 
 	interface PaginationOptions {
@@ -158,7 +158,7 @@
 		size: number = this.DEFAULT_PAGINATION
 
 		editStudent: Student | null = null
-		editAttribute = ''
+		editAttribute: StudentUpdateAttribute | null = null
 		editValue = ''
 
 		newId = ''
@@ -202,12 +202,15 @@
 				router: this.$router
 			})
 		}
-		edit(student: Student, attribute: string) {
+		edit(student: Student, attribute: StudentUpdateAttribute) {
 			this.editStudent = student
 			this.editAttribute = attribute
 			this.editValue = String(student[attribute])
 			;(this.$refs.editor as Dialog).open()
-			setTimeout(() => (this.$refs.editValue as Vue).$el.focus(), 0)
+			setTimeout(() => {
+				const element = (this.$refs.editValue as Vue).$el
+				;(element as HTMLElement).focus()
+			}, 0)
 		}
 		cancel() {
 			(this.$refs.editor as Dialog).close()
@@ -216,7 +219,7 @@
 			const student = this.editStudent as Student //asserting it is not null
 			const value = this.editAttribute === 'year' ? Number(this.editValue) : this.editValue
 			const updateData: StudentUpdate = {
-				attribute: this.editAttribute,
+				attribute: this.editAttribute!,
 				value
 			}
 			this.loading = true
@@ -225,7 +228,7 @@
 				data: updateData,
 				handler: () => {
 					(this.$refs.editor as Dialog).close()
-					student[this.editAttribute] = value
+					;(student as Record<StudentUpdateAttribute, any>)[this.editAttribute!] = value
 					this.loading = false
 					if (this.editAttribute === 'year') this.$emit(UPDATE_GROUPS)
 				},
@@ -252,7 +255,10 @@
 			this.newUsername = ''
 			this.newYear = new Date().getFullYear() + 4 //default to assuming incoming freshman
 			;(this.$refs.newStudent as Dialog).open()
-			setTimeout(() => (this.$refs.newId as Vue).$el.focus(), 0)
+			setTimeout(() => {
+				const element = (this.$refs.newId as Vue).$el
+				;(element as HTMLElement).focus()
+			}, 0)
 		}
 		updateUsername() { //automatically generate username
 			if (this.newFirstName && this.newLastName) {

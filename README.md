@@ -13,9 +13,9 @@ postgres=# \q
 ## Initial setup commands
 ````bash
 npm run compile
-init-scripts/sync-database.js
-init-scripts/import-students-teachers.js csvFile #provide path to users CSV file
-init-scripts/set-admin.js username #provide username of initial admin
+node init-scripts/sync-database.js
+node init-scripts/import-students-teachers.js csvFile #provide path to users CSV file
+node init-scripts/set-admin.js username #provide username of initial admin
 ````
 
 Everything else is easier to accomplish through the admin interface.

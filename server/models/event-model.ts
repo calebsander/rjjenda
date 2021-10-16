@@ -1,8 +1,8 @@
 import * as Sequelize from 'sequelize'
-import {EventAttributes, EventInstance} from './event'
+import {EventAttributes, EventModel} from './event'
 
-export default (sequelize: Sequelize.Sequelize): Sequelize.Model<EventInstance, EventAttributes> =>
-	sequelize.define<EventInstance, EventAttributes>('event', {
+export default (sequelize: Sequelize.Sequelize): Sequelize.ModelCtor<EventModel> =>
+	sequelize.define<EventModel, EventAttributes>('event', {
 		start: {
 			type: Sequelize.DATEONLY,
 			allowNull: false

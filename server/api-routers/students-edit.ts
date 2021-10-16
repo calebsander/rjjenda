@@ -1,10 +1,9 @@
-import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import {NewStudent, Students, StudentUpdate} from '../../api'
 import {error, success} from '../api-respond'
 import {importStudents} from '../csv-import/students-and-teachers'
 import {GradeGroup, Group, Student, Teacher} from '../models'
-import {GroupInstance} from '../models/group'
+import {GroupModel} from '../models/group'
 
 const router = express.Router()
 router.get('/students', (_, res) => {
@@ -45,7 +44,7 @@ router.delete('/student/:id', (req, res) => {
 		.catch(error(res))
 })
 router.post('/student/:id/update',
-	bodyParser.json(),
+	express.json(),
 	(req, res) => {
 		const {id} = req.params as IdParams
 		const {attribute, value} = req.body as StudentUpdate
@@ -57,7 +56,7 @@ router.post('/student/:id/update',
 				if (student === null) throw new Error('No such student id: ' + id)
 				const oldYear = student.year
 				return student.set(attribute, value).save()
-					.then((): Promise<any> => {
+					.then((): Promise<unknown> => {
 						if (attribute === 'year') {
 							const newYear = value
 							const removeFromOldGroup = GradeGroup.findOne({
@@ -82,7 +81,7 @@ router.post('/student/:id/update',
 								}]
 							})
 								.then(([gradeGroup, created]) => {
-									let groupPromise: PromiseLike<GroupInstance>
+									let groupPromise: Promise<GroupModel>
 									if (created) {
 										groupPromise = Group.create({
 											name: 'Class of ' + String(newYear),
@@ -120,7 +119,7 @@ router.get('/student/set-advisor/:id/:advisorId', (req, res) => {
 		.catch(error(res))
 })
 router.post('/student',
-	bodyParser.json(),
+	express.json(),
 	(req, res) => {
 		const newStudentInfo = req.body as NewStudent
 		importStudents([newStudentInfo], true)

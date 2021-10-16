@@ -1,4 +1,3 @@
-import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import {NewTeacher, Teachers, TeacherPermission, TeacherUpdate} from '../../api'
 import {error, success} from '../api-respond'
@@ -42,7 +41,7 @@ router.delete('/teacher/:id', (req, res) => {
 		.catch(error(res))
 })
 router.post('/teacher/:id/update',
-	bodyParser.json(),
+	express.json(),
 	(req, res) => {
 		const id = req.params.id as string
 		const {attribute, value} = req.body as TeacherUpdate
@@ -59,7 +58,7 @@ router.post('/teacher/:id/update',
 	}
 )
 router.post('/teacher/:id/permission',
-	bodyParser.json(),
+	express.json(),
 	(req, res) => {
 		const id = req.params.id as string
 		const {permission, value} = req.body as TeacherPermission
@@ -76,7 +75,7 @@ router.post('/teacher/:id/permission',
 	}
 )
 router.post('/teacher',
-	bodyParser.json(),
+	express.json(),
 	(req, res) => {
 		Teacher.create(req.body as NewTeacher)
 			.then(() => success(res))

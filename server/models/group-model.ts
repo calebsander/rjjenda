@@ -1,12 +1,12 @@
 import * as Sequelize from 'sequelize'
-import {GroupAttributes, GroupInstance} from './group'
+import {GroupAttributes, GroupModel} from './group'
 import {addAssociations} from './index'
 
-export default (sequelize: Sequelize.Sequelize): Sequelize.Model<GroupInstance, GroupAttributes> =>
+export default (sequelize: Sequelize.Sequelize): Sequelize.ModelCtor<GroupModel> =>
 	addAssociations(
-		sequelize.define<GroupInstance, GroupAttributes>('group', {
+		sequelize.define<GroupModel, GroupAttributes>('group', {
 			name: Sequelize.STRING
-		}),
+		} as Sequelize.ModelAttributes<GroupModel>),
 		({Group, Student, Section, Assignment, GradeGroup}) => {
 			Group.belongsToMany(Student, {through: 'memberships'})
 			Group.belongsTo(Section)

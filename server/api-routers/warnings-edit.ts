@@ -1,14 +1,12 @@
-import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import {Warnings, NewWarning} from '../../api'
 import {success, error} from '../api-respond'
 import {Warning} from '../models'
-import {WarningInstance} from '../models/warning'
 import {getWarnings} from '../models/warning-model'
 
 const router = express.Router()
 router.get('/warnings', (_, res) =>
-	(getWarnings() as Promise<WarningInstance[]>)
+	getWarnings()
 		.then(warnings =>
 			warnings.map(({id, assignmentWeight, color}) =>
 				({id, weight: assignmentWeight, color})
@@ -19,7 +17,7 @@ router.get('/warnings', (_, res) =>
 )
 const HEX_COLOR = /^#[0-9A-F]{6}$/
 router.post('/warning',
-	bodyParser.json(),
+	express.json(),
 	(req, res) => {
 		const {color, weight} = req.body as NewWarning
 		if (!HEX_COLOR.test(color)) return error(res)(new Error('Not a hex color: ' + color))

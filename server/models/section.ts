@@ -1,7 +1,7 @@
-import {Instance} from 'sequelize'
-import {CourseInstance} from './course'
-import {GroupInstance} from './group'
-import {TeacherInstance} from './teacher'
+import {Model} from 'sequelize'
+import {CourseModel} from './course'
+import {GroupModel} from './group'
+import {TeacherModel} from './teacher'
 
 export interface SectionAttributes {
 	id?: number //arbitrary
@@ -11,8 +11,8 @@ export interface SectionAttributes {
 	teacherId?: string
 }
 
-export interface SectionInstance extends Instance<SectionAttributes>, SectionAttributes {
-	course: CourseInstance
-	group: GroupInstance,
-	teacher: TeacherInstance | null
+export interface SectionModel extends Model<SectionAttributes>, SectionAttributes {
+	course: CourseModel
+	group: GroupModel,
+	teacher: TeacherModel | null
 }

@@ -335,7 +335,10 @@
 				router: this.$router
 			})
 			;(this.$refs.addAssignment as Dialog).open()
-			setTimeout(() => (this.$refs.assignmentName as Vue).$el.focus(), 0)
+			setTimeout(() => {
+				const element = (this.$refs.assignmentName as Vue).$el as HTMLElement
+				element.focus()
+			}, 0)
 		}
 		get due(): string {
 			return this.getDay(this.hoveredDay).toUTC().date.toISOString()
@@ -405,7 +408,10 @@
 			this.editAssignmentName = assignment.name
 			this.editAssignmentVisitors = assignment.visitors
 			;(this.$refs.editAssignment as Dialog).open()
-			setTimeout(() => (this.$refs.editAssignmentName as Vue).$el.focus(), 0)
+			setTimeout(() => {
+				const element = (this.$refs.editAssignmentName as Vue).$el
+				;(element as HTMLElement).focus()
+			}, 0)
 		}
 		cancelEdit() {
 			(this.$refs.editAssignment as Dialog).close()
@@ -455,7 +461,8 @@
 			this.newGroupName = ''
 			;(this.$refs.addGroup as Dialog).open()
 			setTimeout(() => {
-				(this.$refs.groupName as Vue).$el.querySelector('input')!.focus() //have to select child of autocomplete container
+				const element = (this.$refs.groupName as Vue).$el
+				;(element.querySelector('input') as HTMLElement).focus() //have to select child of autocomplete container
 			}, 0)
 		}
 		getGroups(query: GroupQuery) {
@@ -561,7 +568,7 @@
 					...this.mondayDate.toYMD(),
 					days: this.WEEK_DAYS
 				}
-				return new Promise((resolve, reject) =>
+				return new Promise<void>((resolve, reject) =>
 					apiFetch({
 						url: '/assignments/list',
 						data,

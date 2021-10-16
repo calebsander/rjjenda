@@ -1,10 +1,10 @@
 import * as Sequelize from 'sequelize'
-import {SectionAttributes, SectionInstance} from './section'
+import {SectionAttributes, SectionModel} from './section'
 import {addAssociations} from './index'
 
-export default (sequelize: Sequelize.Sequelize): Sequelize.Model<SectionInstance, SectionAttributes> =>
+export default (sequelize: Sequelize.Sequelize): Sequelize.ModelCtor<SectionModel> =>
 	addAssociations(
-		sequelize.define<SectionInstance, SectionAttributes>('section', {
+		sequelize.define<SectionModel, SectionAttributes>('section', {
 			number: {
 				type: Sequelize.INTEGER,
 				allowNull: false

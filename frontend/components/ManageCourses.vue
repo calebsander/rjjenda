@@ -180,7 +180,10 @@
 			this.editCourse = course
 			this.name = course.name
 			;(this.$refs.editName as Dialog).open()
-			setTimeout(() => (this.$refs.name as Vue).$el.focus(), 0)
+			setTimeout(() => {
+				const element = (this.$refs.name as Vue).$el
+				;(element as HTMLElement).focus()
+			}, 0)
 		}
 		saveName() {
 			const course = this.editCourse as Course
@@ -223,7 +226,10 @@
 			this.editCourse = course
 			this.suggestNewSection()
 			;(this.$refs.editSections as Dialog).open()
-			setTimeout(() => (this.$refs.newSection as Vue).$el.focus(), 0)
+			setTimeout(() => {
+				const element = (this.$refs.newSection as Vue).$el
+				;(element as HTMLElement).focus()
+			}, 0)
 		}
 		addSection() {
 			const course = this.editCourse as Course
@@ -266,7 +272,10 @@
 			this.newName = ''
 			this.newSectionCount = 1
 			;(this.$refs.newCourse as Dialog).open()
-			setTimeout(() => (this.$refs.newId as Vue).$el.focus(), 0)
+			setTimeout(() => {
+				const element = (this.$refs.newId as Vue).$el
+				;(element as HTMLElement).focus()
+			}, 0)
 		}
 		create() {
 			if (!this.newId) {

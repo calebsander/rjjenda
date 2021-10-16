@@ -5,8 +5,7 @@
 		"dialect": "postgres",
 		"protocol": "postgres",
 		"port": 5432,
-		"host": "localhost",
-		"operatorsAliases": false
+		"host": "localhost"
 	},
 	"production": {
 		"username": "rjjenda",
@@ -14,7 +13,6 @@
 		"dialect": "postgres",
 		"protocol": "postgres",
 		"port": 5432,
-		"host": "localhost",
-		"operatorsAliases": false
+		"host": "localhost"
 	}
 }

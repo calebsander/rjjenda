@@ -1,4 +1,3 @@
-import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import {Op} from 'sequelize'
 import {EventResponse, EventsRequest} from '../../api'
@@ -10,7 +9,7 @@ import ExtendedDate from '../../util/extended-date'
 const router = express.Router()
 router.post('/',
 	restrictToLoggedIn,
-	bodyParser.json(),
+	express.json(),
 	(req, res) => {
 		const {year, month, date, days} = req.body as EventsRequest
 		const startDate = new Date(year, month, date) //midnight of start of day, in this timezone

@@ -103,7 +103,10 @@
 			this.newWeight = 1
 			this.newColor = RED
 			;(this.$refs.newWarning as Dialog).open()
-			setTimeout(() => (this.$refs.weight as Vue).$el.focus(), 0)
+			setTimeout(() => {
+				const element = (this.$refs.weight as Vue).$el
+				;(element as HTMLElement).focus()
+			}, 0)
 		}
 		create() {
 			if (this.newWeight < 0) {

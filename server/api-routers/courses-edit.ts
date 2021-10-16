@@ -1,4 +1,3 @@
-import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import * as Sequelize from 'sequelize'
 import {Courses, NewCourse, NewCourseName} from '../../api'
@@ -33,7 +32,7 @@ router.get('/courses', (_, res) => {
 		.catch(error(res))
 })
 router.post('/course/set-name',
-	bodyParser.json(),
+	express.json(),
 	(req, res) => {
 		const {id, name} = req.body as NewCourseName
 		Course.findOne({
@@ -50,7 +49,7 @@ router.post('/course/set-name',
 )
 router.get('/new-section/:courseId/:number', (req, res) => {
 	const courseId = req.params.courseId as string
-	const number = req.params.number as number
+	const number = Number(req.params.number)
 	Section.create({
 		courseId,
 		number
@@ -66,7 +65,7 @@ router.get('/new-section/:courseId/:number', (req, res) => {
 })
 router.delete('/section/:courseId/:number', (req, res) => {
 	const courseId = req.params.courseId as string
-	const number = req.params.number as number
+	const number = Number(req.params.number)
 	Section.destroy({
 		where: {
 			courseId,
@@ -77,7 +76,7 @@ router.delete('/section/:courseId/:number', (req, res) => {
 		.catch(error(res))
 })
 router.post('/course',
-	bodyParser.json(),
+	express.json(),
 	(req, res) => {
 		const {id, name, sectionCount} = req.body as NewCourse
 		Course.create({
@@ -85,7 +84,7 @@ router.post('/course',
 			name
 		})
 			.then(() => {
-				const sectionPromises: PromiseLike<any>[] = []
+				const sectionPromises: Promise<unknown>[] = []
 				for (let section = 1; section <= sectionCount; section++) {
 					sectionPromises.push(
 						Section.create({

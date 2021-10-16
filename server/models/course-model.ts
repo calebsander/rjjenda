@@ -1,10 +1,10 @@
 import * as Sequelize from 'sequelize'
-import {CourseAttributes, CourseInstance} from './course'
+import {CourseAttributes, CourseModel} from './course'
 import {addAssociations} from './index'
 
-export default (sequelize: Sequelize.Sequelize): Sequelize.Model<CourseInstance, CourseAttributes> =>
+export default (sequelize: Sequelize.Sequelize): Sequelize.ModelCtor<CourseModel> =>
 	addAssociations(
-		sequelize.define<CourseInstance, CourseAttributes>('course', {
+		sequelize.define<CourseModel, CourseAttributes>('course', {
 			id: {
 				type: Sequelize.STRING,
 				primaryKey: true,

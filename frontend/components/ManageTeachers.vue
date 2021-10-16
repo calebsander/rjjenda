@@ -200,7 +200,10 @@
 			this.editAttribute = attribute
 			this.editValue = teacher[attribute]
 			;(this.$refs.editor as Dialog).open()
-			setTimeout(() => (this.$refs.editValue as Vue).$el.focus(), 0)
+			setTimeout(() => {
+				const element = (this.$refs.editValue as Vue).$el
+				;(element as HTMLElement).focus()
+			}, 0)
 		}
 		cancel() {
 			(this.$refs.editor as Dialog).close()
@@ -252,7 +255,10 @@
 			this.newAdmin = false
 			this.newAdmissions = false
 			;(this.$refs.newTeacher as Dialog).open()
-			setTimeout(() => (this.$refs.newId as Vue).$el.focus(), 0)
+			setTimeout(() => {
+				const element = (this.$refs.newId as Vue).$el
+				;(element as HTMLElement).focus()
+			}, 0)
 		}
 		updateUsername() { //automatically generate username
 			if (this.newFirstName && this.newLastName) {

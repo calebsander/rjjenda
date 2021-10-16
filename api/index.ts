@@ -161,8 +161,10 @@ export interface Student {
 }
 export type Students = Student[]
 
+export type StudentUpdateAttribute = 'firstName' | 'lastName' | 'username' | 'year'
+
 export interface StudentUpdate {
-	attribute: string
+	attribute: StudentUpdateAttribute
 	value: any
 }
 

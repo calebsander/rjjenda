@@ -1,4 +1,4 @@
-import {Instance} from 'sequelize'
+import {Model} from 'sequelize'
 
 export interface EventAttributes {
 	id?: number //arbitrary
@@ -7,4 +7,4 @@ export interface EventAttributes {
 	name: string
 }
 
-export interface EventInstance extends Instance<EventAttributes>, EventAttributes {}
+export interface EventModel extends Model<EventAttributes>, EventAttributes {}

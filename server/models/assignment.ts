@@ -1,5 +1,5 @@
-import {Instance} from 'sequelize'
-import {GroupInstance} from './group'
+import {Model} from 'sequelize'
+import {GroupModel} from './group'
 
 export interface AssignmentAttributes {
 	id?: number //arbitrary
@@ -10,8 +10,8 @@ export interface AssignmentAttributes {
 	weight: number //allows for flexibility, but currently will be 0 for minor/event and 1 for major
 }
 
-export interface AssignmentInstance extends Instance<AssignmentAttributes>, AssignmentAttributes {
+export interface AssignmentModel extends Model<AssignmentAttributes>, AssignmentAttributes {
 	createdAt: Date
 	due: string
-	group: GroupInstance
+	group: GroupModel
 }

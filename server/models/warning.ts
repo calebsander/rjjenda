@@ -1,10 +1,11 @@
-import {Instance} from 'sequelize'
+import {Model} from 'sequelize'
 
 export interface WarningAttributes {
+	id?: number //arbitrary
 	assignmentWeight: number //sum of assignment weights
 	color: string //hex color to display on UI
 }
 
-export interface WarningInstance extends Instance<WarningAttributes>, WarningAttributes {
-	id: number //arbitrary
+export interface WarningModel extends Model<WarningAttributes>, WarningAttributes {
+	id: number
 }

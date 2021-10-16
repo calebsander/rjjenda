@@ -2,7 +2,7 @@ import {parse, RowObject} from './csv-parse'
 import {Readable} from 'stream'
 import {NewStudent} from '../../api'
 import {GradeGroup, Group, Student, Teacher} from '../models'
-import {GroupInstance} from '../models/group'
+import {GroupModel} from '../models/group'
 const {emailDomain} = require('../../settings')
 
 interface Person extends RowObject {
@@ -30,8 +30,8 @@ export function importStudents(students: NewStudent[], requireCreation: boolean)
 		if (year) years.add(Number(year))
 	}
 	//Create groups for each of the grades
-	const gradeGroupCreations: PromiseLike<any>[] = []
-	const gradeGroups = new Map<number | null, GroupInstance>()
+	const gradeGroupCreations: Promise<unknown>[] = []
+	const gradeGroups = new Map<number | null, GroupModel>()
 	for (const year of years) {
 		gradeGroupCreations.push(
 			GradeGroup.findOrCreate({
@@ -62,13 +62,13 @@ export function importStudents(students: NewStudent[], requireCreation: boolean)
 						})
 					}
 				})
-				.then(group => gradeGroups.set(year, group as GroupInstance))
+				.then(group => gradeGroups.set(year, group as GroupModel))
 		)
 	}
 	//Instantiate all the students
 	return Promise.all(gradeGroupCreations)
 		.then(() => {
-			const allSchoolGroup = gradeGroups.get(null) as GroupInstance
+			const allSchoolGroup = gradeGroups.get(null)!
 			return Promise.all(students.map(student => {
 				const {id, lastName, firstName, username, year} = student
 				return Student.findOrCreate({
@@ -78,13 +78,13 @@ export function importStudents(students: NewStudent[], requireCreation: boolean)
 						firstName,
 						lastName,
 						username,
-						advisor: null,
+						advisorId: null,
 						year
 					}
 				})
-					.then(([student, created]): PromiseLike<any> => { //add student to automatic groups
+					.then(([student, created]): Promise<unknown> => { //add student to automatic groups
 						if (created) {
-							const gradeGroup = gradeGroups.get(student.year) as GroupInstance
+							const gradeGroup = gradeGroups.get(student.year)!
 							return Promise.all([gradeGroup, allSchoolGroup].map(group =>
 								group.addStudent(student)
 							))

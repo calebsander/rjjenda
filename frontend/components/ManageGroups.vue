@@ -208,7 +208,10 @@
 			this.editGroup = group
 			this.newName = group.name
 			;(this.$refs.editor as Dialog).open()
-			setTimeout(() => (this.$refs.editName as Vue).$el.focus(), 0)
+			setTimeout(() => {
+				const element = (this.$refs.editName as Vue).$el
+				;(element as HTMLElement).focus()
+			}, 0)
 		}
 		cancel() {
 			(this.$refs.editor as Dialog).close()
@@ -253,7 +256,8 @@
 			this.resetSelectedStudent()
 			;(this.$refs.selectStudents as Dialog).open()
 			setTimeout(() => {
-				(this.$refs.studentName as Vue).$el.querySelector('input')!.focus() //have to select child of autocomplete container
+				const element = (this.$refs.studentName as Vue).$el
+				;(element.querySelector('input') as HTMLElement).focus() //have to select child of autocomplete container
 			}, 0)
 			this.loading = true
 			apiFetch({
@@ -268,7 +272,10 @@
 		newGroup() {
 			this.newGroupName = ''
 			;(this.$refs.newGroup as Dialog).open()
-			setTimeout(() => (this.$refs.newName as Vue).$el.focus(), 0)
+			setTimeout(() => {
+				const element = (this.$refs.newName as Vue).$el
+				;(element as HTMLElement).focus()
+			}, 0)
 		}
 		create() {
 			if (!this.newGroupName) {

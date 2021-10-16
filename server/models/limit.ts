@@ -1,4 +1,4 @@
-import {Instance} from 'sequelize'
+import {Model} from 'sequelize'
 
 export interface LimitAttributes {
 	id?: number //arbitrary
@@ -6,6 +6,6 @@ export interface LimitAttributes {
 	assignmentWeight: number //max sum of assignment weights
 }
 
-export interface LimitInstance extends Instance<LimitAttributes>, LimitAttributes {
+export interface LimitModel extends Model<LimitAttributes>, LimitAttributes {
 	id: number
 }

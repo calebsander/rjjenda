@@ -1,10 +1,10 @@
 import {Op} from 'sequelize'
 import {AtFaultViolation, LimitViolation} from '../api'
 import {Assignment, Course, Limit, GradeGroup, Group, Section, Student, Teacher} from './models'
-import {AssignmentInstance} from './models/assignment'
-import {TeacherInstance} from './models/teacher'
-import {StudentInstance} from './models/student'
-import {WarningInstance} from './models/warning'
+import {AssignmentModel} from './models/assignment'
+import {TeacherModel} from './models/teacher'
+import {StudentModel} from './models/student'
+import {WarningModel} from './models/warning'
 import {getWarnings} from './models/warning-model'
 import ExtendedDate from '../util/extended-date'
 import {emailDomain} from '../settings.json'
@@ -25,10 +25,10 @@ interface StudentGroupsInfo {
 	advisorEmail?: string
 	groups: GroupInfo[]
 }
-function teacherSuffix(teacher: TeacherInstance) {
+function teacherSuffix(teacher: TeacherModel) {
 	return ' - ' + teacher.lastName
 }
-function getStudentGroupsInfo({id, firstName, lastName, groups, username, advisor}: StudentInstance): StudentGroupsInfo {
+function getStudentGroupsInfo({id, firstName, lastName, groups, username, advisor}: StudentModel): StudentGroupsInfo {
 	return {
 		id,
 		name: firstName + ' ' + lastName,
@@ -41,8 +41,8 @@ function getStudentGroupsInfo({id, firstName, lastName, groups, username, adviso
 		advisorEmail: advisor ? getEmail(advisor.username) : undefined
 	}
 }
-function assignmentName(groupNames: Map<number, string>, includeDate: boolean): (assignment: AssignmentInstance) => string {
-	return ({name, groupId, due, weight}: AssignmentInstance): string => {
+function assignmentName(groupNames: Map<number, string>, includeDate: boolean): (assignment: AssignmentModel) => string {
+	return ({name, groupId, due, weight}: AssignmentModel): string => {
 		let dateString: string
 		if (includeDate) {
 			const [, m, d] = due.split('-')
@@ -58,10 +58,9 @@ function assignmentName(groupNames: Map<number, string>, includeDate: boolean): 
 
 export function checkAddition(day: ExtendedDate, newWeight: number, groupId: number): Promise<LimitViolation[]> {
 	return checkRange(day, day, newWeight, groupId)
-		.then(violations => {
-			for (const violation of violations) delete violation.fault
-			return violations
-		})
+		.then(violations =>
+			Promise.resolve(violations.map(({fault, ...violation}) => violation))
+		)
 }
 export function getAllViolations(): Promise<AtFaultViolation[]> {
 	return Promise.resolve(
@@ -118,20 +117,20 @@ export function violationsForTeacher(teacherId: string): Promise<AtFaultViolatio
 		})
 }
 function violationsForStudentsInGroup(groupId: number): Promise<AtFaultViolation[]> {
-	const minAssignmentDay = Assignment.min('due', {
+	const minAssignmentDay = Assignment.min<string, AssignmentModel>('due', {
 		where: {
 			weight: {[Op.gt]: 0}
 		}
 	})
-		.then((date: string) => {
+		.then(date => {
 			return Promise.resolve(new ExtendedDate(date).fromUTC())
 		})
-	const maxAssignmentDay = Assignment.max('due', {
+	const maxAssignmentDay = Assignment.max<string, AssignmentModel>('due', {
 		where: {
 			weight: {[Op.gt]: 0}
 		}
 	})
-		.then((date: string) => {
+		.then(date => {
 			return Promise.resolve(new ExtendedDate(date).fromUTC())
 		})
 	return Promise.all([minAssignmentDay, maxAssignmentDay])
@@ -252,7 +251,7 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 						for (const student of students) {
 							const groups = new Set(student.groups.map(({id}) => id))
 							const studentAssignments = assignments.filter(assignment => groups.has(assignment.groupId))
-							const dayAssignments = new Map<string, AssignmentInstance[]>() //map of YYYY-MM-DDs to lists of assignments
+							const dayAssignments = new Map<string, AssignmentModel[]>() //map of YYYY-MM-DDs to lists of assignments
 							for (const assignment of studentAssignments) {
 								let day = dayAssignments.get(assignment.due)
 								if (!day) {
@@ -269,7 +268,7 @@ function checkRange(start: ExtendedDate, end: ExtendedDate, newWeight: number, g
 									const windowStartYYYYMMDD = extendedWindowStart.toYYYYMMDD()
 									const extendedWindowEnd = extendedWindowStart.addDays(dayRange)
 									const windowEndYYYYMMDD = extendedWindowEnd.toYYYYMMDD()
-									const assignmentsInRange: AssignmentInstance[] = []
+									const assignmentsInRange: AssignmentModel[] = []
 									for (let day = extendedWindowStart; day.toYYYYMMDD() <= windowEndYYYYMMDD; day = day.addDays(1)) {
 										assignmentsInRange.push(...(dayAssignments.get(day.toYYYYMMDD()) || []))
 									}
@@ -367,14 +366,14 @@ export function getWarning(day: ExtendedDate, studentIds: string[]): Promise<Map
 			}
 		})
 		return allAssignments.then(assignments => {
-			const studentWarningPromises: PromiseLike<WarningMatched | null>[] = []
+			const studentWarningPromises: Promise<WarningMatched | null>[] = []
 			for (const student of students) {
 				const studentGroups = new Set(student.groups.map(({id}) => id))
 				const studentAssignments = assignments.filter(({groupId}) => studentGroups.has(groupId))
 				const weightSum = studentAssignments.reduce((sum, {weight}) => sum + weight, 0)
 				const studentWarningPromise = studentAssignments.length
 					? getWarnings().then(warnings => {
-							let maxWarning: WarningInstance | undefined
+							let maxWarning: WarningModel | undefined
 							for (const warning of warnings) {
 								if (warning.assignmentWeight > weightSum) break
 								maxWarning = warning

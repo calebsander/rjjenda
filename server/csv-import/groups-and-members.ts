@@ -1,10 +1,9 @@
-import * as Bluebird from 'bluebird'
 import {Readable} from 'stream'
 import {parse, RowObject} from './csv-parse'
 import {Course, Group, Section, Student, Teacher} from '../models'
-import {CourseInstance} from '../models/course'
-import {GroupInstance} from '../models/group'
-import {StudentInstance} from '../models/student'
+import {CourseModel} from '../models/course'
+import {GroupModel} from '../models/group'
+import {StudentModel} from '../models/student'
 
 interface GroupMemberStreams {
 	groupStream: Readable
@@ -43,8 +42,8 @@ export default ({groupStream, memberStream}: GroupMemberStreams): Promise<string
 				}
 				else courseMap.set(group['Course #'], group['Course Name']) //even if there are multiple sections, only records one course
 			}
-			const courseCreationPromises: Bluebird<any>[] = []
-			const courseInstanceMap = new Map<string, CourseInstance>() //mapping of courses IDs to created instances
+			const courseCreationPromises: Promise<unknown>[] = []
+			const courseInstanceMap = new Map<string, CourseModel>() //mapping of courses IDs to created instances
 			for (const [id, name] of courseMap) {
 				courseCreationPromises.push(
 					Course.create({
@@ -63,8 +62,8 @@ export default ({groupStream, memberStream}: GroupMemberStreams): Promise<string
 							sectionTeachers.set(membership['Group ID'], membership['User ID'])
 						}
 					}
-					const sectionCreationPromises: Bluebird<any>[] = []
-					const groupInstanceMap = new Map<string, GroupInstance>() //mapping of 'COURSE-SECTION' to created group instances
+					const sectionCreationPromises: Promise<unknown>[] = []
+					const groupInstanceMap = new Map<string, GroupModel>() //mapping of 'COURSE-SECTION' to created group instances
 					for (const [courseSection, teacherId] of sectionTeachers) {
 						const [course, section] = courseSection.split('-')
 						if (!courseMap.has(course)) continue //must be an advisory "course"
@@ -90,10 +89,10 @@ export default ({groupStream, memberStream}: GroupMemberStreams): Promise<string
 								})
 						)
 					}
-					const studentInstanceMap = new Map<string, StudentInstance>()
+					const studentInstanceMap = new Map<string, StudentModel>()
 					for (const student of allStudents) studentInstanceMap.set(student.id, student)
 					const groupStudents = new Map<string, string[]>() //mapping of group IDs to lists of all enrolled students
-					const advisorSetPromises: Bluebird<any>[] = []
+					const advisorSetPromises: Promise<unknown>[] = []
 					for (const membership of memberships) {
 						if (membership['Role(s)'] === 'Student') {
 							const groupId = membership['Group ID']

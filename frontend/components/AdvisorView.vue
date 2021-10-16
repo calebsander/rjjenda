@@ -168,7 +168,8 @@
 			this.newStudent = null
 			;(this.$refs.addStudent as Dialog).open()
 			setTimeout(() => {
-				(this.$refs.studentName as Vue).$el.querySelector('input')!.focus() //have to select child of autocomplete container
+				const element = (this.$refs.studentName as Vue).$el
+				;(element.querySelector('input') as HTMLElement).focus() //have to select child of autocomplete container
 			}, 0)
 		}
 		getStudents(query: StudentQuery) {
@@ -231,7 +232,7 @@
 					...this.mondayDate.toYMD(),
 					days: this.WEEK_DAYS
 				}
-				return new Promise((resolve, reject) => {
+				return new Promise<void>((resolve, reject) => {
 					apiFetch({
 						url: '/advisor/assignments',
 						data,

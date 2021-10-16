@@ -1,12 +1,11 @@
-import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import * as Sequelize from 'sequelize'
 import {Groups, MatchingStudent, NewGroupName, NewGroup} from '../../api'
 import {error, success} from '../api-respond'
 import {Course, Group, Section, Student, Teacher} from '../models'
-import {GroupAttributes, GroupInstance} from '../models/group'
-import {SectionInstance} from '../models/section'
-import {StudentInstance} from '../models/student'
+import {GroupAttributes, GroupModel} from '../models/group'
+import {SectionModel} from '../models/section'
+import {StudentModel} from '../models/student'
 import sectionGroupName from '../section-group-name'
 
 const router = express.Router()
@@ -29,7 +28,7 @@ router.get('/groups', (_, res) => {
 		.then(groups => {
 			const responsePromise: Promise<Groups> = Promise.all(
 				groups.map(group => {
-					let sectionPromise: PromiseLike<SectionInstance | null>
+					let sectionPromise: Promise<SectionModel | null>
 					if (group.sectionId === null) sectionPromise = Promise.resolve(null)
 					else {
 						sectionPromise = Section.findOne({ //I was having issues including student count and section in same group query
@@ -74,7 +73,7 @@ router.get('/groups', (_, res) => {
 		.catch(error(res))
 })
 router.post('/group/set-name',
-	bodyParser.json(),
+	express.json(),
 	(req, res) => {
 		const {id, newName} = req.body as NewGroupName
 		Group.findOne({
@@ -102,7 +101,7 @@ router.get('/group/set-teacher/:groupId/:teacherId', (req, res) => {
 	})
 		.then(group => {
 			if (group === null) throw new Error('No group with id: ' + String(id))
-			const section = group.section as SectionInstance
+			const section = group.section as SectionModel
 			section.set('teacherId', teacherId)
 			return section.save()
 		})
@@ -115,16 +114,16 @@ router.delete('/group/:id', (req, res) => {
 		attributes: ['id', 'sectionId'],
 		where: {id}
 	})
-		.then(group => {
+		.then((group): Promise<unknown> => {
 			if (group === null) throw new Error('No group with id: ' + String(id))
-			if (group.sectionId === null) return group.destroy() as PromiseLike<any>
-			else return Section.destroy({where: {id: group.sectionId}}) as PromiseLike<any> //will cascade to delete group as well
+			if (group.sectionId === null) return group.destroy()
+			else return Section.destroy({where: {id: group.sectionId}}) //will cascade to delete group as well
 		})
 		.then(() => success(res))
 		.catch(error(res))
 })
 router.post('/group',
-	bodyParser.json(),
+	express.json(),
 	(req, res) => {
 		const {name} = req.body as NewGroup
 		Group.create({
@@ -135,7 +134,7 @@ router.post('/group',
 			.catch(error(res))
 	}
 )
-export function toGroupStudents(students: StudentInstance[]): MatchingStudent[] {
+export function toGroupStudents(students: StudentModel[]): MatchingStudent[] {
 	return students.map(student => ({
 		id: student.id,
 		firstName: student.firstName,
@@ -166,8 +165,8 @@ router.get('/list-members/:id', (req, res) => {
 		.catch(error(res))
 })
 interface GroupAndStudent {
-	group: GroupInstance,
-	student: StudentInstance
+	group: GroupModel
+	student: StudentModel
 }
 function getGroupAndStudent(req: express.Request): Promise<GroupAndStudent> {
 	const id = Number(req.params.id)

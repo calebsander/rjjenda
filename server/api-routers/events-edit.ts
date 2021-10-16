@@ -1,4 +1,3 @@
-import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import {NewEvent} from '../../api'
 import {error, success} from '../api-respond'
@@ -7,7 +6,7 @@ import ExtendedDate from '../../util/extended-date'
 
 const router = express.Router()
 router.post('/new-event',
-	bodyParser.json(),
+	express.json(),
 	(req, res) => {
 		const {year, month, date, days, name} = req.body as NewEvent
 		if (days < 1) return error(res)(new Error('Must last at least 1 day'))
@@ -23,7 +22,7 @@ router.post('/new-event',
 	}
 )
 router.delete('/event/:id', (req, res) => {
-	const id: number = req.params.id
+	const id = Number(req.params.id)
 	Event.destroy({
 		where: {id}
 	})

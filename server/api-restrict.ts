@@ -2,7 +2,7 @@ import {NextFunction, Request, Response} from 'express'
 import {NEED_TO_BE_LOGGED_IN} from '../api'
 import {error} from './api-respond'
 import {SavedUserType, UserType} from './authentication'
-import {TeacherInstance} from './models/teacher'
+import {TeacherModel} from './models/teacher'
 
 export function restrictToLoggedIn(req: Request, res: Response, next: NextFunction) {
 	if (req.isAuthenticated()) next()
@@ -21,10 +21,10 @@ export const restrictToStudent = restrictToUserType('student')
 export const restrictToTeacher = restrictToUserType('teacher')
 export function restrictToAdmin(req: Request, res: Response, next: NextFunction) {
 	restrictToTeacher(req, res, () => {
-		const user: TeacherInstance = req.user as TeacherInstance
+		const user = req.user as TeacherModel
 		user.reload({attributes: ['admin']})
 			.then(user => {
-				if ((user as any as TeacherInstance).admin) next()
+				if (user.admin) next()
 				else error(res)(new Error('Need to be an administrator'))
 			})
 			.catch(error(res))

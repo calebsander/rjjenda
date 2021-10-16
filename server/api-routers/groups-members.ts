@@ -1,4 +1,3 @@
-import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import {Readable} from 'stream'
 import {SectionsNotFound} from '../../api'
@@ -15,7 +14,7 @@ interface StringBody {
 
 const router = express.Router()
 router.post('/upload-groups',
-	bodyParser.text(),
+	express.text(),
 	(req, res) => {
 		const user: UserType = req.user as UserType
 		const {id} = user

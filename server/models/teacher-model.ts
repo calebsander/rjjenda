@@ -1,10 +1,10 @@
 import * as Sequelize from 'sequelize'
-import {TeacherAttributes, TeacherInstance} from './teacher'
+import {TeacherAttributes, TeacherModel} from './teacher'
 import {addAssociations} from './index'
 
-export default (sequelize: Sequelize.Sequelize): Sequelize.Model<TeacherInstance, TeacherAttributes> =>
+export default (sequelize: Sequelize.Sequelize): Sequelize.ModelCtor<TeacherModel> =>
 	addAssociations(
-		sequelize.define<TeacherInstance, TeacherAttributes>('teacher', {
+		sequelize.define<TeacherModel, TeacherAttributes>('teacher', {
 			id: {
 				type: Sequelize.STRING,
 				primaryKey: true,

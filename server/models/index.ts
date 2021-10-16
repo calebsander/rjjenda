@@ -1,42 +1,47 @@
 import * as Sequelize from 'sequelize'
-import {StudentAttributes, StudentInstance} from './student'
-import {TeacherAttributes, TeacherInstance} from './teacher'
-import {CourseAttributes, CourseInstance} from './course'
-import {SectionAttributes, SectionInstance} from './section'
-import {GroupAttributes, GroupInstance} from './group'
-import {AssignmentAttributes, AssignmentInstance} from './assignment'
-import {LimitAttributes, LimitInstance} from './limit'
-import {WarningAttributes, WarningInstance} from './warning'
-import {GradeGroupAttributes, GradeGroupInstance} from './grade-group'
-import {EventAttributes, EventInstance} from './event'
-import StudentModel from './student-model'
-import TeacherModel from './teacher-model'
-import CourseModel from './course-model'
-import SectionModel from './section-model'
-import GroupModel from './group-model'
-import AssignmentModel from './assignment-model'
-import LimitModel from './limit-model'
-import WarningModel from './warning-model'
-import GradeGroupModel from './grade-group-model'
-import EventModel from './event-model'
+import {StudentModel} from './student'
+import {TeacherModel} from './teacher'
+import {CourseModel} from './course'
+import {SectionModel} from './section'
+import {GroupModel} from './group'
+import {AssignmentModel} from './assignment'
+import {LimitModel} from './limit'
+import {WarningModel} from './warning'
+import {GradeGroupModel} from './grade-group'
+import {EventModel} from './event'
+import defineStudent from './student-model'
+import defineTeacher from './teacher-model'
+import defineCourse from './course-model'
+import defineSection from './section-model'
+import defineGroup from './group-model'
+import defineAssignment from './assignment-model'
+import defineLimit from './limit-model'
+import defineWarning from './warning-model'
+import defineGradeGroup from './grade-group-model'
+import defineEvent from './event-model'
 const env = process.env.NODE_ENV || 'development'
 const config = require('../../config/config')[env]
 
 type AssociateFunction = (models: SequelizeModels) => void
+type AssociatableModelCtor<M extends Sequelize.Model<any>> =
+	Sequelize.ModelCtor<M> & {associate?: AssociateFunction}
 export interface SequelizeModels {
-	Student: Sequelize.Model<StudentInstance, StudentAttributes>
-	Teacher: Sequelize.Model<TeacherInstance, TeacherAttributes>
-	Course: Sequelize.Model<CourseInstance, CourseAttributes>
-	Section: Sequelize.Model<SectionInstance, SectionAttributes>
-	GradeGroup: Sequelize.Model<GradeGroupInstance, GradeGroupAttributes>
-	Group: Sequelize.Model<GroupInstance, GroupAttributes>
-	Assignment: Sequelize.Model<AssignmentInstance, AssignmentAttributes>
-	Limit: Sequelize.Model<LimitInstance, LimitAttributes>
-	Warning: Sequelize.Model<WarningInstance, WarningAttributes>
-	Event: Sequelize.Model<EventInstance, EventAttributes>
-	[modelName: string]: Sequelize.Model<any, any>
+	Student: Sequelize.ModelCtor<StudentModel>
+	Teacher: Sequelize.ModelCtor<TeacherModel>
+	Course: Sequelize.ModelCtor<CourseModel>
+	Section: Sequelize.ModelCtor<SectionModel>
+	GradeGroup: Sequelize.ModelCtor<GradeGroupModel>
+	Group: Sequelize.ModelCtor<GroupModel>
+	Assignment: Sequelize.ModelCtor<AssignmentModel>
+	Limit: Sequelize.ModelCtor<LimitModel>
+	Warning: Sequelize.ModelCtor<WarningModel>
+	Event: Sequelize.ModelCtor<EventModel>
+	[modelName: string]: AssociatableModelCtor<Sequelize.Model<{}>>
 }
-export function addAssociations<I, A>(model: Sequelize.Model<I, A>, associate: AssociateFunction): Sequelize.Model<I, A> {
+export function addAssociations<M extends Sequelize.Model<any>>(
+	model: Sequelize.ModelCtor<M>,
+	associate: AssociateFunction
+): AssociatableModelCtor<M> {
 	return Object.assign(model, {associate})
 }
 
@@ -45,18 +50,18 @@ class Database {
 	readonly models: SequelizeModels
 
 	constructor() {
-		this.sequelize = new Sequelize(config)
+		this.sequelize = new Sequelize.Sequelize(config)
 		this.models = {
-			Student: StudentModel(this.sequelize),
-			Teacher: TeacherModel(this.sequelize),
-			Course: CourseModel(this.sequelize),
-			Section: SectionModel(this.sequelize),
-			Group: GroupModel(this.sequelize),
-			Assignment: AssignmentModel(this.sequelize),
-			Limit: LimitModel(this.sequelize),
-			Warning: WarningModel(this.sequelize),
-			GradeGroup: GradeGroupModel(this.sequelize),
-			Event: EventModel(this.sequelize)
+			Student: defineStudent(this.sequelize),
+			Teacher: defineTeacher(this.sequelize),
+			Course: defineCourse(this.sequelize),
+			Section: defineSection(this.sequelize),
+			Group: defineGroup(this.sequelize),
+			Assignment: defineAssignment(this.sequelize),
+			Limit: defineLimit(this.sequelize),
+			Warning: defineWarning(this.sequelize),
+			GradeGroup: defineGradeGroup(this.sequelize),
+			Event: defineEvent(this.sequelize)
 		}
 
 		for (const modelName in this.models) {

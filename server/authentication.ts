@@ -1,12 +1,12 @@
 import * as passport from 'passport'
 import {OAuth2Strategy as GoogleStrategy} from 'passport-google-oauth'
-import {StudentInstance} from './models/student'
-import {TeacherInstance} from './models/teacher'
+import {StudentModel} from './models/student'
+import {TeacherModel} from './models/teacher'
 import {Student, Teacher} from './models'
 import {clientID, clientSecret} from '../config/oauth.json'
 import {https, hostDomain, port, emailDomain} from '../settings.json'
 
-export type UserType = StudentInstance | TeacherInstance
+export type UserType = StudentModel | TeacherModel
 export class SavedUserType {
 	readonly id: string
 	readonly type: 'student' | 'teacher'

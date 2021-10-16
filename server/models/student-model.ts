@@ -1,10 +1,10 @@
 import * as Sequelize from 'sequelize'
-import {StudentAttributes, StudentInstance} from './student'
+import {StudentAttributes, StudentModel} from './student'
 import {addAssociations} from './index'
 
-export default (sequelize: Sequelize.Sequelize): Sequelize.Model<StudentInstance, StudentAttributes> =>
+export default (sequelize: Sequelize.Sequelize): Sequelize.ModelCtor<StudentModel> =>
 	addAssociations(
-		sequelize.define<StudentInstance, StudentAttributes>('student', {
+		sequelize.define<StudentModel, StudentAttributes>('student', {
 			id: {
 				type: Sequelize.STRING,
 				primaryKey: true,
@@ -28,7 +28,7 @@ export default (sequelize: Sequelize.Sequelize): Sequelize.Model<StudentInstance
 				type: Sequelize.INTEGER,
 				allowNull: false
 			}
-		}),
+		} as Sequelize.ModelAttributes<StudentModel>),
 		({Student, Teacher, Group}) => {
 			Student.belongsTo(Teacher, {as: 'advisor'})
 			Student.belongsToMany(Group, {through: 'memberships'})

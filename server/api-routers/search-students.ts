@@ -1,4 +1,3 @@
-import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import * as Sequelize from 'sequelize'
 import {MatchingStudent, StudentQuery} from '../../api'
@@ -15,7 +14,7 @@ const FULL_NAME = Sequelize.fn('lower',
 const router = express.Router()
 router.post('/',
 	restrictToTeacher,
-	bodyParser.json(),
+	express.json(),
 	(req, res) => {
 		const {nameSearch} = req.body as StudentQuery
 		Student.findAll({

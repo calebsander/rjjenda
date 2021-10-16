@@ -1,4 +1,3 @@
-import * as bodyParser from 'body-parser'
 import * as express from 'express'
 import {Limits, NewLimit} from '../../api'
 import {error, success} from '../api-respond'
@@ -19,7 +18,7 @@ router.get('/limits', (_, res) =>
 		.catch(error(res))
 )
 router.post('/limit',
-	bodyParser.json(),
+	express.json(),
 	(req, res) => {
 		const {days, weight} = req.body as NewLimit
 		Limit.create({
