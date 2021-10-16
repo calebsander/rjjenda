@@ -3,18 +3,8 @@ import {OAuth2Strategy as GoogleStrategy} from 'passport-google-oauth'
 import {StudentInstance} from './models/student'
 import {TeacherInstance} from './models/teacher'
 import {Student, Teacher} from './models'
-interface OAuthConfig {
-	clientID: string
-	clientSecret: string
-}
-const {clientID, clientSecret}: OAuthConfig = require('../config/oauth.json')
-interface Settings {
-	emailDomain: string
-	https: boolean
-	hostDomain: string
-	port: number
-}
-const {https, hostDomain, port, emailDomain}: Settings = require('../settings.json')
+import {clientID, clientSecret} from '../config/oauth.json'
+import {https, hostDomain, port, emailDomain} from '../settings.json'
 
 export type UserType = StudentInstance | TeacherInstance
 export class SavedUserType {

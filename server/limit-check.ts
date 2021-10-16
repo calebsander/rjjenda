@@ -7,11 +7,8 @@ import {StudentInstance} from './models/student'
 import {WarningInstance} from './models/warning'
 import {getWarnings} from './models/warning-model'
 import ExtendedDate from '../util/extended-date'
+import {emailDomain} from '../settings.json'
 
-interface Settings {
-	emailDomain: string
-}
-const {emailDomain}: Settings = require('../settings.json')
 function getEmail(username: string) {
 	return username + '@' + emailDomain
 }

@@ -29,3 +29,23 @@ npm start
 ````
 npm run build
 ````
+
+## Using HTTPS
+
+To enable HTTPS, you first need an SSL certificate.
+The certificate will include a private key file (named something like `key.pem`) and a certificate file (something like `cert.pem`).
+Update `settings.json` with the paths to these files:
+```json
+{
+	"emailDomain": "...",
+	"https": {
+		"keyFile": "key.pem",
+		"certFile": "cert.pem"
+	},
+	"hostDomain": "...",
+	"port": 443
+}
+```
+You may also want to change the port that the server runs on; the default for HTTPS is 443.
+
+To disable HTTPS, set `"https": null`.

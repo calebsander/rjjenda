@@ -18,8 +18,7 @@
 <script lang='ts'>
 	import Vue from 'vue'
 	import Component from 'vue-class-component'
-
-	const {emailDomain} = require('../../settings.json')
+	import {emailDomain} from '../../settings.json'
 
 	@Component
 	export default class LoginFailed extends Vue {
