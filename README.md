@@ -1,6 +1,6 @@
 # rjjenda
 
-## Intializing database
+## Initializing database
 ````
 $ psql postgres
 
